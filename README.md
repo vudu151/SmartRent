@@ -5,7 +5,7 @@ Backend API cho hệ thống quản lý nhà trọ SmartRent, được xây dự
 ## 🛠️ Công Nghệ
 
 - **Spring Boot**: 4.0.1
-- **Java**: 17
+- **Java**: 21
 - **Database**: PostgreSQL 14+
 - **Build Tool**: Maven 3.8+
 - **Security**: Spring Security + JWT
@@ -14,7 +14,7 @@ Backend API cho hệ thống quản lý nhà trọ SmartRent, được xây dự
 
 ## 📋 Yêu Cầu
 
-- Java 17 hoặc cao hơn
+- Java 21 hoặc cao hơn
 - Maven 3.8+
 - PostgreSQL 14+
 - IDE: IntelliJ IDEA / Eclipse / VS Code

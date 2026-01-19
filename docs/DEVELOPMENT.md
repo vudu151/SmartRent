@@ -3,7 +3,7 @@
 ## 1. Yêu Cầu Hệ Thống
 
 ### 1.1 Backend
-- **Java**: 17 hoặc cao hơn
+- **Java**: 21 hoặc cao hơn
 - **Maven**: 3.8+
 - **PostgreSQL**: 14+
 - **IDE**: IntelliJ IDEA / Eclipse / VS Code
