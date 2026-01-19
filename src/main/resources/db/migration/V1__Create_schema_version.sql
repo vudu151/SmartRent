@@ -1,0 +1,2 @@
+-- Flyway baseline migration
+-- This file ensures Flyway can track migrations
