@@ -9,17 +9,19 @@ import {
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/smartrent/auth";
-import { ApiError } from "@/lib/apiError";
+import { env } from "@/config/env";
+import { initializeGoogleSignIn, promptGoogleSignIn } from "@/lib/googleAuth";
 
 export function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading } = useAuth();
+  const { login, googleLogin, isLoading } = useAuth();
 
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [rememberMe, setRememberMe] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [successMessage, setSuccessMessage] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   
   // Refs for inputs
@@ -29,6 +31,15 @@ export function SignIn() {
   // Get redirect path from location state
   const from = location.state?.from?.pathname || "/dashboard/home";
 
+  // Check for signup success message
+  React.useEffect(() => {
+    if (location.state?.signupSuccess) {
+      setSuccessMessage("Đăng ký tài khoản thành công!");
+      // Clear the state to prevent showing message on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate]);
+
   // Load saved username on mount
   React.useEffect(() => {
     const savedUsername = localStorage.getItem('smartrent.rememberedUsername');
@@ -37,6 +48,67 @@ export function SignIn() {
       setRememberMe(true);
     }
   }, []);
+
+  // Initialize Google Sign-In - wait for SDK to load
+  React.useEffect(() => {
+    if (!env.googleClientId) {
+      console.warn("Google Client ID not configured");
+      return;
+    }
+
+    // Wait for Google SDK to load
+    const checkGoogleSDK = setInterval(() => {
+      if (window.google?.accounts?.id) {
+        clearInterval(checkGoogleSDK);
+        try {
+          initializeGoogleSignIn(
+            env.googleClientId,
+            async (idToken) => {
+              try {
+                setError("");
+                setIsSubmitting(true);
+                await googleLogin(idToken);
+                // Navigation is handled in AuthProvider
+              } catch (err) {
+                console.error("Google login error:", err);
+                let errorMessage = "Đăng nhập bằng Google thất bại. Vui lòng thử lại.";
+                
+                if (err?.error?.message) {
+                  errorMessage = err.error.message;
+                } else if (err?.message) {
+                  errorMessage = err.message;
+                }
+                
+                setError(errorMessage);
+              } finally {
+                setIsSubmitting(false);
+              }
+            },
+            (error) => {
+              console.error("Google Sign-In error:", error);
+              setError("Không thể khởi tạo Google Sign-In. Vui lòng thử lại.");
+            }
+          );
+        } catch (error) {
+          console.error("Failed to initialize Google Sign-In:", error);
+        }
+      }
+    }, 100);
+
+    // Timeout after 10 seconds
+    const timeout = setTimeout(() => {
+      clearInterval(checkGoogleSDK);
+      if (!window.google?.accounts?.id) {
+        console.error("Google Sign-In SDK failed to load after 10 seconds");
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(checkGoogleSDK);
+      clearTimeout(timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [env.googleClientId]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -135,6 +207,15 @@ export function SignIn() {
         </div>
 
         <form onSubmit={onSubmit} className="mx-auto w-80 max-w-screen-lg lg:w-1/2">
+          {successMessage && (
+            <Alert 
+              color="green" 
+              className="mb-4 bg-green-50 text-green-800 border border-green-200"
+              onClose={() => setSuccessMessage("")}
+            >
+              {successMessage}
+            </Alert>
+          )}
           {error && (
             <Alert 
               color="red" 
@@ -251,9 +332,25 @@ export function SignIn() {
               fullWidth
               onClick={(e) => {
                 e.preventDefault();
-                // TODO: Implement Google login
-                console.log("Google login clicked");
+                if (!env.googleClientId) {
+                  setError("Google Sign-In chưa được cấu hình. Vui lòng liên hệ quản trị viên.");
+                  return;
+                }
+                
+                if (!window.google?.accounts?.id) {
+                  setError("Google Sign-In SDK chưa được load. Vui lòng thử lại sau vài giây.");
+                  return;
+                }
+
+                try {
+                  // Trigger Google Sign-In prompt
+                  promptGoogleSignIn();
+                } catch (error) {
+                  console.error("Error triggering Google Sign-In:", error);
+                  setError("Không thể mở Google Sign-In. Vui lòng thử lại.");
+                }
               }}
+              disabled={isSubmitting || isLoading || !env.googleClientId}
             >
               <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clipPath="url(#clip0_1156_824)">

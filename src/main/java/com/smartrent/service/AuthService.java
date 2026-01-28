@@ -3,6 +3,9 @@ package com.smartrent.service;
 import com.smartrent.domain.Tenant;
 import com.smartrent.domain.User;
 import com.smartrent.dto.ApiResponse;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.smartrent.dto.auth.ForgotPasswordRequest;
+import com.smartrent.dto.auth.GoogleLoginRequest;
 import com.smartrent.dto.auth.LoginRequest;
 import com.smartrent.dto.auth.LoginResponse;
 import com.smartrent.dto.auth.RefreshTokenRequest;
@@ -13,6 +16,7 @@ import com.smartrent.repository.UserRepository;
 import com.smartrent.security.CustomUserDetailsService;
 import com.smartrent.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,6 +32,7 @@ import java.util.stream.Collectors;
  * Authentication Service
  * Handles login, logout, and token refresh
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -39,6 +44,8 @@ public class AuthService {
     private final TenantRepository tenantRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final GoogleOAuthService googleOAuthService;
 
     /**
      * Authenticate user and generate JWT tokens
@@ -273,5 +280,154 @@ public class AuthService {
         // In a stateless JWT implementation, logout is handled client-side
         // For enhanced security, consider implementing token blacklisting with Redis
         return ApiResponse.success(null, "Logout successful");
+    }
+
+    /**
+     * Forgot password - send reset password email
+     */
+    @Transactional
+    public ApiResponse<Void> forgotPassword(ForgotPasswordRequest request) {
+        try {
+            // Find user by email
+            User user = userRepository.findByUsernameOrEmail(request.getEmail())
+                .orElse(null);
+
+            // Always return success message for security (don't reveal if email exists)
+            // But only send email if user exists
+            if (user != null && user.isEnabled()) {
+                // Generate reset token (using JWT with short expiration)
+                String resetToken = tokenProvider.generatePasswordResetToken(user.getEmail(), user.getId());
+                
+                // Send password reset email
+                try {
+                    emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+                } catch (Exception e) {
+                    log.error("Failed to send password reset email", e);
+                    // Still return success to prevent email enumeration
+                }
+            }
+
+            // Always return success to prevent email enumeration
+            return ApiResponse.success(null, "Nếu email tồn tại trong hệ thống, vui lòng kiểm tra gmail để đặt lại mật khẩu..");
+
+        } catch (Exception e) {
+            // Still return success message for security
+            return ApiResponse.success(null, "Nếu email tồn tại trong hệ thống, vui lòng kiểm tra gmail để đặt lại mật khẩu..");
+           }
+    }
+
+    /**
+     * Google OAuth login - verify Google ID token and create/login user
+     */
+    @Transactional
+    public ApiResponse<LoginResponse> googleLogin(GoogleLoginRequest request) {
+        try {
+            // Verify Google ID token
+            GoogleIdToken.Payload payload = googleOAuthService.verifyToken(request.getIdToken());
+            
+            if (payload == null) {
+                return ApiResponse.error("AUTH_ERROR", "Google token không hợp lệ hoặc đã hết hạn.");
+            }
+
+            // Extract user information from Google token
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String googleId = payload.getSubject();
+
+            if (email == null || email.isEmpty()) {
+                return ApiResponse.error("AUTH_ERROR", "Không thể lấy email từ Google account.");
+            }
+
+            // Find or create user
+            User user = userRepository.findByUsernameOrEmail(email).orElse(null);
+
+            if (user == null) {
+                // Create new user from Google account
+                String username = email.split("@")[0];
+                // Ensure username is unique
+                int counter = 1;
+                String originalUsername = username;
+                while (userRepository.findByUsernameOrEmail(username).isPresent()) {
+                    username = originalUsername + counter;
+                    counter++;
+                }
+
+                // Create or find tenant
+                Tenant tenant = tenantRepository.findByEmail(email).orElse(null);
+                
+                if (tenant == null) {
+                    tenant = Tenant.builder()
+                        .name(name != null ? name : username)
+                        .email(email)
+                        .status(Tenant.TenantStatus.ACTIVE)
+                        .build();
+                    tenant = tenantRepository.save(tenant);
+                }
+
+                // Create new user (no password needed for Google login)
+                user = User.builder()
+                    .tenant(tenant)
+                    .username(username)
+                    .email(email)
+                    .fullName(name)
+                    .passwordHash(passwordEncoder.encode(googleId + System.currentTimeMillis())) // Random password
+                    .role(User.UserRole.TENANT)
+                    .status(User.UserStatus.ACTIVE)
+                    .build();
+
+                user = userRepository.save(user);
+
+                // Assign TENANT_STAFF role
+                final User savedUser = user;
+                roleRepository.findByName("TENANT_STAFF").ifPresent(role -> {
+                    savedUser.addRole(role);
+                    userRepository.save(savedUser);
+                });
+
+                // Reload user to get roles
+                user = userRepository.findById(savedUser.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found after creation"));
+            } else {
+                // Update last login for existing user
+                user.setLastLoginAt(LocalDateTime.now());
+                userRepository.save(user);
+            }
+
+            // Check if user is enabled
+            if (!user.isEnabled()) {
+                return ApiResponse.error("AUTH_ERROR", "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.");
+            }
+
+            // Generate JWT tokens
+            UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+            Long tenantId = user.getTenant() != null ? user.getTenant().getId() : null;
+            String accessToken = tokenProvider.generateAccessToken(userDetails, user.getId(), tenantId);
+            String refreshToken = tokenProvider.generateRefreshToken(userDetails, user.getId(), tenantId);
+
+            // Build response
+            LoginResponse response = LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(tokenProvider.getExpiration() / 1000)
+                .user(LoginResponse.UserInfo.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .tenantId(tenantId)
+                    .role(user.getRole().name())
+                    .permissions(user.getAuthorities().stream()
+                        .map(auth -> auth.getAuthority())
+                        .collect(Collectors.toSet()))
+                    .build())
+                .build();
+
+            return ApiResponse.success(response, "Đăng nhập bằng Google thành công!");
+
+        } catch (Exception e) {
+            log.error("Google login error", e);
+            return ApiResponse.error("AUTH_ERROR", "Đăng nhập bằng Google thất bại: " + e.getMessage());
+        }
     }
 }

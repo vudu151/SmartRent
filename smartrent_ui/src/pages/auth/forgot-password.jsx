@@ -6,6 +6,8 @@ import {
 } from "@material-tailwind/react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { forgotPassword } from "@/api/auth";
+import { ApiError } from "@/lib/apiError";
 
 export function ForgotPassword() {
   const navigate = useNavigate();
@@ -21,20 +23,52 @@ export function ForgotPassword() {
     setIsSubmitting(true);
 
     try {
+      // Client-side validation
       if (!email) {
         setError("Vui lòng nhập email của bạn.");
+        setIsSubmitting(false);
         return;
       }
 
-      // TODO: Implement forgot password API call
-      // For now, just show success message
-      setTimeout(() => {
-        setSuccess("Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu đến email của bạn. Vui lòng kiểm tra hộp thư.");
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setError("Email không hợp lệ. Vui lòng nhập đúng định dạng email.");
         setIsSubmitting(false);
-      }, 1000);
+        return;
+      }
+
+      // Call forgot password API
+      await forgotPassword({ email });
+      
+      // Show success message
+      setSuccess("Vui lòng kiểm tra gmail để đặt lại mật khẩu.");
     } catch (err) {
       console.error("Forgot password error:", err);
-      setError("Đã xảy ra lỗi. Vui lòng thử lại sau.");
+      console.error("Error details:", {
+        name: err?.name,
+        message: err?.message,
+        status: err?.status,
+        error: err?.error,
+        bodyText: err?.bodyText
+      });
+      
+      let errorMessage = "Đã xảy ra lỗi. Vui lòng thử lại sau.";
+      
+      // Try to get error message from different sources
+      if (err && typeof err === 'object' && typeof err.getErrorMessage === 'function') {
+        const msg = err.getErrorMessage();
+        if (msg && msg !== 'An error occurred') {
+          errorMessage = msg;
+        }
+      } else if (err?.error?.message) {
+        errorMessage = err.error.message;
+      } else if (err?.message && err.message !== 'Forgot password failed' && err.message !== 'Request failed') {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -110,7 +144,7 @@ export function ForgotPassword() {
               type="submit"
               disabled={isSubmitting || !!success}
             >
-              {isSubmitting ? "Đang gửi..." : success ? "Đã gửi email" : "Gửi liên kết đặt lại"}
+              {isSubmitting ? "Đang gửi..." : success ? "Đã gửi email" : "Gửi yêu cầu"}
             </Button>
 
             <Typography variant="paragraph" className="text-center text-blue-gray-500 font-medium mt-6">

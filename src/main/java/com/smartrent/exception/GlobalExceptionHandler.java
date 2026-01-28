@@ -27,17 +27,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
+        StringBuilder errorMessages = new StringBuilder();
+        
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
+            
+            if (errorMessages.length() > 0) {
+                errorMessages.append(", ");
+            }
+            errorMessages.append(errorMessage);
         });
+
+        String message = errors.size() == 1 
+            ? errorMessages.toString()
+            : "Có " + errors.size() + " lỗi validation: " + errorMessages.toString();
 
         ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
             .success(false)
             .error(ApiResponse.ErrorInfo.builder()
                 .code("VALIDATION_ERROR")
-                .message("Validation failed")
+                .message(message)
                 .details(errors)
                 .build())
             .build();

@@ -14,4 +14,11 @@ export default defineConfig({
   resolve: {
     alias: [{ find: '@', replacement: '/src' }],
   },
+  build: {
+    sourcemap: true, // Enable source maps for production builds
+  },
+  // Ensure source maps are enabled in dev mode (default is true)
+  css: {
+    devSourcemap: true,
+  },
 })

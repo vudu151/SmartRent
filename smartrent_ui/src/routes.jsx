@@ -6,8 +6,9 @@ import {
   ServerStackIcon,
   RectangleStackIcon,
   HeartIcon,
+  BuildingOfficeIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Tables, Notifications, Health } from "@/pages/dashboard";
+import { Home, Profile, Tables, Notifications, Health, Tenants } from "@/pages/dashboard";
 import { SignIn, SignUp, ForgotPassword } from "@/pages/auth";
 
 const icon = {
@@ -47,6 +48,12 @@ export const routes = [
         name: "notifications",
         path: "/notifications",
         element: <Notifications />,
+      },
+      {
+        icon: <BuildingOfficeIcon {...icon} />,
+        name: "tenants",
+        path: "/tenants",
+        element: <Tenants />,
       },
     ],
   },

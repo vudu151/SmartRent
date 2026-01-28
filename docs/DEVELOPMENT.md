@@ -1,476 +1,319 @@
-# Hướng Dẫn Phát Triển - SmartRent
+# Hướng Dẫn Chạy và Debug Project SmartRent
 
-## 1. Yêu Cầu Hệ Thống
+## 📋 Yêu Cầu Hệ Thống
 
-### 1.1 Backend
-- **Java**: 21 hoặc cao hơn
+- **Java**: 21+
 - **Maven**: 3.8+
-- **PostgreSQL**: 14+
-- **IDE**: IntelliJ IDEA / Eclipse / VS Code
-
-### 1.2 Frontend
 - **Node.js**: 18+
-- **npm/yarn**: Latest
-- **IDE**: VS Code (khuyến nghị)
+- **PostgreSQL**: 14+
+- **IDE**: IntelliJ IDEA / VS Code (khuyến nghị)
 
-## 2. Setup Môi Trường Phát Triển
+## 🗄️ Chuẩn Bị Database
 
-### 2.1 Clone Repository
+### 1. Tạo Database
 
-```bash
-git clone <repository-url>
-cd SmartRent
+```sql
+-- Kết nối PostgreSQL với user postgres
+CREATE DATABASE smartrent_dev;
 ```
 
-### 2.2 Setup Backend
+### 2. Kiểm tra cấu hình database trong `application.properties`
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/smartrent_dev
+spring.datasource.username=postgres
+spring.datasource.password=123456  # Thay đổi theo password của bạn
+```
+
+## 🚀 Chạy Backend (Spring Boot)
+
+### Cách 1: Chạy bằng Maven (Terminal)
 
 ```bash
-# Chuyển sang nhánh BE
-git checkout BE
+# Di chuyển vào thư mục root
+cd d:\Documents\SmartRent
 
-# Tạo database
-createdb smartrent_dev
+# Build project
+mvn clean install
 
-# Cấu hình database trong application.properties
-# src/main/resources/application.properties
+# Chạy với profile dev
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-# Chạy ứng dụng
+# Hoặc chạy không profile (sử dụng application.properties)
 mvn spring-boot:run
 ```
 
-Backend sẽ chạy tại: `http://localhost:8080`
+### Cách 2: Chạy bằng IDE (IntelliJ IDEA)
 
-### 2.3 Setup Frontend
+1. **Mở project trong IntelliJ IDEA**
+   - File → Open → Chọn thư mục `d:\Documents\SmartRent`
+
+2. **Cấu hình Run Configuration**
+   - Run → Edit Configurations
+   - Click `+` → Application
+   - **Main class**: `com.smartrent.SmartRentApplication`
+   - **VM options**: (để trống)
+   - **Program arguments**: (để trống)
+   - **Environment variables**: (tùy chọn)
+   - **Active profiles**: `dev` (nếu muốn dùng dev profile)
+
+3. **Debug Mode**
+   - Click vào icon Debug (🐛) hoặc nhấn `Shift + F9`
+   - Đặt breakpoint bằng cách click vào số dòng bên trái
+   - Khi code chạy đến breakpoint, sẽ dừng lại để debug
+
+4. **Chạy Application**
+   - Click vào icon Run (▶️) hoặc nhấn `Shift + F10`
+
+### Cách 3: Chạy bằng VS Code
+
+1. **Cài đặt extensions**:
+   - Extension Pack for Java
+   - Spring Boot Extension Pack
+
+2. **Tạo launch configuration** (`.vscode/launch.json`):
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot - SmartRentApplication",
+      "request": "launch",
+      "mainClass": "com.smartrent.SmartRentApplication",
+      "projectName": "smartrent-backend",
+      "args": "",
+      "vmArgs": "-Dspring.profiles.active=dev"
+    }
+  ]
+}
+```
+
+3. **Chạy/Debug**:
+   - Nhấn `F5` để debug
+   - Hoặc Run → Start Debugging
+
+### Kiểm tra Backend đã chạy
+
+- **Health check**: http://localhost:8080/api/health
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **API Docs**: http://localhost:8080/v3/api-docs
+
+## 🎨 Chạy Frontend (React + Vite)
+
+### 1. Cài đặt dependencies (lần đầu)
 
 ```bash
-# Chuyển sang nhánh FE
-git checkout FE
+# Di chuyển vào thư mục frontend
+cd d:\Documents\SmartRent\smartrent_ui
 
-# Cài đặt dependencies
+# Cài đặt packages
 npm install
-# hoặc
-yarn install
-
-# Chạy development server
-npm run dev
-# hoặc
-yarn dev
 ```
 
-Frontend sẽ chạy tại: `http://localhost:3000` (hoặc port khác)
-
-### 2.4 Setup Database
+### 2. Chạy Development Server
 
 ```bash
-# Tạo database
-createdb smartrent_dev
-
-# Chạy migrations (nếu dùng Flyway)
-mvn flyway:migrate
+# Chạy dev server
+npm run dev
 ```
 
-## 3. Cấu Trúc Dự Án
+Frontend sẽ chạy tại: **http://localhost:5173**
 
-### 3.1 Backend Structure
+### 3. Debug Frontend trong VS Code
 
-```
-BE/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/smartrent/
-│   │   │       ├── SmartRentApplication.java
-│   │   │       ├── config/
-│   │   │       ├── domain/
-│   │   │       ├── repository/
-│   │   │       ├── service/
-│   │   │       ├── controller/
-│   │   │       ├── dto/
-│   │   │       ├── mapper/
-│   │   │       ├── security/
-│   │   │       └── exception/
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       ├── application-dev.properties
-│   │       └── db/migration/ (Flyway)
-│   └── test/
-├── pom.xml
-└── README.md
-```
+1. **Cài đặt extensions**:
+   - Debugger for Chrome/Firefox
+   - React Developer Tools (browser extension)
 
-### 3.2 Frontend Structure
-
-```
-FE/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   ├── store/
-│   ├── hooks/
-│   ├── utils/
-│   ├── types/
-│   ├── constants/
-│   └── App.tsx
-├── public/
-├── package.json
-└── README.md
-```
-
-## 4. Coding Standards
-
-### 4.1 Backend (Java)
-
-#### Naming Conventions
-- **Classes**: PascalCase (`UserService`, `RoomController`)
-- **Methods**: camelCase (`getRooms`, `createContract`)
-- **Variables**: camelCase (`tenantId`, `roomNumber`)
-- **Constants**: UPPER_SNAKE_CASE (`MAX_RETRY_COUNT`)
-
-#### Code Style
-- Sử dụng 4 spaces cho indentation
-- Maximum line length: 120 characters
-- Luôn có JavaDoc cho public methods
-- Sử dụng `@Override` annotation
-
-#### Example:
-
-```java
-/**
- * Service for managing rooms
- */
-@Service
-@Transactional
-public class RoomService {
-    
-    private final RoomRepository roomRepository;
-    
-    public RoomService(RoomRepository roomRepository) {
-        this.roomRepository = roomRepository;
+2. **Tạo launch configuration** (`.vscode/launch.json`):
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome against localhost",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/smartrent_ui",
+      "sourceMaps": true
     }
-    
-    /**
-     * Get all rooms for current tenant
-     * @return List of rooms
-     */
-    public List<RoomDTO> getRooms() {
-        Long tenantId = TenantContext.getCurrentTenantId();
-        return roomRepository.findByTenantId(tenantId)
-            .stream()
-            .map(RoomMapper::toDTO)
-            .collect(Collectors.toList());
-    }
+  ]
 }
 ```
 
-### 4.2 Frontend (TypeScript/React)
+3. **Chạy debug**:
+   - Đảm bảo `npm run dev` đang chạy
+   - Nhấn `F5` để mở Chrome với debugger
 
-#### Naming Conventions
-- **Components**: PascalCase (`RoomList.tsx`, `InvoiceForm.tsx`)
-- **Functions**: camelCase (`getRooms`, `handleSubmit`)
-- **Variables**: camelCase (`tenantId`, `isLoading`)
-- **Constants**: UPPER_SNAKE_CASE (`API_BASE_URL`)
+### 4. Debug trong Browser
 
-#### Code Style
-- Sử dụng 2 spaces cho indentation
-- Maximum line length: 100 characters
-- Sử dụng TypeScript cho type safety
-- Functional components với hooks
+1. **Chrome DevTools**:
+   - Mở http://localhost:5173
+   - Nhấn `F12` để mở DevTools
+   - Tab **Sources**: Đặt breakpoint trong code
+   - Tab **Console**: Xem logs và errors
+   - Tab **Network**: Xem API requests/responses
 
-#### Example:
+2. **React DevTools**:
+   - Cài extension React Developer Tools
+   - Tab **Components**: Inspect React components
+   - Tab **Profiler**: Analyze performance
 
-```typescript
-interface RoomListProps {
-  buildingId?: number;
-  onRoomSelect: (room: Room) => void;
-}
+## 🔍 Debug Tips
 
-export const RoomList: React.FC<RoomListProps> = ({ 
-  buildingId, 
-  onRoomSelect 
-}) => {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(false);
+### Backend Debugging
 
-  useEffect(() => {
-    fetchRooms();
-  }, [buildingId]);
+1. **Logging**:
+   - Logs được cấu hình trong `application.properties`
+   - Xem logs trong console hoặc file log
+   - Level: `DEBUG` cho development
 
-  const fetchRooms = async () => {
-    setLoading(true);
-    try {
-      const data = await roomService.getRooms({ buildingId });
-      setRooms(data);
-    } catch (error) {
-      console.error('Failed to fetch rooms:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+2. **Breakpoints**:
+   - Đặt breakpoint tại các method trong Controller, Service
+   - Inspect variables, call stack
+   - Step over (`F8`), Step into (`F7`), Step out (`Shift + F8`)
 
-  return (
-    <div>
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <RoomGrid rooms={rooms} onSelect={onRoomSelect} />
-      )}
-    </div>
-  );
-};
-```
+3. **Database Queries**:
+   - `spring.jpa.show-sql=true` để xem SQL queries
+   - Sử dụng PostgreSQL client để query trực tiếp
 
-## 5. Git Workflow
+4. **API Testing**:
+   - Sử dụng Swagger UI: http://localhost:8080/swagger-ui.html
+   - Hoặc Postman/Insomnia
+   - Test các endpoints: `/api/auth/login`, `/api/auth/register`
 
-### 5.1 Branch Strategy
+### Frontend Debugging
 
-- **main**: Production code
-- **BE**: Backend development
-- **FE**: Frontend development
-- **feature/***: Feature branches
-- **bugfix/***: Bug fix branches
+1. **Console Logs**:
+   ```javascript
+   console.log('Debug info:', data);
+   console.error('Error:', error);
+   console.table(arrayData);
+   ```
 
-### 5.2 Commit Messages
+2. **React DevTools**:
+   - Inspect component props, state
+   - Monitor re-renders
+   - Check component hierarchy
 
-Format: `[type] <description>`
+3. **Network Tab**:
+   - Xem API requests/responses
+   - Check status codes, headers, payloads
+   - Filter by XHR/Fetch
 
-Types:
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation
-- `style`: Code style changes
-- `refactor`: Code refactoring
-- `test`: Tests
-- `chore`: Maintenance
+4. **Breakpoints**:
+   - Đặt breakpoint trong `.jsx` files
+   - Debug trong Sources tab
+   - Watch variables
 
-Examples:
-```
-feat: Add room management API
-fix: Fix invoice calculation bug
-docs: Update API documentation
-refactor: Refactor user service
-```
+## 🐛 Troubleshooting
 
-### 5.3 Pull Request Process
+### Backend không chạy
 
-1. Tạo feature branch từ BE hoặc FE
-2. Commit changes với messages rõ ràng
-3. Push và tạo Pull Request
-4. Code review
-5. Merge sau khi approved
+1. **Port đã được sử dụng**:
+   ```bash
+   # Windows: Tìm process đang dùng port 8080
+   netstat -ano | findstr :8080
+   # Kill process (thay PID bằng process ID)
+   taskkill /PID <PID> /F
+   
+   # Hoặc đổi port trong application.properties
+   server.port=8081
+   ```
 
-## 6. Testing
+2. **Database connection error**:
+   - Kiểm tra PostgreSQL đang chạy
+   - Kiểm tra credentials trong `application.properties`
+   - Test connection: `psql -U postgres -d smartrent_dev`
 
-### 6.1 Backend Testing
+3. **Maven build error**:
+   ```bash
+   # Clean và rebuild
+   mvn clean install -U
+   ```
 
-#### Unit Tests
-```java
-@ExtendWith(MockitoExtension.class)
-class RoomServiceTest {
-    
-    @Mock
-    private RoomRepository roomRepository;
-    
-    @InjectMocks
-    private RoomService roomService;
-    
-    @Test
-    void shouldGetRoomsForCurrentTenant() {
-        // Given
-        Long tenantId = 1L;
-        when(roomRepository.findByTenantId(tenantId))
-            .thenReturn(Collections.singletonList(new Room()));
-        
-        // When
-        List<RoomDTO> result = roomService.getRooms();
-        
-        // Then
-        assertThat(result).hasSize(1);
-    }
-}
-```
+### Frontend không chạy
 
-#### Integration Tests
-```java
-@SpringBootTest
-@AutoConfigureMockMvc
-class RoomControllerIntegrationTest {
-    
-    @Autowired
-    private MockMvc mockMvc;
-    
-    @Test
-    void shouldGetRooms() throws Exception {
-        mockMvc.perform(get("/api/rooms")
-                .header("Authorization", "Bearer " + token))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.success").value(true));
-    }
-}
-```
+1. **Port 5173 đã được sử dụng**:
+   ```bash
+   # Đổi port trong vite.config.ts
+   server: {
+     port: 5174,
+   }
+   ```
 
-### 6.2 Frontend Testing
+2. **Dependencies error**:
+   ```bash
+   # Xóa node_modules và cài lại
+   rm -rf node_modules package-lock.json
+   npm install
+   ```
 
-#### Unit Tests (Jest + React Testing Library)
-```typescript
-import { render, screen } from '@testing-library/react';
-import { RoomList } from './RoomList';
+3. **API không kết nối được**:
+   - Kiểm tra backend đang chạy tại http://localhost:8080
+   - Kiểm tra proxy config trong `vite.config.ts`
+   - Kiểm tra CORS settings trong backend
 
-describe('RoomList', () => {
-  it('should render rooms', () => {
-    const rooms = [
-      { id: 1, roomNumber: '101', price: 2000000 }
-    ];
-    
-    render(<RoomList rooms={rooms} />);
-    
-    expect(screen.getByText('101')).toBeInTheDocument();
-  });
-});
-```
+## 📝 Environment Variables
 
-## 7. Database Migrations
+### Backend
 
-### 7.1 Flyway
-
-Tạo migration file:
-```
-V1__Create_tenants_table.sql
-V2__Create_users_table.sql
-V3__Create_buildings_table.sql
-```
-
-### 7.2 Migration Best Practices
-
-- Mỗi migration chỉ làm một việc
-- Không sửa migration đã chạy (tạo migration mới)
-- Test migration trên dev trước
-- Backup database trước khi chạy migration
-
-## 8. Environment Variables
-
-### 8.1 Backend (.env hoặc application.properties)
+Tạo file `application-local.properties` (gitignored) để override:
 
 ```properties
-# Database
-spring.datasource.url=jdbc:postgresql://localhost:5432/smartrent_dev
-spring.datasource.username=postgres
-spring.datasource.password=password
-
-# JWT
-jwt.secret=your-secret-key
-jwt.expiration=86400000
-
-# Email
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=your-email@gmail.com
-spring.mail.password=your-password
+spring.datasource.password=your_password
+jwt.secret=your-secret-key-min-256-bits
 ```
 
-### 8.2 Frontend (.env)
+### Frontend
+
+Tạo file `.env` trong `smartrent_ui/`:
 
 ```env
-VITE_API_BASE_URL=http://localhost:8080/api
-VITE_APP_NAME=SmartRent
+VITE_API_BASE_URL=http://localhost:8080
+VITE_BASIC_AUTH_USER=admin
+VITE_BASIC_AUTH_PASSWORD=admin
 ```
 
-## 9. Debugging
+## 🔄 Hot Reload
 
-### 9.1 Backend
+### Backend
+- Spring Boot DevTools tự động reload khi code thay đổi
+- Cần rebuild: `mvn compile` hoặc IDE auto-compile
 
-- Sử dụng IDE debugger
-- Logging với SLF4J + Logback
-- Spring Boot Actuator cho health checks
+### Frontend
+- Vite tự động hot reload khi file thay đổi
+- Không cần restart server
 
-### 9.2 Frontend
+## 📊 Monitoring
 
-- React DevTools
-- Redux DevTools
-- Browser DevTools
-- Console logging
+### Backend Health
+- Health endpoint: http://localhost:8080/api/health
+- Actuator: http://localhost:8080/actuator/health
 
-## 10. Performance Optimization
+### Logs
+- Backend: Console output hoặc log files
+- Frontend: Browser console (F12)
 
-### 10.1 Backend
-
-- Connection pooling (HikariCP)
-- Query optimization
-- Caching (Redis)
-- Async processing cho heavy tasks
-
-### 10.2 Frontend
-
-- Code splitting
-- Lazy loading
-- Image optimization
-- Bundle size optimization
-
-## 11. Security Best Practices
-
-### 11.1 Backend
-
-- Luôn validate input
-- Sử dụng parameterized queries
-- Hash passwords (BCrypt)
-- JWT token expiration
-- CORS configuration
-- Rate limiting
-
-### 11.2 Frontend
-
-- Không lưu sensitive data trong localStorage
-- Validate input phía client
-- Sanitize user input
-- HTTPS trong production
-
-## 12. Deployment
-
-### 12.1 Backend
+## 🎯 Quick Start Commands
 
 ```bash
-# Build
-mvn clean package
+# Terminal 1: Backend
+cd d:\Documents\SmartRent
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
-# Run
-java -jar target/smartrent-0.0.1-SNAPSHOT.jar
+# Terminal 2: Frontend
+cd d:\Documents\SmartRent\smartrent_ui
+npm run dev
 ```
 
-### 12.2 Frontend
+Sau đó mở browser: http://localhost:5173
 
-```bash
-# Build
-npm run build
-
-# Deploy dist/ folder
-```
-
-## 13. Troubleshooting
-
-### Common Issues
-
-#### Database Connection Error
-- Kiểm tra PostgreSQL đang chạy
-- Kiểm tra credentials trong application.properties
-- Kiểm tra firewall
-
-#### CORS Error
-- Cấu hình CORS trong Spring Boot
-- Kiểm tra API base URL
-
-#### JWT Token Expired
-- Refresh token
-- Đăng nhập lại
-
-## 14. Resources
+## 📚 Tài Liệu Tham Khảo
 
 - [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- [Vite Documentation](https://vitejs.dev/)
 - [React Documentation](https://react.dev/)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
-
-## 15. Getting Help
-
-- Tạo issue trên GitHub
-- Liên hệ team qua Slack/Email
-- Xem documentation trong `/docs`

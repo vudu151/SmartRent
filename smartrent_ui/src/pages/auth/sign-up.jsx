@@ -1,5 +1,4 @@
 import {
-  Card,
   Input,
   Checkbox,
   Button,
@@ -7,12 +6,13 @@ import {
   Alert,
 } from "@material-tailwind/react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/smartrent/auth";
+import { env } from "@/config/env";
+import { initializeGoogleSignIn, promptGoogleSignIn } from "@/lib/googleAuth";
 
 export function SignUp() {
-  const navigate = useNavigate();
-  const { signUp, isLoading } = useAuth();
+  const { signUp, googleLogin, isLoading } = useAuth();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -26,58 +26,157 @@ export function SignUp() {
   const passwordInputRef = React.useRef(null);
   const confirmPasswordInputRef = React.useRef(null);
 
+  // Initialize Google Sign-In - wait for SDK to load
+  React.useEffect(() => {
+    if (!env.googleClientId) {
+      console.warn("Google Client ID not configured");
+      return;
+    }
+
+    // Wait for Google SDK to load
+    const checkGoogleSDK = setInterval(() => {
+      if (window.google?.accounts?.id) {
+        clearInterval(checkGoogleSDK);
+        try {
+          initializeGoogleSignIn(
+            env.googleClientId,
+            async (idToken) => {
+              try {
+                setError("");
+                setIsSubmitting(true);
+                await googleLogin(idToken);
+                // Navigation is handled in AuthProvider
+              } catch (err) {
+                console.error("Google sign up error:", err);
+                let errorMessage = "Đăng ký bằng Google thất bại. Vui lòng thử lại.";
+                
+                if (err?.error?.message) {
+                  errorMessage = err.error.message;
+                } else if (err?.message) {
+                  errorMessage = err.message;
+                }
+                
+                setError(errorMessage);
+              } finally {
+                setIsSubmitting(false);
+              }
+            },
+            (error) => {
+              console.error("Google Sign-In error:", error);
+              setError("Không thể khởi tạo Google Sign-In. Vui lòng thử lại.");
+            }
+          );
+        } catch (error) {
+          console.error("Failed to initialize Google Sign-In:", error);
+        }
+      }
+    }, 100);
+
+    // Timeout after 10 seconds
+    const timeout = setTimeout(() => {
+      clearInterval(checkGoogleSDK);
+      if (!window.google?.accounts?.id) {
+        console.error("Google Sign-In SDK failed to load after 10 seconds");
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(checkGoogleSDK);
+      clearTimeout(timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [env.googleClientId]);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setIsSubmitting(true);
 
     try {
+      // Client-side validation
       if (!email || !password || !confirmPassword) {
         setError("Vui lòng điền đầy đủ thông tin.");
+        setIsSubmitting(false);
         return;
       }
 
       if (password !== confirmPassword) {
         setError("Mật khẩu xác nhận không khớp.");
+        setIsSubmitting(false);
         return;
       }
 
       if (password.length < 6) {
         setError("Mật khẩu phải có ít nhất 6 ký tự.");
+        setIsSubmitting(false);
         return;
       }
 
       if (!agreeTerms) {
         setError("Vui lòng đồng ý với Điều khoản và Điều kiện.");
+        setIsSubmitting(false);
         return;
       }
 
+      // Call sign up API - this will throw error if failed
       await signUp(email, password, confirmPassword, null, null);
-      // Navigation is handled in AuthProvider after successful sign up
+      
+      // If successful, navigation is handled in AuthProvider
+      // Reset submitting state (component may not unmount immediately)
+      setIsSubmitting(false);
     } catch (err) {
       console.error("Sign up error:", err);
+      console.error("Error details:", {
+        name: err?.name,
+        message: err?.message,
+        status: err?.status,
+        error: err?.error,
+        bodyText: err?.bodyText
+      });
       
       let errorMessage = "Đăng ký thất bại. Vui lòng thử lại.";
       
-      // Try to get error message from different sources
-      let apiError = null;
+      // Try to get error message from different sources (priority order)
       
-      if (err && typeof err === 'object' && err.getErrorMessage && typeof err.getErrorMessage === 'function') {
-        apiError = err.getErrorMessage();
-      } else if (err?.response?.data?.error?.message) {
-        apiError = err.response.data.error.message;
-      } else if (err?.error?.message) {
-        apiError = err.error.message;
-      } else if (err?.message) {
-        apiError = err.message;
+      // 1. Check if it's ApiError instance with getErrorMessage method
+      if (err && typeof err === 'object' && typeof err.getErrorMessage === 'function') {
+        const msg = err.getErrorMessage();
+        if (msg && msg !== 'An error occurred') {
+          errorMessage = msg;
+        }
       }
       
-      if (apiError) {
-        errorMessage = apiError;
+      // 2. Check error property directly (from ApiError)
+      if (!errorMessage || errorMessage === "Đăng ký thất bại. Vui lòng thử lại.") {
+        if (err?.error?.message) {
+          errorMessage = err.error.message;
+        }
+      }
+      
+      // 3. Check for validation errors in details
+      if (err?.error?.details && typeof err.error.details === 'object') {
+        const details = err.error.details;
+        const validationErrors = Object.values(details).filter(v => typeof v === 'string');
+        if (validationErrors.length > 0) {
+          errorMessage = validationErrors[0]; // Show first validation error
+        }
+      }
+      
+      // 4. Check response data (fallback)
+      if (!errorMessage || errorMessage === "Đăng ký thất bại. Vui lòng thử lại.") {
+        if (err?.response?.data?.error?.message) {
+          errorMessage = err.response.data.error.message;
+        }
+      }
+      
+      // 5. Check message property (last resort)
+      if (!errorMessage || errorMessage === "Đăng ký thất bại. Vui lòng thử lại.") {
+        if (err?.message && err.message !== 'Sign up failed' && err.message !== 'Request failed') {
+          errorMessage = err.message;
+        }
       }
       
       setError(errorMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -259,9 +358,13 @@ export function SignUp() {
               fullWidth
               onClick={(e) => {
                 e.preventDefault();
-                // TODO: Implement Google sign up
-                console.log("Google sign up clicked");
+                if (env.googleClientId) {
+                  promptGoogleSignIn();
+                } else {
+                  setError("Google Sign-In chưa được cấu hình. Vui lòng liên hệ quản trị viên.");
+                }
               }}
+              disabled={isSubmitting || isLoading || !env.googleClientId}
             >
               <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clipPath="url(#clip0_1156_824)">

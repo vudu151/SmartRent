@@ -65,6 +65,19 @@ public class JwtTokenProvider {
     }
 
     /**
+     * Generate password reset token (expires in 1 hour)
+     */
+    public String generatePasswordResetToken(String email, Long userId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("type", "password_reset");
+        
+        // Reset token expires in 1 hour (3600000 ms)
+        Long resetTokenExpiration = 3600000L;
+        return createToken(claims, email, resetTokenExpiration);
+    }
+
+    /**
      * Create JWT token
      */
     private String createToken(Map<String, Object> claims, String subject, Long expiration) {

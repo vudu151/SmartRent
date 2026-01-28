@@ -16,9 +16,12 @@
     "react": "18.2.0",
     "react-apexcharts": "1.4.1",
     "react-dom": "18.2.0",
-    "react-router-dom": "6.17.0"
+    "react-router-dom": "6.17.0",
+    "react-data-table-component": "^7.6.2",
+    "sweetalert2": "^11.10.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "@types/react": "18.2.31",
     "@types/react-dom": "18.2.14",
     "@vitejs/plugin-react": "4.1.0",

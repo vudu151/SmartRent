@@ -16,15 +16,21 @@ export class ApiError extends Error {
     this.status = status
     this.bodyText = bodyText
 
-    // Try to parse error from response
+    // Try to parse error from response body
     if (bodyText) {
       try {
         const parsed = JSON.parse(bodyText)
-        if (parsed.error) {
+        // Backend returns: { success: false, error: { code, message, details } }
+        if (parsed.error && typeof parsed.error === 'object') {
           this.error = parsed.error
+          // Update message if error.message exists
+          if (parsed.error.message) {
+            this.message = parsed.error.message
+          }
         }
-      } catch {
-        // Ignore parse errors
+      } catch (parseError) {
+        // If not JSON, ignore parse errors
+        // bodyText will be available for debugging
       }
     }
   }
@@ -40,6 +46,13 @@ export class ApiError extends Error {
    * Get error message
    */
   getErrorMessage(): string {
-    return this.error?.message || this.message || 'An error occurred'
+    // Priority: error.message > this.message > default
+    if (this.error?.message) {
+      return this.error.message
+    }
+    if (this.message && this.message !== 'An error occurred') {
+      return this.message
+    }
+    return 'Đã xảy ra lỗi. Vui lòng thử lại.'
   }
 }

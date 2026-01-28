@@ -1,6 +1,8 @@
 package com.smartrent.controller;
 
 import com.smartrent.dto.ApiResponse;
+import com.smartrent.dto.auth.ForgotPasswordRequest;
+import com.smartrent.dto.auth.GoogleLoginRequest;
 import com.smartrent.dto.auth.LoginRequest;
 import com.smartrent.dto.auth.LoginResponse;
 import com.smartrent.dto.auth.RefreshTokenRequest;
@@ -58,5 +60,27 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> logout() {
         ApiResponse<Void> response = authService.logout();
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Forgot Password", description = "Send password reset email to user")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        ApiResponse<Void> response = authService.forgotPassword(request);
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/google")
+    @Operation(summary = "Google Login", description = "Authenticate user with Google OAuth and get JWT tokens")
+    public ResponseEntity<ApiResponse<LoginResponse>> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        ApiResponse<LoginResponse> response = authService.googleLogin(request);
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 }

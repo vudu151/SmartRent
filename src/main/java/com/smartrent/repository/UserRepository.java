@@ -1,6 +1,7 @@
 package com.smartrent.repository;
 
 import com.smartrent.domain.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,10 +36,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     /**
-     * Find user by username or email
+     * Find user by username or email with roles and permissions loaded
      */
+    @EntityGraph(attributePaths = {"roles", "roles.permissions"})
     @Query("SELECT u FROM User u WHERE u.username = :identifier OR u.email = :identifier")
     Optional<User> findByUsernameOrEmail(@Param("identifier") String identifier);
+
+    /**
+     * Find user by ID with roles and permissions loaded
+     */
+    @EntityGraph(attributePaths = {"roles", "roles.permissions"})
+    @Override
+    Optional<User> findById(Long id);
 
     /**
      * Find users by tenant ID

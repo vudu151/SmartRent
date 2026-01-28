@@ -1,0 +1,20 @@
+# Email Configuration (Gmail SMTP)
+# Copy this file to application-local.properties and fill in your actual values
+# File application-local.properties is gitignored for security
+
+spring.mail.username=your-email@gmail.com
+spring.mail.password=your-app-password-16-chars
+
+# Optional: Override SMTP timeouts if you have network issues
+# spring.mail.properties.mail.smtp.connectiontimeout=30000
+# spring.mail.properties.mail.smtp.timeout=30000
+# spring.mail.properties.mail.smtp.writetimeout=30000
+
+# Frontend URL (optional, defaults to http://localhost:5173)
+app.frontend.url=http://localhost:5173
+
+# Google OAuth Configuration
+# Note: With JavaScript SDK (current implementation), only client-id is needed
+# Client secret is optional and only needed for server-side OAuth flow
+google.oauth.client-id=your-google-client-id.apps.googleusercontent.com
+google.oauth.client-secret=your-google-client-secret

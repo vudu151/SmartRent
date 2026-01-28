@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { login as apiLogin, logout as apiLogout, refreshToken as apiRefreshToken, signUp as apiSignUp } from "@/api/auth";
+import { login as apiLogin, logout as apiLogout, refreshToken as apiRefreshToken, signUp as apiSignUp, googleLogin as apiGoogleLogin } from "@/api/auth";
 import { saveTokens, clearTokens, getUserInfo, getAccessToken, getRefreshToken, isAuthenticated } from "@/lib/token";
 import { useNavigate } from "react-router-dom";
 
@@ -24,6 +24,7 @@ const STORAGE_KEY = "smartrent.session";
  *  isLoading: boolean,
  *  login: (username: string, password: string) => Promise<void>,
  *  signUp: (email: string, password: string, confirmPassword: string, fullName?: string, phone?: string) => Promise<void>,
+ *  googleLogin: (idToken: string) => Promise<void>,
  *  logout: () => Promise<void>,
  *  refreshAuth: () => Promise<void>
  * }} AuthValue
@@ -103,6 +104,30 @@ export function AuthProvider({ children }) {
           });
 
           if (response.success && response.data) {
+            // Don't save tokens - user needs to login after signup
+            // Navigate to sign-in page with success message
+            navigate("/auth/sign-in", { 
+              replace: true,
+              state: { signupSuccess: true }
+            });
+          } else {
+            throw new Error(response.error?.message || response.message || "Sign up failed");
+          }
+        } catch (error) {
+          console.error("Sign up error:", error);
+          clearTokens();
+          setUser(null);
+          throw error;
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      googleLogin: async (idToken) => {
+        try {
+          setIsLoading(true);
+          const response = await apiGoogleLogin({ idToken });
+
+          if (response.success && response.data) {
             const { accessToken, refreshToken, user: userInfo } = response.data;
             
             // Save tokens and user info
@@ -112,10 +137,10 @@ export function AuthProvider({ children }) {
             // Navigate to dashboard
             navigate("/dashboard/home", { replace: true });
           } else {
-            throw new Error(response.error?.message || response.message || "Sign up failed");
+            throw new Error(response.error?.message || response.message || "Google login failed");
           }
         } catch (error) {
-          console.error("Sign up error:", error);
+          console.error("Google login error:", error);
           clearTokens();
           setUser(null);
           throw error;
