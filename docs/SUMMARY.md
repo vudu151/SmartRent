@@ -129,16 +129,20 @@ Hệ thống cung cấp RESTful API với:
 
 ## Lộ Trình Triển Khai
 
-### Giai Đoạn 1: MVP
-- Quản lý cơ bản: phòng, người thuê, hợp đồng
-- Quản lý hóa đơn và thanh toán
-- Quản lý điện nước cơ bản
-- Báo cáo cơ bản
+### Giai Đoạn 1: MVP - Chức Năng Cốt Lõi (Đã Hoàn Thành Migration & Kiểm Thử) ✅
+- [x] Quản lý cơ bản: Phòng (Rooms), Cư dân (Residents), Hợp đồng.
+- [x] Quản lý hóa đơn và thanh toán (Bills/Fees).
+- [x] Quản lý người dùng, phân quyền (Users, Roles, Activation).
+- [x] Quản lý Tenant (Chủ trọ) với tìm kiếm và phân trang phía Server.
+- [x] Hệ thống Thông báo (Notifications).
 
-### Giai Đoạn 2: Nâng Cao
-- Thanh toán online
-- Portal người thuê đầy đủ
-- Tích hợp thông báo
+**Báo cáo chi tiết kiểm thử**: Xem tại [TEST_COMPLETED.md](TEST_COMPLETED.md).
+
+### Giai Đoạn 2: Nâng Cao (Kế Hoạch Tiếp Theo)
+- [ ] Thanh toán online (VNPay, Momo).
+- [ ] Portal người thuê đầy đủ.
+- [ ] Báo cáo doanh thu & Phân tích (Dashboard Analytics).
+- [ ] Tích hợp thông báo qua Zalo/SMS.
 
 ### Giai Đoạn 3: Mở Rộng
 - Ứng dụng mobile
