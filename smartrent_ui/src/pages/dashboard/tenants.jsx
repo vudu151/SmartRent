@@ -21,13 +21,14 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 import { getTenants, deleteTenant } from "@/api/tenant";
-import { useNavigate } from "react-router-dom";
+import { TenantModal } from "./tenant-form";
 import { ApiError } from "@/lib/apiError";
 import { showToast } from "@/lib/swal";
 
 export function Tenants() {
-  const navigate = useNavigate();
   const [tenants, setTenants] = React.useState([]);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [selectedTenantId, setSelectedTenantId] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -35,18 +36,24 @@ export function Tenants() {
   const [tenantToDelete, setTenantToDelete] = React.useState(null);
   const [pageSize, setPageSize] = React.useState(10);
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [totalElements, setTotalElements] = React.useState(0);
 
   const loadTenants = React.useCallback(async () => {
     try {
       setLoading(true);
       setError("");
       const response = await getTenants({
-        page: 0,
-        size: 1000,
+        page: currentPage - 1,
+        size: pageSize,
         sortBy: "id",
         sortDir: "DESC",
+        search: searchTerm,
       });
+
       setTenants(response.content || []);
+      setTotalPages(response.totalPages || 1);
+      setTotalElements(response.totalElements || 0);
     } catch (err) {
       console.error("Error loading tenants:", err);
       let errorMessage = "Không thể tải danh sách tenant. Vui lòng thử lại.";
@@ -58,15 +65,21 @@ export function Tenants() {
         errorMessage = err.message;
       }
       setError(errorMessage);
-      showToast(errorMessage, "error");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage, pageSize, searchTerm]);
 
   React.useEffect(() => {
     loadTenants();
   }, [loadTenants]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [pageSize, searchTerm]);
+
+  // Scroll load
+
 
   const handleDelete = async () => {
     if (!tenantToDelete) return;
@@ -119,16 +132,29 @@ export function Tenants() {
     }
   };
 
-  const filteredTenants = tenants.filter((tenant) =>
-    tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tenant.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const totalRows = filteredTenants.length;
-  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const startIndex = (safeCurrentPage - 1) * pageSize;
-  const pageData = filteredTenants.slice(startIndex, startIndex + pageSize);
+  const pageData = tenants; // Data is already paginated from server
+
+  const handleAdd = () => {
+    setSelectedTenantId(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (id) => {
+    setSelectedTenantId(id);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedTenantId(null);
+  };
+
+  const handleModalSuccess = () => {
+    setCurrentPage(1);
+    loadTenants();
+  };
 
   const handleChangePageSize = (e) => {
     const newSize = Number(e.target.value) || 10;
@@ -141,90 +167,72 @@ export function Tenants() {
     setCurrentPage(page);
   };
 
-  const renderPagination = () => {
-    if (totalPages <= 1) return null;
-
-    const pages = [];
-    for (let i = 1; i <= totalPages; i += 1) {
-      pages.push(
-        <button
-          key={i}
-          type="button"
-          onClick={() => goToPage(i)}
-          className={`min-w-[32px] rounded border px-2 py-1 text-sm ${
-            i === safeCurrentPage
-              ? "border-blue-500 bg-blue-500 text-white"
-              : "border-blue-gray-100 text-blue-gray-700 hover:bg-blue-gray-50"
-          }`}
-        >
-          {i}
-        </button>
-      );
-    }
-
-    return (
-      <div className="mt-4 flex items-center justify-between px-4">
-        <Typography variant="small" color="blue-gray" className="font-normal">
-          Hiển thị {totalRows === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, totalRows)} trong {totalRows} tenant
+  const renderFooter = () => (
+    <div className="mt-2 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
+      <div className="flex items-center gap-4">
+        <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+          Hiển thị {tenants.length} trong {totalElements} tenant
         </Typography>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => goToPage(safeCurrentPage - 1)}
-            disabled={safeCurrentPage === 1}
-            className="rounded border border-blue-gray-100 px-2 py-1 text-sm text-blue-gray-700 disabled:opacity-50"
-          >
-            Trước
-          </button>
-          {pages}
-          <button
-            type="button"
-            onClick={() => goToPage(safeCurrentPage + 1)}
-            disabled={safeCurrentPage === totalPages}
-            className="rounded border border-blue-gray-100 px-2 py-1 text-sm text-blue-gray-700 disabled:opacity-50"
-          >
-            Sau
-          </button>
-        </div>
+        <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+          Trang {currentPage} / {totalPages || 1}
+        </Typography>
       </div>
-    );
-  };
+      <div className="flex gap-2">
+        <Button
+          variant="outlined"
+          color="blue-gray"
+          size="sm"
+          disabled={currentPage <= 1 || loading}
+          onClick={() => goToPage(currentPage - 1)}
+        >
+          Trước
+        </Button>
+        <Button
+          variant="outlined"
+          color="blue-gray"
+          size="sm"
+          disabled={currentPage >= totalPages || loading}
+          onClick={() => goToPage(currentPage + 1)}
+        >
+          Sau
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="mt-12 mb-8 flex flex-col gap-12">
+    <div className="mt-[2px] mb-8 flex flex-col gap-4">
       <Card>
         <CardHeader floated={false} shadow={false} className="rounded-none">
-          <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center justify-between gap-8 mb-1">
             <div>
               <Typography variant="h5" color="blue-gray">
                 Quản lý Tenant
               </Typography>
               <Typography color="gray" className="mt-1 font-normal">
-                Quản lý thông tin các chủ trọ
+                Thông tin các chủ trọ hệ thống
               </Typography>
             </div>
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
               <div className="flex items-center gap-2">
-                <Typography variant="small" color="blue-gray">
-                  Hiển thị
+                <Typography variant="small" color="blue-gray" className="font-normal">
+                  Dòng:
                 </Typography>
                 <select
                   value={pageSize}
                   onChange={handleChangePageSize}
-                  className="rounded border border-blue-gray-200 px-2 py-1 text-sm outline-none"
+                  className="rounded border border-blue-gray-200 px-1 py-0.5 text-xs outline-none bg-transparent"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
                   <option value={20}>20</option>
                   <option value={50}>50</option>
                 </select>
-                <Typography variant="small" color="blue-gray">
-                  dòng
-                </Typography>
               </div>
-              <div className="w-full md:w-72">
+              <div className="w-full md:w-64">
                 <Input
-                  label="Tìm kiếm"
+                  label="Tìm kiếm..."
+                  size="sm"
                   icon={<MagnifyingGlassIcon className="h-5 w-5" />}
                   value={searchTerm}
                   onChange={(e) => {
@@ -236,7 +244,7 @@ export function Tenants() {
               <Button
                 className="flex items-center gap-3"
                 size="sm"
-                onClick={() => navigate("/dashboard/tenants/new")}
+                onClick={handleAdd}
               >
                 <PlusIcon strokeWidth={2} className="h-4 w-4" />
                 Thêm Tenant
@@ -244,7 +252,7 @@ export function Tenants() {
             </div>
           </div>
         </CardHeader>
-        <CardBody className="overflow-x-auto px-0">
+        <CardBody className="overflow-x-auto p-0">
           {error && (
             <Alert color="red" className="mb-4 mx-4" onClose={() => setError("")}>
               {error}
@@ -265,11 +273,12 @@ export function Tenants() {
                   {["ID", "Tên", "Email", "Số điện thoại", "Trạng thái", "Thao tác"].map((el) => (
                     <th
                       key={el}
-                      className="border-b border-blue-gray-50 py-3 px-5 text-left bg-blue-gray-50/50"
+                      className="border-b border-blue-gray-100 py-0.5 px-4 text-left bg-blue-gray-50"
                     >
                       <Typography
                         variant="small"
-                        className="text-[11px] font-bold uppercase text-blue-gray-400"
+                        color="blue-gray"
+                        className="font-normal leading-none opacity-70"
                       >
                         {el}
                       </Typography>
@@ -279,20 +288,20 @@ export function Tenants() {
               </thead>
               <tbody>
                 {pageData.map((tenant) => (
-                  <tr key={tenant.id}>
-                    <td className="border-b border-blue-gray-50 py-3 px-5 text-sm text-blue-gray-700">
-                      {tenant.id}
+                  <tr key={tenant.id} className="even:bg-blue-gray-50/50">
+                    <td className="py-0.5 px-4">
+                      <Typography variant="small" color="blue-gray">{tenant.id}</Typography>
                     </td>
-                    <td className="border-b border-blue-gray-50 py-3 px-5 text-sm text-blue-gray-700">
-                      {tenant.name}
+                    <td className="py-0.5 px-4">
+                      <Typography variant="small" color="blue-gray" className="font-bold">{tenant.name}</Typography>
                     </td>
-                    <td className="border-b border-blue-gray-50 py-3 px-5 text-sm text-blue-gray-700">
-                      {tenant.email}
+                    <td className="py-0.5 px-4">
+                      <Typography variant="small" color="blue-gray">{tenant.email}</Typography>
                     </td>
-                    <td className="border-b border-blue-gray-50 py-3 px-5 text-sm text-blue-gray-700">
-                      {tenant.phone || "-"}
+                    <td className="py-0.5 px-4">
+                      <Typography variant="small" color="blue-gray">{tenant.phone || "-"}</Typography>
                     </td>
-                    <td className="border-b border-blue-gray-50 py-3 px-5">
+                    <td className="py-0.5 px-4">
                       <Chip
                         variant="ghost"
                         size="sm"
@@ -300,17 +309,19 @@ export function Tenants() {
                         color={getStatusColor(tenant.status)}
                       />
                     </td>
-                    <td className="border-b border-blue-gray-50 py-3 px-5">
+                    <td className="py-0.5 px-4">
                       <div className="flex items-center gap-2">
                         <IconButton
                           variant="text"
+                          size="sm"
                           color="blue-gray"
-                          onClick={() => navigate(`/dashboard/tenants/${tenant.id}`)}
+                          onClick={() => handleEdit(tenant.id)}
                         >
                           <PencilIcon className="h-4 w-4" />
                         </IconButton>
                         <IconButton
                           variant="text"
+                          size="sm"
                           color="red"
                           onClick={() => {
                             setTenantToDelete(tenant);
@@ -327,7 +338,7 @@ export function Tenants() {
             </table>
           )}
 
-          {renderPagination()}
+          {renderFooter()}
         </CardBody>
       </Card>
 
@@ -354,6 +365,13 @@ export function Tenants() {
           </Button>
         </DialogFooter>
       </Dialog>
+
+      <TenantModal
+        open={isModalOpen}
+        onClose={handleModalClose}
+        tenantId={selectedTenantId}
+        onSuccess={handleModalSuccess}
+      />
     </div>
   );
 }

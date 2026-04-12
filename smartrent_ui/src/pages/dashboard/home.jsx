@@ -4,250 +4,241 @@ import {
   Card,
   CardHeader,
   CardBody,
-  IconButton,
-  Menu,
-  MenuHandler,
-  MenuList,
-  MenuItem,
-  Avatar,
-  Tooltip,
-  Progress,
+  Select,
+  Option,
+  Chip,
 } from "@material-tailwind/react";
-import {
-  EllipsisVerticalIcon,
-  ArrowUpIcon,
-} from "@heroicons/react/24/outline";
+import { 
+  BuildingOfficeIcon, 
+  BanknotesIcon, 
+  ExclamationTriangleIcon, 
+  CalendarDaysIcon,
+  CheckBadgeIcon
+} from "@heroicons/react/24/solid";
 import { StatisticsCard } from "@/widgets/cards";
 import { StatisticsChart } from "@/widgets/charts";
-import {
-  statisticsCardsData,
-  statisticsChartsData,
-  projectsTableData,
-  ordersOverviewData,
-} from "@/data";
-import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
+import { getDashboardSummary } from "@/api/dashboard";
 
 export function Home() {
+  const [loading, setLoading] = React.useState(true);
+  const [data, setData] = React.useState(null);
+  const [months, setMonths] = React.useState(6); // Default 6 months
+
+  const loadDashboard = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const summary = await getDashboardSummary(months);
+      // Backend returns data sorted from oldest to newest if we reverse it, 
+      // but let's just use what backend gives natively (currently giving oldest-first or newest first based on iteration, we need chronological arrays for charts).
+      
+      // Ensuring chartData is chronological (oldest to newest left-to-right)
+      const chronologicalChartData = [...(summary?.chartData || [])];
+      
+      setData({
+        ...summary,
+        chartData: chronologicalChartData
+      });
+    } catch (err) {
+      console.error("Dashboard error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [months]);
+
+  React.useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  if (loading && !data) {
+    return <div className="p-8 text-center"><Typography>Đang tải dữ liệu báo cáo...</Typography></div>;
+  }
+
+  const { summary, chartData, recentTransactions } = data;
+
+  // Chart configs
+  const revSeries = chartData?.map(d => d.revenue) || [];
+  const debtSeries = chartData?.map(d => d.debt) || [];
+  const categories = chartData?.map(d => d.month) || [];
+
+  const revenueChartConfig = {
+    type: "bar",
+    height: 280,
+    series: [
+      { name: "Doanh thu", data: revSeries },
+    ],
+    options: {
+      chart: { toolbar: { show: false } },
+      title: { show: false },
+      dataLabels: { enabled: false },
+      colors: ["#fff"],
+      plotOptions: { bar: { columnWidth: "16%", borderRadius: 5 } },
+      xaxis: {
+        axisTicks: { show: false },
+        axisBorder: { show: false },
+        labels: { style: { colors: "#fff", fontSize: "12px", fontFamily: "inherit", fontWeight: 400 } },
+        categories: categories,
+      },
+      yaxis: { labels: { style: { colors: "#fff", fontSize: "12px", fontFamily: "inherit", fontWeight: 400 } } },
+      grid: {
+        show: true,
+        borderColor: "#ffffff40",
+        strokeDashArray: 5,
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: true } },
+      },
+    },
+  };
+
+  const debtChartConfig = {
+    type: "line",
+    height: 280,
+    series: [
+      { name: "Dư nợ", data: debtSeries },
+    ],
+    options: {
+      chart: { toolbar: { show: false } },
+      title: { show: false },
+      dataLabels: { enabled: false },
+      colors: ["#fff"],
+      stroke: { lineCap: "round", curve: "smooth" },
+      markers: { size: 0 },
+      xaxis: {
+        axisTicks: { show: false },
+        axisBorder: { show: false },
+        labels: { style: { colors: "#fff", fontSize: "12px", fontFamily: "inherit", fontWeight: 400 } },
+        categories: categories,
+      },
+      yaxis: { labels: { style: { colors: "#fff", fontSize: "12px", fontFamily: "inherit", fontWeight: 400 } } },
+      grid: {
+        show: true,
+        borderColor: "#ffffff40",
+        strokeDashArray: 5,
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: true } },
+      },
+    },
+  };
+
   return (
     <div className="mt-12">
+      <div className="flex justify-between items-center mb-6">
+        <Typography variant="h4" color="blue-gray">Tổng quan Dự án</Typography>
+        <div className="w-48">
+          <Select label="Kỳ báo cáo" value={months.toString()} onChange={(val) => setMonths(Number(val))}>
+            <Option value="3">3 tháng gần đây</Option>
+            <Option value="6">6 tháng gần đây</Option>
+            <Option value="12">1 năm</Option>
+            <Option value="24">2 năm</Option>
+          </Select>
+        </div>
+      </div>
+
       <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
-        {statisticsCardsData.map(({ icon, title, footer, ...rest }) => (
-          <StatisticsCard
-            key={title}
-            {...rest}
-            title={title}
-            icon={React.createElement(icon, {
-              className: "w-6 h-6 text-white",
-            })}
-            footer={
-              <Typography className="font-normal text-blue-gray-600">
-                <strong className={footer.color}>{footer.value}</strong>
-                &nbsp;{footer.label}
-              </Typography>
-            }
-          />
-        ))}
+        <StatisticsCard
+          title="Tỷ lệ Lấp đầy"
+          icon={<BuildingOfficeIcon className="w-6 h-6 text-white" />}
+          value={`${summary?.occupiedRooms || 0} / ${summary?.totalRooms || 0} Phòng`}
+          color="blue"
+          footer={<Typography className="font-normal text-blue-gray-600">Còn trống {summary?.vacantRooms} phòng</Typography>}
+        />
+        <StatisticsCard
+          title="Doanh thu Tháng này"
+          icon={<BanknotesIcon className="w-6 h-6 text-white" />}
+          value={`${(summary?.currentMonthRevenue || 0).toLocaleString()} ₫`}
+          color="green"
+          footer={<Typography className="font-normal text-blue-gray-600">Tổng hóa đơn đã thu</Typography>}
+        />
+        <StatisticsCard
+          title="Tổng Dư nợ"
+          icon={<ExclamationTriangleIcon className="w-6 h-6 text-white" />}
+          value={`${(summary?.totalDebt || 0).toLocaleString()} ₫`}
+          color="red"
+          footer={<Typography className="font-normal text-blue-gray-600">Cần đốc thúc thu hồi</Typography>}
+        />
+        <StatisticsCard
+          title="Hợp đồng Sắp hết hạn"
+          icon={<CalendarDaysIcon className="w-6 h-6 text-white" />}
+          value={summary?.expiringContracts || 0}
+          color="orange"
+          footer={<Typography className="font-normal text-blue-gray-600">Trong vòng 30 ngày tới</Typography>}
+        />
       </div>
-      <div className="mb-6 grid grid-cols-1 gap-y-12 gap-x-6 md:grid-cols-2 xl:grid-cols-3">
-        {statisticsChartsData.map((props) => (
-          <StatisticsChart
-            key={props.title}
-            {...props}
-            footer={
-              <Typography
-                variant="small"
-                className="flex items-center font-normal text-blue-gray-600"
-              >
-                <ClockIcon strokeWidth={2} className="h-4 w-4 text-blue-gray-400" />
-                &nbsp;{props.footer}
-              </Typography>
-            }
-          />
-        ))}
+
+      <div className="mb-6 grid grid-cols-1 gap-y-12 gap-x-6 md:grid-cols-2">
+        <StatisticsChart
+          color="blue"
+          chart={revenueChartConfig}
+          title={`Tiến trình Doanh thu (${months} tháng)`}
+          description="Biến động tổng tiền thu được qua từng tháng"
+        />
+        <StatisticsChart
+          color="red"
+          chart={debtChartConfig}
+          title={`Biểu đồ Dư nợ (${months} tháng)`}
+          description="Tình trạng nợ đọng chưa thanh toán cần lưu ý"
+        />
       </div>
-      <div className="mb-4 grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <Card className="overflow-hidden xl:col-span-2 border border-blue-gray-100 shadow-sm">
-          <CardHeader
-            floated={false}
-            shadow={false}
-            color="transparent"
-            className="m-0 flex items-center justify-between p-6"
-          >
+
+      <div className="mb-4 grid grid-cols-1 gap-6">
+        <Card className="overflow-hidden border border-blue-gray-100 shadow-sm">
+          <CardHeader floated={false} shadow={false} color="transparent" className="m-0 p-6 flex justify-between items-center">
             <div>
-              <Typography variant="h6" color="blue-gray" className="mb-1">
-                Projects
-              </Typography>
-              <Typography
-                variant="small"
-                className="flex items-center gap-1 font-normal text-blue-gray-600"
-              >
-                <CheckCircleIcon strokeWidth={3} className="h-4 w-4 text-blue-gray-200" />
-                <strong>30 done</strong> this month
+              <Typography variant="h6" color="blue-gray" className="mb-1">Giao dịch Gần nhất</Typography>
+              <Typography variant="small" className="flex items-center gap-1 font-normal text-blue-gray-600">
+                <CheckBadgeIcon strokeWidth={3} className="h-4 w-4 text-green-500" />
+                <strong>{recentTransactions?.length || 0}</strong> hóa đơn mới được thanh toán
               </Typography>
             </div>
-            <Menu placement="left-start">
-              <MenuHandler>
-                <IconButton size="sm" variant="text" color="blue-gray">
-                  <EllipsisVerticalIcon
-                    strokeWidth={3}
-                    fill="currenColor"
-                    className="h-6 w-6"
-                  />
-                </IconButton>
-              </MenuHandler>
-              <MenuList>
-                <MenuItem>Action</MenuItem>
-                <MenuItem>Another Action</MenuItem>
-                <MenuItem>Something else here</MenuItem>
-              </MenuList>
-            </Menu>
           </CardHeader>
-          <CardBody className="overflow-x-scroll px-0 pt-0 pb-2">
+          <CardBody className="overflow-x-auto px-0 pt-0 pb-2">
             <table className="w-full min-w-[640px] table-auto">
               <thead>
                 <tr>
-                  {["companies", "members", "budget", "completion"].map(
-                    (el) => (
-                      <th
-                        key={el}
-                        className="border-b border-blue-gray-50 py-3 px-6 text-left"
-                      >
-                        <Typography
-                          variant="small"
-                          className="text-[11px] font-medium uppercase text-blue-gray-400"
-                        >
-                          {el}
-                        </Typography>
-                      </th>
-                    )
-                  )}
+                  {["Phòng", "Loại phí", "Số tiền (VNĐ)", "Thời gian TT", "Tham chiếu"].map((el) => (
+                    <th key={el} className="border-b border-blue-gray-50 py-3 px-6 text-left">
+                      <Typography variant="small" className="text-[11px] font-medium uppercase text-blue-gray-400">
+                        {el}
+                      </Typography>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {projectsTableData.map(
-                  ({ img, name, members, budget, completion }, key) => {
-                    const className = `py-3 px-5 ${
-                      key === projectsTableData.length - 1
-                        ? ""
-                        : "border-b border-blue-gray-50"
-                    }`;
-
-                    return (
-                      <tr key={name}>
-                        <td className={className}>
-                          <div className="flex items-center gap-4">
-                            <Avatar src={img} alt={name} size="sm" />
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-bold"
-                            >
-                              {name}
-                            </Typography>
-                          </div>
-                        </td>
-                        <td className={className}>
-                          {members.map(({ img, name }, key) => (
-                            <Tooltip key={name} content={name}>
-                              <Avatar
-                                src={img}
-                                alt={name}
-                                size="xs"
-                                variant="circular"
-                                className={`cursor-pointer border-2 border-white ${
-                                  key === 0 ? "" : "-ml-2.5"
-                                }`}
-                              />
-                            </Tooltip>
-                          ))}
-                        </td>
-                        <td className={className}>
-                          <Typography
-                            variant="small"
-                            className="text-xs font-medium text-blue-gray-600"
-                          >
-                            {budget}
-                          </Typography>
-                        </td>
-                        <td className={className}>
-                          <div className="w-10/12">
-                            <Typography
-                              variant="small"
-                              className="mb-1 block text-xs font-medium text-blue-gray-600"
-                            >
-                              {completion}%
-                            </Typography>
-                            <Progress
-                              value={completion}
-                              variant="gradient"
-                              color={completion === 100 ? "green" : "blue"}
-                              className="h-1"
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  }
+                {recentTransactions?.map(({ billId, roomNumber, billType, amount, paymentDate, paymentReference }, key) => {
+                  const className = `py-3 px-6 ${key === recentTransactions.length - 1 ? "" : "border-b border-blue-gray-50"}`;
+                  return (
+                    <tr key={billId}>
+                      <td className={className}>
+                        <Typography variant="small" color="blue-gray" className="font-bold">{roomNumber}</Typography>
+                      </td>
+                      <td className={className}>
+                        <Chip size="sm" variant="ghost" color="blue" value={billType === "OTHER" ? "TỔNG HỢP" : billType} />
+                      </td>
+                      <td className={className}>
+                        <Typography variant="small" color="green" className="font-bold">+{amount?.toLocaleString()}</Typography>
+                      </td>
+                      <td className={className}>
+                        <Typography variant="small" className="text-xs font-medium text-blue-gray-600">
+                          {new Date(paymentDate).toLocaleString("vi-VN")}
+                        </Typography>
+                      </td>
+                      <td className={className}>
+                        <Typography variant="small" className="text-xs font-medium text-blue-gray-600">
+                          {paymentReference || "-"}
+                        </Typography>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {recentTransactions?.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="text-center py-8">
+                      <Typography>Chưa có giao dịch nào được ghi nhận</Typography>
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
-          </CardBody>
-        </Card>
-        <Card className="border border-blue-gray-100 shadow-sm">
-          <CardHeader
-            floated={false}
-            shadow={false}
-            color="transparent"
-            className="m-0 p-6"
-          >
-            <Typography variant="h6" color="blue-gray" className="mb-2">
-              Orders Overview
-            </Typography>
-            <Typography
-              variant="small"
-              className="flex items-center gap-1 font-normal text-blue-gray-600"
-            >
-              <ArrowUpIcon
-                strokeWidth={3}
-                className="h-3.5 w-3.5 text-green-500"
-              />
-              <strong>24%</strong> this month
-            </Typography>
-          </CardHeader>
-          <CardBody className="pt-0">
-            {ordersOverviewData.map(
-              ({ icon, color, title, description }, key) => (
-                <div key={title} className="flex items-start gap-4 py-3">
-                  <div
-                    className={`relative p-1 after:absolute after:-bottom-6 after:left-2/4 after:w-0.5 after:-translate-x-2/4 after:bg-blue-gray-50 after:content-[''] ${
-                      key === ordersOverviewData.length - 1
-                        ? "after:h-0"
-                        : "after:h-4/6"
-                    }`}
-                  >
-                    {React.createElement(icon, {
-                      className: `!w-5 !h-5 ${color}`,
-                    })}
-                  </div>
-                  <div>
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="block font-medium"
-                    >
-                      {title}
-                    </Typography>
-                    <Typography
-                      as="span"
-                      variant="small"
-                      className="text-xs font-medium text-blue-gray-500"
-                    >
-                      {description}
-                    </Typography>
-                  </div>
-                </div>
-              )
-            )}
           </CardBody>
         </Card>
       </div>

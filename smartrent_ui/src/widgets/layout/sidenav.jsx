@@ -11,18 +11,20 @@ import { useMaterialTailwindController, setOpenSidenav } from "@/context";
 
 export function Sidenav({ brandImg, brandName, routes }) {
   const [controller, dispatch] = useMaterialTailwindController();
-  const { sidenavColor, sidenavType, openSidenav } = controller;
+  const { sidenavColor, sidenavType, openSidenav, darkMode } = controller;
   const sidenavTypes = {
-    dark: "bg-gradient-to-br from-gray-800 to-gray-900",
-    white: "bg-white shadow-sm",
+    dark: "bg-gradient-to-br from-gray-800 to-gray-900 border-none",
+    white: "bg-white shadow-sm border-blue-gray-100",
     transparent: "bg-transparent",
   };
 
+  const activeSidenavType = darkMode ? "dark" : sidenavType;
+
   return (
     <aside
-      className={`${sidenavTypes[sidenavType]} ${
+      className={`${sidenavTypes[activeSidenavType]} ${
         openSidenav ? "translate-x-0" : "-translate-x-80"
-      } fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 rounded-xl transition-transform duration-300 xl:translate-x-0 border border-blue-gray-100`}
+      } fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 rounded-xl transition-transform duration-300 xl:translate-x-0 border overflow-y-auto`}
     >
       <div
         className={`relative`}
@@ -30,7 +32,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
         <Link to="/" className="py-6 px-8 text-center">
           <Typography
             variant="h6"
-            color={sidenavType === "dark" ? "white" : "blue-gray"}
+            color={activeSidenavType === "dark" ? "white" : "blue-gray"}
           >
             {brandName}
           </Typography>
@@ -47,20 +49,20 @@ export function Sidenav({ brandImg, brandName, routes }) {
         </IconButton>
       </div>
       <div className="m-4">
-        {routes.map(({ layout, title, pages }, key) => (
+        {routes.filter(({ hidden }) => !hidden).map(({ layout, title, pages }, key) => (
           <ul key={key} className="mb-4 flex flex-col gap-1">
             {title && (
               <li className="mx-3.5 mt-4 mb-2">
                 <Typography
                   variant="small"
-                  color={sidenavType === "dark" ? "white" : "blue-gray"}
+                  color={activeSidenavType === "dark" ? "white" : "blue-gray"}
                   className="font-black uppercase opacity-75"
                 >
                   {title}
                 </Typography>
               </li>
             )}
-            {pages.map(({ icon, name, path }) => (
+            {pages.filter(({ hidden }) => !hidden).map(({ icon, name, path }) => (
               <li key={name}>
                 <NavLink to={`/${layout}${path}`}>
                   {({ isActive }) => (
@@ -69,7 +71,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
                       color={
                         isActive
                           ? sidenavColor
-                          : sidenavType === "dark"
+                          : activeSidenavType === "dark"
                           ? "white"
                           : "blue-gray"
                       }
@@ -97,7 +99,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
 
 Sidenav.defaultProps = {
   brandImg: "/img/logo-ct.png",
-  brandName: "Material Tailwind React",
+  brandName: "SmartRent",
 };
 
 Sidenav.propTypes = {

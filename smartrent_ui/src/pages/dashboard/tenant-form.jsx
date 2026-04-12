@@ -1,15 +1,14 @@
 import React from "react";
 import {
-  Card,
-  CardHeader,
-  CardBody,
+  Dialog,
+  DialogHeader,
+  DialogBody,
   Typography,
   Button,
   Input,
   Textarea,
   Alert,
 } from "@material-tailwind/react";
-import { useNavigate, useParams } from "react-router-dom";
 import {
   getTenantById,
   createTenant,
@@ -18,13 +17,10 @@ import {
 import { ApiError } from "@/lib/apiError";
 import { showToast } from "@/lib/swal";
 
-export function TenantForm() {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const isEdit = Boolean(id);
-
+export function TenantModal({ open, onClose, tenantId, onSuccess }) {
+  const isEdit = Boolean(tenantId);
   const [loading, setLoading] = React.useState(false);
-  const [loadingData, setLoadingData] = React.useState(isEdit);
+  const [loadingData, setLoadingData] = React.useState(false);
   const [error, setError] = React.useState("");
   const [formData, setFormData] = React.useState({
     name: "",
@@ -35,18 +31,29 @@ export function TenantForm() {
   });
 
   React.useEffect(() => {
-    if (isEdit && id) {
-      loadTenant();
+    if (open) {
+      if (isEdit && tenantId) {
+        loadTenant();
+      } else {
+        // Reset form for "Create"
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          address: "",
+          taxCode: "",
+        });
+        setError("");
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEdit, id]);
+  }, [open, isEdit, tenantId]);
 
   const loadTenant = async () => {
-    if (!id) return;
     try {
       setLoadingData(true);
       setError("");
-      const tenant = await getTenantById(Number(id));
+      const tenant = await getTenantById(Number(tenantId));
       setFormData({
         name: tenant.name || "",
         email: tenant.email || "",
@@ -59,10 +66,6 @@ export function TenantForm() {
       let errorMessage = "Không thể tải thông tin tenant. Vui lòng thử lại.";
       if (err instanceof ApiError) {
         errorMessage = err.message || errorMessage;
-      } else if (err && err.error && err.error.message) {
-        errorMessage = err.error.message;
-      } else if (err && err.message) {
-        errorMessage = err.message;
       }
       setError(errorMessage);
     } finally {
@@ -76,7 +79,7 @@ export function TenantForm() {
     setError("");
 
     try {
-      if (isEdit && id) {
+      if (isEdit && tenantId) {
         const updateRequest = {
           name: formData.name || undefined,
           email: formData.email || undefined,
@@ -84,9 +87,8 @@ export function TenantForm() {
           address: formData.address || undefined,
           taxCode: formData.taxCode || undefined,
         };
-        await updateTenant(Number(id), updateRequest);
+        await updateTenant(Number(tenantId), updateRequest);
         showToast("Cập nhật tenant thành công", "success");
-        navigate("/dashboard/tenants");
       } else {
         const createRequest = {
           name: formData.name,
@@ -97,8 +99,9 @@ export function TenantForm() {
         };
         await createTenant(createRequest);
         showToast("Tạo tenant mới thành công", "success");
-        navigate("/dashboard/tenants");
       }
+      if (onSuccess) onSuccess();
+      onClose();
     } catch (err) {
       console.error("Error saving tenant:", err);
       let errorMessage = isEdit
@@ -106,10 +109,6 @@ export function TenantForm() {
         : "Không thể tạo tenant. Vui lòng thử lại.";
       if (err instanceof ApiError) {
         errorMessage = err.message || errorMessage;
-      } else if (err && err.error && err.error.message) {
-        errorMessage = err.error.message;
-      } else if (err && err.message) {
-        errorMessage = err.message;
       }
       setError(errorMessage);
       showToast(errorMessage, "error");
@@ -118,42 +117,32 @@ export function TenantForm() {
     }
   };
 
-  if (loadingData) {
-    return (
-      <div className="mt-12 mb-8 flex flex-col gap-12">
-        <Card>
-          <CardBody>
-            <Typography color="gray">Đang tải...</Typography>
-          </CardBody>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="mt-12 mb-8 flex flex-col gap-12">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none">
-          <div className="mb-4 flex items-center justify-between gap-8">
-            <div>
-              <Typography variant="h5" color="blue-gray">
-                {isEdit ? "Cập nhật Tenant" : "Tạo Tenant mới"}
-              </Typography>
-              <Typography color="gray" className="mt-1 font-normal">
-                {isEdit
-                  ? "Cập nhật thông tin tenant"
-                  : "Nhập thông tin để tạo tenant mới"}
-              </Typography>
-            </div>
+    <Dialog open={open} handler={onClose} size="lg">
+      <DialogHeader>
+        <div>
+          <Typography variant="h5" color="blue-gray">
+            {isEdit ? "Cập nhật Tenant" : "Tạo Tenant mới"}
+          </Typography>
+          <Typography color="gray" className="mt-1 font-normal text-sm">
+            {isEdit
+              ? "Cập nhật thông tin chi tiết của tenant"
+              : "Nhập các thông tin cần thiết để đăng ký tenant mới"}
+          </Typography>
+        </div>
+      </DialogHeader>
+      <DialogBody divider>
+        {error && (
+          <Alert color="red" className="mb-4" onClose={() => setError("")}>
+            {error}
+          </Alert>
+        )}
+        {loadingData ? (
+          <div className="py-12 flex justify-center items-center">
+            <Typography>Đang tải dữ liệu...</Typography>
           </div>
-        </CardHeader>
-        <CardBody>
-          {error && (
-            <Alert color="red" className="mb-4" onClose={() => setError("")}>
-              {error}
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
+        ) : (
+          <form id="tenant-form" onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <Input
                 label="Tên tenant *"
@@ -190,11 +179,11 @@ export function TenantForm() {
               rows={3}
               disabled={loading}
             />
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-2 justify-end mt-6">
               <Button
-                variant="outlined"
-                color="gray"
-                onClick={() => navigate("/dashboard/tenants")}
+                variant="text"
+                color="red"
+                onClick={onClose}
                 disabled={loading}
               >
                 Hủy
@@ -204,8 +193,9 @@ export function TenantForm() {
               </Button>
             </div>
           </form>
-        </CardBody>
-      </Card>
-    </div>
+        )}
+      </DialogBody>
+    </Dialog>
   );
 }
+

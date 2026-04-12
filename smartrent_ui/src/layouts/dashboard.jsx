@@ -9,7 +9,6 @@ import {
 } from "@/widgets/layout";
 import routes from "@/routes";
 import { useMaterialTailwindController, setOpenConfigurator } from "@/context";
-import { TenantForm } from "@/pages/dashboard/tenant-form";
 
 export function Dashboard() {
   const [controller, dispatch] = useMaterialTailwindController();
@@ -43,8 +42,6 @@ export function Dashboard() {
                 <Route key={path} exact path={path} element={element} />
               ))
           )}
-          <Route path="/tenants/new" element={<TenantForm />} />
-          <Route path="/tenants/:id" element={<TenantForm />} />
         </Routes>
         <div className="text-blue-gray-600">
           <Footer />

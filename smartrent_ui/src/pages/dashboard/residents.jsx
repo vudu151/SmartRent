@@ -1,0 +1,265 @@
+import React from "react";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  Typography,
+  Button,
+  Input,
+  IconButton,
+  Chip,
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
+  Alert,
+} from "@material-tailwind/react";
+import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { getResidents, deleteResident } from "@/api/resident";
+import { ResidentModal } from "./resident-form";
+import { showToast } from "@/lib/swal";
+
+export function Residents() {
+  const [residents, setResidents] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [residentToDelete, setResidentToDelete] = React.useState(null);
+
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [selectedResidentId, setSelectedResidentId] = React.useState(null);
+
+  const [page, setPage] = React.useState(1);
+  const [size, setSize] = React.useState(10);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [totalElements, setTotalElements] = React.useState(0);
+
+  const loadResidents = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const response = await getResidents({
+        page: page - 1,
+        size,
+        search: searchTerm,
+      });
+
+      setResidents(response.content || []);
+      setTotalPages(response.totalPages || 1);
+      setTotalElements(response.totalElements || 0);
+    } catch (err) {
+      console.error("Error loading residents:", err);
+      setError(err.message || "Không thể tải danh sách cư dân.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, size, searchTerm]);
+
+  React.useEffect(() => {
+    loadResidents();
+  }, [loadResidents]);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [size, searchTerm]);
+
+
+
+  const handleAdd = () => {
+    setSelectedResidentId(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (id) => {
+    setSelectedResidentId(id);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedResidentId(null);
+  };
+
+  const handleModalSuccess = () => {
+    setPage(1);
+    loadResidents();
+  };
+
+  const handleDelete = async () => {
+    if (!residentToDelete) return;
+    try {
+      await deleteResident(residentToDelete.id);
+      showToast(`Đã xóa cư dân "${residentToDelete.fullName}" thành công`, "success");
+      setDeleteDialogOpen(false);
+      setResidentToDelete(null);
+      loadResidents();
+    } catch (err) {
+      showToast(err.message || "Không thể xóa cư dân", "error");
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "ACTIVE": return "green";
+      case "INACTIVE": return "gray";
+      case "TEMPORARY": return "orange";
+      default: return "blue-gray";
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "ACTIVE": return "Đang ở";
+      case "INACTIVE": return "Đã rời";
+      case "TEMPORARY": return "Tạm trú";
+      default: return status;
+    }
+  };
+
+  return (
+    <div className="mt-[2px] mb-8 flex flex-col gap-4">
+      <Card>
+        <CardHeader floated={false} shadow={false} className="rounded-none">
+          <div className="flex items-center justify-between gap-8 mb-1">
+            <div>
+              <Typography variant="h5" color="blue-gray">Quản lý Cư dân</Typography>
+              <Typography color="gray" className="mt-1 font-normal">
+                Danh sách người thuê trọ
+              </Typography>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+              <div className="w-full md:w-72">
+                <Input
+                  label="Tìm kiếm tên, sdt..."
+                  icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                  }}
+                />
+              </div>
+              <Button className="flex items-center gap-3" onClick={handleAdd}>
+                <PlusIcon strokeWidth={2} className="h-4 w-4" /> Thêm Cư dân
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardBody className="overflow-x-auto p-0">
+          {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
+
+          {loading ? (
+            <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
+          ) : residents.length === 0 ? (
+            <div className="flex justify-center py-8"><Typography>Không có dữ liệu cư dân</Typography></div>
+          ) : (
+            <>
+              <table className="mt-4 w-full min-w-max table-auto text-left">
+                <thead>
+                  <tr>
+                    {["Họ tên", "Số điện thoại", "Phòng", "CMND/CCCD", "Trạng thái", "Thao tác"].map((head) => (
+                      <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
+                        <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">
+                          {head}
+                        </Typography>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {residents.map((res) => (
+                    <tr key={res.id} className="even:bg-blue-gray-50/50">
+                      <td className="py-0.5 px-4">
+                        <Typography variant="small" color="blue-gray" className="font-bold">
+                          {res.fullName}
+                        </Typography>
+                        <Typography variant="small" color="gray" className="font-normal">
+                          {res.email}
+                        </Typography>
+                      </td>
+                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray">{res.phone || "-"}</Typography></td>
+                      <td className="py-0.5 px-4">
+                        {res.rooms && res.rooms.length > 0 ? (
+                          <div className="flex gap-1 flex-wrap">
+                            {res.rooms.map((r) => (
+                              <Chip key={r.id} size="sm" variant="ghost" value={r.roomNumber} color="blue" />
+                            ))}
+                          </div>
+                        ) : (
+                          <Typography variant="small" color="gray">Chưa xếp phòng</Typography>
+                        )}
+                      </td>
+                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray">{res.idCard || "-"}</Typography></td>
+                      <td className="py-0.5 px-4">
+                        <Chip size="sm" variant="ghost" value={getStatusLabel(res.status)} color={getStatusColor(res.status)} />
+                      </td>
+                      <td className="py-0.5 px-4">
+                        <div className="flex gap-2">
+                          <IconButton size="sm" variant="text" color="blue-gray" onClick={() => handleEdit(res.id)}>
+                            <PencilIcon className="h-4 w-4" />
+                          </IconButton>
+                          <IconButton size="sm" variant="text" color="red" onClick={() => { setResidentToDelete(res); setDeleteDialogOpen(true); }}>
+                            <TrashIcon className="h-4 w-4" />
+                          </IconButton>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="mt-2 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
+                <div className="flex items-center gap-4">
+                  <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+                    Hiển thị {residents.length} trong {totalElements} cư dân
+                  </Typography>
+                  <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+                    Trang {page} / {totalPages || 1}
+                  </Typography>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outlined"
+                    color="blue-gray"
+                    size="sm"
+                    disabled={page <= 1 || loading}
+                    onClick={() => setPage(p => p - 1)}
+                  >
+                    Trước
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="blue-gray"
+                    size="sm"
+                    disabled={page >= totalPages || loading}
+                    onClick={() => setPage(p => p + 1)}
+                  >
+                    Sau
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </CardBody>
+      </Card>
+
+      <ResidentModal
+        open={isModalOpen}
+        onClose={handleModalClose}
+        residentId={selectedResidentId}
+        onSuccess={handleModalSuccess}
+      />
+
+      <Dialog open={deleteDialogOpen} handler={setDeleteDialogOpen}>
+        <DialogHeader>Xác nhận xóa</DialogHeader>
+        <DialogBody>Bạn có chắc muốn xóa cư dân "{residentToDelete?.fullName}"?</DialogBody>
+        <DialogFooter>
+          <Button variant="text" color="red" onClick={() => setDeleteDialogOpen(false)} className="mr-1">Hủy</Button>
+          <Button variant="gradient" color="red" onClick={handleDelete}>Xóa</Button>
+        </DialogFooter>
+      </Dialog>
+    </div>
+  );
+}
+
+export default Residents;

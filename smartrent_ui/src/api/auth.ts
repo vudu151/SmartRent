@@ -1,4 +1,14 @@
 import { apiFetch } from '../lib/http'
+import { getUserInfo } from '../lib/token'
+
+export function getTenantId(): number {
+  const user = getUserInfo();
+  if (user && user.tenantId) {
+    return Number(user.tenantId);
+  }
+  // Fallback for dev purposes
+  return 1;
+}
 
 export interface LoginRequest {
   username: string
