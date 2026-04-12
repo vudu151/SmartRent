@@ -8,12 +8,17 @@ import com.smartrent.dto.tenant.UpdateTenantRequest;
 import com.smartrent.exception.BusinessException;
 import com.smartrent.exception.ResourceNotFoundException;
 import com.smartrent.repository.TenantRepository;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service for Tenant Management
@@ -26,11 +31,23 @@ public class TenantService {
     private final TenantRepository tenantRepository;
 
     /**
-     * Get all tenants with pagination
+     * Get all tenants with pagination and optional search
      */
     @Transactional(readOnly = true)
-    public ApiResponse<Page<TenantResponse>> getAllTenants(Pageable pageable) {
-        Page<Tenant> tenants = tenantRepository.findAll(pageable);
+    public ApiResponse<Page<TenantResponse>> getAllTenants(String search, Pageable pageable) {
+        Specification<Tenant> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (search != null && !search.isBlank()) {
+                String pattern = "%" + search.toLowerCase() + "%";
+                predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("name")), pattern),
+                    cb.like(cb.lower(root.get("email")), pattern),
+                    cb.like(cb.lower(cb.coalesce(root.get("phone"), cb.literal(""))), pattern)
+                ));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+        Page<Tenant> tenants = tenantRepository.findAll(spec, pageable);
         Page<TenantResponse> response = tenants.map(this::toResponse);
         return ApiResponse.success(response, "Lấy danh sách tenant thành công");
     }

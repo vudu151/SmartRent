@@ -29,14 +29,15 @@ public class TenantController {
     private final TenantService tenantService;
 
     @GetMapping
-    @Operation(summary = "Get all tenants", description = "Get paginated list of all tenants")
+    @Operation(summary = "Get all tenants", description = "Get paginated list of all tenants with optional search")
     public ResponseEntity<ApiResponse<Page<TenantResponse>>> getAllTenants(
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "DESC") Sort.Direction sortDir) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir, sortBy));
-        ApiResponse<Page<TenantResponse>> response = tenantService.getAllTenants(pageable);
+        ApiResponse<Page<TenantResponse>> response = tenantService.getAllTenants(search, pageable);
         return ResponseEntity.ok(response);
     }
 

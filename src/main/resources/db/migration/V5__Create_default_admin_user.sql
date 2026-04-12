@@ -12,7 +12,7 @@ SELECT
     t.id,
     'admin',
     'admin@smartrent.com',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', -- BCrypt hash of "admin123"
+    '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2', -- BCrypt hash of "admin123"
     'System Administrator',
     'SUPER_ADMIN',
     'ACTIVE'
