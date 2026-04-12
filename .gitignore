@@ -48,3 +48,14 @@ application-local.properties
 
 # Avoid committing local password screenshots
 docs/PostgreSQL-Password.png
+
+# Node / Frontend
+node_modules/
+smartrent_ui/node_modules/
+dist/
+smartrent_ui/dist/
+.vite/
+smartrent_ui/.vite/
+
+# Brain Context (commit if shared, ignore if personal)
+# .brain/

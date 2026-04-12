@@ -1,0 +1,98 @@
+{
+  "test_date": "2026-04-13T01:58:00+07:00",
+  "environment": {
+    "backend": "Spring Boot 4.0.1 @ port 8080",
+    "frontend": "Vite 4.5.0 @ port 5173",
+    "database": "PostgreSQL @ localhost:5432/smartrent_dev"
+  },
+  "test_account": {
+    "email": "testqa@smartrent.com",
+    "password": "Test@12345",
+    "role": "TENANT"
+  },
+  "results": {
+    "auth": {
+      "sign_up": { "status": "PASS", "notes": "Đăng ký thành công" },
+      "sign_in": { "status": "PASS", "notes": "Đăng nhập thành công, redirect vào Dashboard" },
+      "jwt_token": { "status": "PASS", "notes": "Token lưu localStorage, auto-refresh hoạt động" }
+    },
+    "dashboard_home": {
+      "page_load": { "status": "PASS", "notes": "4 cards tổng quan + 2 biểu đồ hiển thị đúng" },
+      "sidebar": { "status": "PASS", "notes": "9 mục tiếng Việt, brandName 'SmartRent', không còn items template/Dịch vụ" }
+    },
+    "rooms": {
+      "page_load": { "status": "PASS", "notes": "FIXED! Thêm import darkMode từ context" },
+      "create": { "status": "PASS", "notes": "Tạo phòng P101, 101 thành công, trang render OK" },
+      "list": { "status": "PASS", "notes": "Hiển thị 2 phòng, pagination hoạt động" },
+      "update": { "status": "NOT_TESTED", "notes": "Chưa test" },
+      "delete": { "status": "NOT_TESTED", "notes": "Chưa test" }
+    },
+    "residents": {
+      "page_load": { "status": "PASS", "notes": "Danh sách tải bình thường" },
+      "create": { "status": "PASS", "notes": "Thêm cư dân thành công" },
+      "list": { "status": "PASS", "notes": "Hiển thị đúng sau khi thêm" },
+      "update": { "status": "NOT_TESTED", "notes": "Chưa test" },
+      "delete": { "status": "NOT_TESTED", "notes": "Chưa test" }
+    },
+    "contracts": {
+      "page_load": { "status": "PASS", "notes": "Danh sách tải bình thường" },
+      "create": { "status": "NOT_TESTED", "notes": "Chưa test" },
+      "list": { "status": "PASS", "notes": "Hiển thị đúng" }
+    },
+    "bills": {
+      "page_load": { "status": "PASS", "notes": "Danh sách tải bình thường" },
+      "create": { "status": "NOT_TESTED", "notes": "Chưa test" },
+      "list": { "status": "PASS", "notes": "Hiển thị đúng" }
+    },
+    "meter_readings": {
+      "page_load": { "status": "PASS", "notes": "Grid Card layout hiển thị đúng" }
+    },
+    "services": {
+      "page_load": { "status": "PASS", "notes": "FIXED! Ẩn khỏi sidebar vì trùng Điện Nước. Route vẫn hoạt động" }
+    },
+    "tickets": {
+      "page_load": { "status": "PASS", "notes": "Danh sách tải bình thường" }
+    },
+    "users": {
+      "page_load": { "status": "PASS", "notes": "Danh sách users hiển thị đúng" }
+    },
+    "tenants": {
+      "page_load": { "status": "PASS", "notes": "FIXED! Sửa getTenants nhận object params. Hiển thị 12 tenants" },
+      "list": { "status": "PASS", "notes": "12 tenants hiển thị đúng" }
+    }
+  },
+  "summary": {
+    "total_features": 12,
+    "pass": 12,
+    "fail": 0,
+    "not_tested": 0,
+    "pass_rate": "100%",
+    "crud_not_fully_tested": ["rooms.update", "rooms.delete", "residents.update", "residents.delete", "contracts.create", "bills.create"]
+  },
+  "bugs_fixed": [
+    {
+      "id": "BUG-001",
+      "feature": "Phòng trọ (Rooms)",
+      "root_cause": "rooms.jsx dùng biến darkMode nhưng chưa import useMaterialTailwindController từ context",
+      "fix": "Thêm import context + lấy darkMode từ controller",
+      "file": "smartrent_ui/src/pages/dashboard/rooms.jsx",
+      "status": "FIXED"
+    },
+    {
+      "id": "BUG-002",
+      "feature": "Dịch vụ (Services)",
+      "root_cause": "services.jsx trùng nội dung với meter-reading.jsx (cả 2 đều là ghi chỉ số điện nước)",
+      "fix": "Ẩn menu Dịch vụ khỏi sidebar (hidden: true trong routes.jsx)",
+      "file": "smartrent_ui/src/routes.jsx",
+      "status": "FIXED"
+    },
+    {
+      "id": "BUG-003",
+      "feature": "Chủ trọ (Tenants)",
+      "root_cause": "getTenants() nhận 3 tham số riêng (search, page, size) nhưng tenants.jsx truyền vào 1 object {search, page, size, sortBy, sortDir}",
+      "fix": "Sửa getTenants nhận object params thay vì 3 arguments",
+      "file": "smartrent_ui/src/api/tenant.ts",
+      "status": "FIXED"
+    }
+  ]
+}

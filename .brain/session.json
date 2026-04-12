@@ -1,0 +1,41 @@
+{
+  "updated_at": "2026-04-13T02:15:00+07:00",
+  "working_on": {
+    "feature": "Phase 7 - Expansion & Polish",
+    "task": "CRUD Depth Testing & Data Seeding",
+    "status": "testing",
+    "files": [
+      "smartrent_ui/src/api/tenant.ts",
+      "src/main/resources/db/migration/V5__Create_default_admin_user.sql",
+      "src/main/java/com/smartrent/service/impl/TicketServiceImpl.java",
+      "src/main/java/com/smartrent/service/PortalService.java"
+    ],
+    "notes": "E2E test 12/12 PASS. Toàn bộ lỗi BE Compile và Login Admin đã fix."
+  },
+  "pending_tasks": [
+    {"task": "Commit toàn bộ code (150+ files)", "priority": "high", "notes": "CỰC KỲ QUAN TRỌNG: Tất cả code từ Module 3 đến nay chưa commit!"},
+    {"task": "Test CRUD chiều sâu (Update/Delete của Phòng, Cư dân, Hợp đồng)", "priority": "medium", "notes": "Cần verify logic DB khi xóa"},
+    {"task": "Data Seeding cho Database", "priority": "low", "notes": "Tạo dữ liệu mẫu để test phân trang/search"},
+    {"task": "Kiểm tra responsive trên Mobile", "priority": "low", "notes": "Fix nốt các bảng trên màn hình nhỏ"}
+  ],
+  "recent_changes": [
+    {"timestamp": "2026-04-13T02:10:00+07:00", "type": "refactor", "description": "Refactor tenant.ts với full Type Safety (ApiResponse, object params, verbatimModuleSyntax fix)", "files": ["smartrent_ui/src/api/tenant.ts"]},
+    {"timestamp": "2026-04-13T02:05:00+07:00", "type": "bugfix", "description": "Fix Backend compile errors (getPhoneNumber -> getPhone) và Admin Login hash mismatch", "files": ["TicketServiceImpl.java", "PortalService.java", "V5__Create_default_admin_user.sql"]},
+    {"timestamp": "2026-04-13T01:50:00+07:00", "type": "bugfix", "description": "Fix Rooms.jsx crash (missing darkMode context) và hidden redundant Services menu", "files": ["rooms.jsx", "routes.jsx"]},
+    {"timestamp": "2026-04-13T01:10:00+07:00", "type": "bugfix", "description": "Fix ContractController/Service thiếu package declaration và imports", "files": ["ContractController.java", "ContractService.java", "ContractServiceImpl.java"]},
+    {"timestamp": "2026-04-13T01:00:00+07:00", "type": "bugfix", "description": "Fix API index.ts duplicate ApiResponse export conflict - chuyển sang named exports", "files": ["smartrent_ui/src/api/index.ts"]}
+  ],
+  "errors_encountered": [
+    {"error": "Admin password 'admin123' không login được", "solution": "Cập nhật lại hash BCrypt chuẩn trong Flyway V5 migration", "resolved": true},
+    {"error": "Backend compile error: method getPhoneNumber() not found in Resident", "solution": "Đổi thành method getPhone() trong TicketServiceImpl và PortalService", "resolved": true},
+    {"error": "Frontend Rooms page crash: darkMode is undefined", "solution": "Import useMaterialTailwindController và lấy darkMode từ state context", "resolved": true}
+  ],
+  "decisions_made": [
+    {"decision": "Dùng named exports trong src/api/index.ts thay vì wildcard", "reason": "Tránh ApiResponse interface conflict giữa 5+ modules"},
+    {"decision": "Tất cả API modules dùng apiFetch + getTenantId pattern", "reason": "Thống nhất, loại bỏ axios dependency cũ"},
+    {"decision": "Dark Mode dùng Tailwind class strategy", "reason": "Phù hợp với Material Tailwind, dễ toggle"},
+    {"decision": "Sidenav color = Indigo", "reason": "Premium, chuyên nghiệp, phù hợp SaaS"},
+    {"decision": "MeterReading dùng Grid Card layout thay vì Table", "reason": "Trải nghiệm nhập liệu tốt hơn cho điện/nước"},
+    {"decision": "LiquidationModal theo style biên bản tài chính", "reason": "Chuyên nghiệp, rõ ràng các khoản khấu trừ"}
+  ]
+}

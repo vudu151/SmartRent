@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "schema_version": "1.1.0",
+    "awf_version": "4.0.2",
+    "last_updated": "2026-04-13T02:14:00+07:00"
+  },
+  "project": {
+    "name": "SmartRent",
+    "type": "SaaS - Property Management System",
+    "status": "in_development",
+    "description": "Hệ thống quản lý nhà trọ/chung cư cho chủ trọ, hỗ trợ quản lý phòng, cư dân, hợp đồng, hóa đơn, tiện ích (điện/nước), tài sản, và cổng thông tin cư dân."
+  },
+  "tech_stack": {
+    "backend": {
+      "language": "Java 21",
+      "framework": "Spring Boot 4.0.1",
+      "orm": "Spring Data JPA / Hibernate",
+      "migration": "Flyway",
+      "auth": "JWT (access + refresh tokens)",
+      "api_docs": "SpringDoc / Swagger UI",
+      "build_tool": "Maven (mvnw wrapper)"
+    },
+    "frontend": {
+      "language": "JavaScript (JSX)",
+      "framework": "React (Vite 4.5.0)",
+      "ui_library": "Material Tailwind React v2",
+      "css": "Tailwind CSS",
+      "icons": "Heroicons v2, Font Awesome 6",
+      "charts": "ApexCharts (react-apexcharts)",
+      "routing": "React Router DOM v6",
+      "http_client": "Custom apiFetch (fetch-based, in src/lib/http.ts)",
+      "alerts": "SweetAlert2 (src/lib/swal.ts)"
+    },
+    "database": {
+      "type": "PostgreSQL",
+      "connection": "jdbc:postgresql://localhost:5432/smartrent_dev",
+      "username": "postgres"
+    },
+    "dev_server": {
+      "backend_port": 8080,
+      "frontend_port": 5173,
+      "vite_proxy": "/api -> http://localhost:8080"
+    }
+  },
+  "database_schema": {
+    "summary": "App lưu: thông tin chủ trọ (tenants), người dùng hệ thống (users), phòng trọ (rooms), cư dân (residents), hợp đồng thuê (contracts), hóa đơn (bills), số điện/nước (meter_readings), phí dịch vụ (room_fee_units), thông báo (notifications), yêu cầu sửa chữa (tickets), tài sản phòng (room_assets).",
+    "tables": [
+      {"name": "tenants", "migration": "V2", "purpose": "Chủ trọ/đơn vị quản lý"},
+      {"name": "roles", "migration": "V3", "purpose": "Phân quyền hệ thống"},
+      {"name": "permissions", "migration": "V3", "purpose": "Quyền chi tiết"},
+      {"name": "users", "migration": "V4", "purpose": "Người dùng hệ thống (admin, staff)"},
+      {"name": "rooms", "migration": "V6", "purpose": "Phòng trọ (số phòng, tầng, diện tích, giá, trạng thái)"},
+      {"name": "residents", "migration": "V7", "purpose": "Cư dân (CCCD, SĐT, email, giới tính)"},
+      {"name": "bills", "migration": "V8", "purpose": "Hóa đơn (tiền phòng, điện, nước, dịch vụ)"},
+      {"name": "room_fee_units", "migration": "V9", "purpose": "Đơn giá điện/nước cho từng phòng"},
+      {"name": "notifications", "migration": "V9", "purpose": "Thông báo/nhắc nợ qua email"},
+      {"name": "contracts", "migration": "V10", "purpose": "Hợp đồng thuê (ngày bắt đầu/kết thúc, tiền cọc, trạng thái)"},
+      {"name": "meter_readings", "migration": "V11", "purpose": "Ghi số điện/nước hàng tháng"},
+      {"name": "tickets", "migration": "V13", "purpose": "Yêu cầu sửa chữa từ cư dân"},
+      {"name": "room_assets", "migration": "V14", "purpose": "Tài sản trong phòng (tên, SL, tình trạng, giá bồi thường)"}
+    ],
+    "relationships_explained": "1 tenant có nhiều rooms, users, residents. 1 room có nhiều residents (qua contracts), bills, meter_readings, assets. 1 contract liên kết 1 room + 1 resident. 1 bill thuộc 1 room."
+  },
+  "api_endpoints": [
+    {"path": "/api/auth/login", "method": "POST", "explained": "Đăng nhập - gửi username + password, nhận JWT tokens"},
+    {"path": "/api/auth/register", "method": "POST", "explained": "Đăng ký tài khoản mới"},
+    {"path": "/api/auth/refresh", "method": "POST", "explained": "Làm mới access token bằng refresh token"},
+    {"path": "/api/auth/google", "method": "POST", "explained": "Đăng nhập bằng Google OAuth (ID token)"},
+    {"path": "/api/rooms", "method": "GET/POST", "explained": "CRUD phòng trọ - phân trang, lọc theo trạng thái/tầng/loại"},
+    {"path": "/api/residents", "method": "GET/POST", "explained": "CRUD cư dân - thông tin cá nhân, CCCD"},
+    {"path": "/api/contracts", "method": "GET/POST", "explained": "CRUD hợp đồng thuê - tự động cập nhật trạng thái phòng"},
+    {"path": "/api/contracts/{id}/liquidation", "method": "GET", "explained": "Tính toán thanh lý hợp đồng (tiền cọc - nợ = hoàn trả)"},
+    {"path": "/api/contracts/{id}/liquidate", "method": "POST", "explained": "Thực hiện thanh lý: hủy HĐ, trả phòng về TRỐNG"},
+    {"path": "/api/bills", "method": "GET/POST", "explained": "CRUD hóa đơn - lọc theo loại/trạng thái/phòng"},
+    {"path": "/api/bills/{id}/mark-paid", "method": "POST", "explained": "Đánh dấu hóa đơn đã thanh toán"},
+    {"path": "/api/services/meters", "method": "GET/POST", "explained": "Ghi/xem chỉ số điện nước theo tháng"},
+    {"path": "/api/services/fees", "method": "GET/PUT", "explained": "Cấu hình đơn giá điện/nước cho từng phòng"},
+    {"path": "/api/services/generate-bill", "method": "POST", "explained": "Tự động tạo hóa đơn điện nước từ chỉ số"},
+    {"path": "/api/assets", "method": "GET/POST/PUT/DELETE", "explained": "CRUD tài sản phòng (bàn, ghế, máy lạnh...)"},
+    {"path": "/api/tickets", "method": "GET/POST", "explained": "Yêu cầu sửa chữa từ cư dân"},
+    {"path": "/api/notifications/send", "method": "POST", "explained": "Gửi thông báo"},
+    {"path": "/api/notifications/remind-unpaid", "method": "POST", "explained": "Nhắc nợ tự động cho hóa đơn quá hạn"},
+    {"path": "/api/dashboard/summary", "method": "GET", "explained": "Tổng quan: tỷ lệ lấp đầy, doanh thu, dư nợ, HĐ sắp hết hạn"},
+    {"path": "/api/portal/contract/{token}", "method": "GET", "explained": "Cổng cư dân - xem thông tin HĐ bằng token (không cần login)"},
+    {"path": "/api/tenant-profile", "method": "GET/PUT", "explained": "Thông tin chủ trọ (tên, địa chỉ, mã thuế)"},
+    {"path": "/api/users", "method": "GET", "explained": "Quản lý người dùng hệ thống"}
+  ],
+  "business_rules": [
+    "Khi tạo hợp đồng ACTIVE → phòng tự động chuyển sang OCCUPIED",
+    "Khi thanh lý hợp đồng → phòng chuyển về VACANT, cư dân bị gỡ khỏi phòng",
+    "Thanh lý = Tiền cọc - (Nợ hóa đơn + Tiền phòng lẻ ngày) = Số tiền hoàn trả",
+    "Tiền phòng lẻ ngày = (Giá tháng / 30) × Số ngày ở",
+    "Hóa đơn điện/nước = (Chỉ số mới - Chỉ số cũ) × Đơn giá",
+    "Mỗi tenant (chủ trọ) quản lý riêng biệt data (multi-tenant)",
+    "JWT access token hết hạn sau 24h, refresh token sau 7 ngày",
+    "Portal cư dân dùng token riêng (không cần đăng nhập)"
+  ],
+  "features": [
+    {"name": "Authentication", "status": "done", "notes": "Login, Register, JWT, Google OAuth, Forgot Password"},
+    {"name": "Tenant Management", "status": "done", "notes": "CRUD chủ trọ + profile"},
+    {"name": "Room Management", "status": "done", "notes": "CRUD phòng, lọc, phân trang"},
+    {"name": "Resident Management", "status": "done", "notes": "CRUD cư dân"},
+    {"name": "Contract Management", "status": "done", "notes": "CRUD HĐ + thanh lý (liquidation)"},
+    {"name": "Bill Management", "status": "done", "notes": "CRUD hóa đơn + đánh dấu đã thanh toán"},
+    {"name": "Meter Reading & Services", "status": "done", "notes": "Ghi chỉ số điện/nước, cấu hình đơn giá, tạo HĐ tự động"},
+    {"name": "Room Assets", "status": "done", "notes": "Quản lý tài sản phòng"},
+    {"name": "Tickets", "status": "done", "notes": "Yêu cầu sửa chữa"},
+    {"name": "Notifications", "status": "done", "notes": "Gửi thông báo + nhắc nợ"},
+    {"name": "Dashboard", "status": "done", "notes": "Tổng quan + biểu đồ doanh thu/dư nợ"},
+    {"name": "Resident Portal", "status": "done", "notes": "Cổng cư dân (xem HĐ, gửi ticket) bằng token"},
+    {"name": "Dark Mode", "status": "done", "notes": "Toggle Sun/Moon, lưu localStorage, class-based"},
+    {"name": "Indigo Design System", "status": "done", "notes": "Sidenav Indigo, table headers, button colors"}
+  ],
+  "knowledge_items": {
+    "patterns": [
+      "Sidenav color: set qua context sidenavColor='indigo', active link dùng bg-indigo-600",
+      "API Pagination: Luôn truyền object params { page, size, ... } thay vì tham số lẻ để đảm bảo frontend và backend map chính xác."
+    ],
+    "gotchas": [
+      "rooms.jsx và các file dashboard sử dụng darkMode từ Material Tailwind context: Cần import useMaterialTailwindController và gọi dispatch() đúng cách, tránh gọi biến cục bộ không tồn tại.",
+      "Resident entity: Method lấy SĐT là getPhone() chứ không phải getPhoneNumber() - cần cẩn thận khi code backend service.",
+      "tenant.ts (TypeScript): Khi import interface (như ApiResponse) trong verbatimModuleSyntax mode, PHẢI dùng 'import type' hoặc 'import { type ... }' để tránh lỗi build.",
+      "Tenant profile: Khi gọi API trả về ApiResponse, cần kiểm tra 'res.success' và 'res.message || fallback' để đảm bảo type safety cho TypeScript.",
+      "src/api/index.ts KHÔNG dùng wildcard export (export *) vì 5 file đều export interface ApiResponse → conflict. Dùng named exports cụ thể!",
+      "ContractController.java và ContractService.java ban đầu bị thiếu package declaration → Spring không load được bean → fix: thêm 'package com.smartrent.controller;'",
+      "ContractServiceImpl.java cần import java.util.Optional cho getLiquidationSummary()",
+      "contract.ts và notification.ts ban đầu dùng pattern cũ (import api from './index' + api.get()) → phải refactor sang apiFetch()",
+      "tenant.ts ban đầu chỉ có getTenantProfile/updateTenantProfile → thiếu CRUD functions mà tenants.jsx và tenant-form.jsx cần",
+      "BCrypt hash trong migration V5 (admin password) có thể không match → cần verify hoặc regenerate",
+      "Vite cache (.vite/deps) có thể giữ module cũ → xóa node_modules/.vite để force rebuild"
+    ],
+    "conventions": [
+      "Frontend pages: src/pages/dashboard/{feature}.jsx (list) + {feature}-form.jsx (modal form)",
+      "API modules: src/api/{feature}.ts - import { apiFetch } from '@/lib/http'; import { getTenantId } from '@/api/auth';",
+      "Backend: controller → service (interface) → impl (implementation) → repository",
+      "DTOs: src/main/java/com/smartrent/dto/{feature}/ (RequestDTO, ResponseDTO)",
+      "Migrations: V{N}__{Description}.sql trong src/main/resources/db/migration/"
+    ]
+  }
+}
