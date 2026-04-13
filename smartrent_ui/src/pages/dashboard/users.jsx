@@ -89,20 +89,19 @@ export function Users() {
   };
 
   return (
-    <div className="mt-[2px] mb-8 flex flex-col gap-4">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none">
-          <div className="flex items-center justify-between gap-8 mb-1">
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <Typography variant="h5" color="blue-gray">Quản lý Tài khoản</Typography>
-              <Typography color="gray" className="mt-1 font-normal">
+              <Typography variant="h5" color="blue-gray" className="font-bold">Quản lý Tài khoản</Typography>
+              <Typography color="gray" className="mt-0.5 font-normal text-sm">
                 Danh sách người dùng và nhân viên hệ thống
               </Typography>
             </div>
-            <div className="w-full md:w-72">
+            <div className="w-full sm:w-64">
               <Input
                 label="Tìm tên hoặc email..."
-                size="sm"
                 icon={<MagnifyingGlassIcon className="h-5 w-5" />}
                 value={searchTerm}
                 onChange={(e) => {
@@ -113,7 +112,7 @@ export function Users() {
             </div>
           </div>
         </CardHeader>
-        <CardBody className="overflow-x-auto p-0">
+        <CardBody className="overflow-auto p-0 flex-1">
           {loading ? (
             <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
           ) : usersList.length === 0 ? (
@@ -121,7 +120,7 @@ export function Users() {
           ) : (
             <>
               <table className="mt-4 w-full min-w-max table-auto text-left">
-                <thead>
+                <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
                   <tr>
                     {["Tài khoản", "Họ tên", "Vai trò", "Trạng thái", "Ngày tạo", "Thao tác"].map((head) => (
                       <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">

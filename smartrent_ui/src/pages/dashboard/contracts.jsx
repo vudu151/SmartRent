@@ -36,7 +36,7 @@ export function Contracts() {
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [selectedContractId, setSelectedContractId] = React.useState(null);
-  
+
   const [liquidationOpen, setLiquidationOpen] = React.useState(false);
   const [contractToLiquidate, setContractToLiquidate] = React.useState(null);
 
@@ -137,18 +137,18 @@ export function Contracts() {
   };
 
   return (
-    <div className="mt-[2px] mb-8 flex flex-col gap-4">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none dark:bg-blue-gray-900 border-none">
-          <div className="flex items-center justify-between gap-8 mb-1">
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 dark:border-blue-gray-700 shrink-0 px-6 py-4 dark:bg-blue-gray-900">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <Typography variant="h5" color="blue-gray" className="dark:text-white">Quản lý Hợp đồng</Typography>
-              <Typography color="gray" className="mt-1 font-normal dark:text-blue-gray-200">
+              <Typography variant="h5" color="blue-gray" className="font-bold dark:text-white">Quản lý Hợp đồng</Typography>
+              <Typography color="gray" className="mt-0.5 font-normal text-sm dark:text-blue-gray-200">
                 Danh sách hợp đồng thuê phòng
               </Typography>
             </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-              <div className="w-full md:w-72">
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="w-full sm:w-64">
                 <Input
                   label="Tìm số HĐ, Tên, Phòng..."
                   size="sm"
@@ -157,13 +157,13 @@ export function Contracts() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button className="flex items-center gap-3 bg-indigo-600 hover:bg-indigo-700" size="sm" onClick={handleAdd}>
-                <PlusIcon strokeWidth={2} className="h-4 w-4" /> Thêm Hợp đồng
+              <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={handleAdd}>
+                <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Hợp đồng
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardBody className="overflow-x-auto p-0">
+        <CardBody className="overflow-auto p-0 flex-1">
           {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
 
           {loading ? (
@@ -173,7 +173,7 @@ export function Contracts() {
           ) : (
             <>
               <table className="mt-4 w-full min-w-max table-auto text-left">
-                <thead>
+                <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
                   <tr>
                     {["Mã HĐ", "Phòng", "Cư dân", "Bắt đầu", "Kết thúc", "Giá thuê", "Trạng thái", "Thao tác"].map((head) => (
                       <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50/50 dark:bg-blue-gray-800 dark:border-blue-gray-700 py-3 px-4">
@@ -213,7 +213,7 @@ export function Contracts() {
                           </IconButton>
                           {contract.status === "ACTIVE" && (
                             <IconButton size="sm" variant="text" color="green" title="Thanh lý / Trả phòng" onClick={() => { setContractToLiquidate(contract); setLiquidationOpen(true); }}>
-                                <CheckBadgeIcon className="h-4 w-4" />
+                              <CheckBadgeIcon className="h-4 w-4" />
                             </IconButton>
                           )}
                         </div>
@@ -265,11 +265,11 @@ export function Contracts() {
         onSuccess={handleModalSuccess}
       />
 
-      <LiquidationModal 
-        open={liquidationOpen} 
-        onClose={() => setLiquidationOpen(false)} 
-        contract={contractToLiquidate} 
-        onSuccess={handleLiquidateSuccess} 
+      <LiquidationModal
+        open={liquidationOpen}
+        onClose={() => setLiquidationOpen(false)}
+        contract={contractToLiquidate}
+        onSuccess={handleLiquidateSuccess}
       />
 
       <Dialog open={deleteDialogOpen} handler={setDeleteDialogOpen}>

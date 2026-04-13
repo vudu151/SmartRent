@@ -59,3 +59,5 @@ smartrent_ui/.vite/
 
 # Brain Context (commit if shared, ignore if personal)
 # .brain/
+backend_log.txt
+cnpm-template/

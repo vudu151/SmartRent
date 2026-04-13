@@ -67,44 +67,40 @@ export function AssetModal({ open, onClose, room }) {
 
   return (
     <Dialog open={open} handler={onClose} size="lg" className={`min-w-[80%] md:min-w-[60%] ${darkMode ? "bg-blue-gray-900" : ""}`}>
-      <DialogHeader className="flex items-center justify-between border-b dark:border-blue-gray-800 pb-4">
+      <DialogHeader className="flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-2">
-            <ArchiveBoxIcon className="w-6 h-6 text-indigo-500" />
-            <Typography variant="h5" color="blue-gray" className="dark:text-white">
+            <Typography variant="h5" color="blue-gray">
                 Tài Sản Phòng: {room?.roomNumber}
             </Typography>
         </div>
-        <IconButton variant="text" color="blue-gray" onClick={onClose} className="dark:text-white">
+        <IconButton variant="text" color="red" onClick={onClose}>
             <XMarkIcon className="h-5 w-5" />
         </IconButton>
       </DialogHeader>
       <DialogBody divider className={`h-[60vh] overflow-y-auto px-4 py-4 ${darkMode ? "border-blue-gray-800" : ""}`}>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-6 p-4 bg-indigo-50/20 dark:bg-indigo-900/10 rounded-xl border border-indigo-50 dark:border-indigo-900/20">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-6 p-4 bg-blue-gray-50/50 rounded-xl border border-blue-gray-50">
           <Input 
             label="Tên tài sản (Máy lạnh...)" 
             value={newAsset.name} 
-            color="indigo"
-            className="dark:text-white"
+            color="black"
             onChange={(e) => setNewAsset({...newAsset, name: e.target.value})} 
           />
           <Input 
             type="number" 
             label="Số lượng" 
             value={newAsset.quantity} 
-            color="indigo"
-            className="dark:text-white"
+            color="black"
             onChange={(e) => setNewAsset({...newAsset, quantity: Number(e.target.value)})} 
           />
           <Input 
             type="number" 
             label="Giá đền bù (VNĐ)" 
             value={newAsset.compensationValue} 
-            color="indigo"
-            className="dark:text-white"
+            color="black"
             onChange={(e) => setNewAsset({...newAsset, compensationValue: Number(e.target.value)})} 
           />
-          <Button color="indigo" className="flex items-center justify-center gap-2 shadow-indigo-200" onClick={handleAddAsset}>
-            <PlusIcon className="w-4 h-4" /> Thêm
+          <Button color="black" className="flex items-center justify-center gap-2 shadow-none" onClick={handleAddAsset}>
+            <PlusIcon strokeWidth={3} className="w-4 h-4" /> Thêm
           </Button>
         </div>
 
@@ -129,16 +125,16 @@ export function AssetModal({ open, onClose, room }) {
                 </thead>
                 <tbody>
                   {assets.map((asset) => (
-                    <tr key={asset.id} className="hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 transition-colors">
-                      <td className="p-4 border-b border-gray-50 dark:border-blue-gray-800">
-                        <Typography variant="small" className="font-medium text-blue-gray-900 dark:text-white">{asset.name}</Typography>
+                    <tr key={asset.id} className="hover:bg-blue-gray-50/50 transition-colors">
+                      <td className="p-4 border-b border-gray-50">
+                        <Typography variant="small" className="font-medium text-blue-gray-900">{asset.name}</Typography>
                       </td>
-                      <td className="p-4 border-b border-gray-50 dark:border-blue-gray-800"><Typography variant="small" className="dark:text-blue-gray-200">{asset.quantity}</Typography></td>
-                      <td className="p-4 border-b border-gray-50 dark:border-blue-gray-800">
-                        <Typography variant="small" className="text-[10px] font-bold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-200 px-2 py-0.5 rounded-full uppercase inline-block border border-indigo-100 dark:border-indigo-800">{asset.condition || "Tốt"}</Typography>
+                      <td className="p-4 border-b border-gray-50"><Typography variant="small">{asset.quantity}</Typography></td>
+                      <td className="p-4 border-b border-gray-50">
+                        <Typography variant="small" className="text-[10px] font-bold text-blue-gray-700 bg-blue-gray-50 px-2 py-0.5 rounded-full uppercase inline-block border border-blue-gray-100">{asset.condition || "Tốt"}</Typography>
                       </td>
-                      <td className="p-4 border-b border-gray-50 dark:border-blue-gray-800">
-                        <Typography variant="small" className="font-mono text-xs dark:text-blue-gray-200">{asset.compensationValue?.toLocaleString()} đ</Typography>
+                      <td className="p-4 border-b border-gray-50">
+                        <Typography variant="small" className="font-mono text-xs">{asset.compensationValue?.toLocaleString()} đ</Typography>
                       </td>
                       <td className="p-4 border-b border-gray-50 dark:border-blue-gray-800 text-right">
                         <IconButton variant="text" color="red" size="sm" onClick={() => handleDelete(asset.id)}>

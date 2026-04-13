@@ -50,6 +50,8 @@ public class TenantProfileController {
         if (request.getBankAccount() != null) tenant.setBankAccount(request.getBankAccount());
         if (request.getBankOwner() != null) tenant.setBankOwner(request.getBankOwner());
         if (request.getPhone() != null) tenant.setPhone(request.getPhone());
+        if (request.getName() != null) tenant.setName(request.getName());
+        if (request.getAddress() != null) tenant.setAddress(request.getAddress());
         
         tenantRepository.save(tenant);
         

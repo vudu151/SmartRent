@@ -118,18 +118,18 @@ export function Residents() {
   };
 
   return (
-    <div className="mt-[2px] mb-8 flex flex-col gap-4">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none">
-          <div className="flex items-center justify-between gap-8 mb-1">
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <Typography variant="h5" color="blue-gray">Quản lý Cư dân</Typography>
-              <Typography color="gray" className="mt-1 font-normal">
+              <Typography variant="h5" color="blue-gray" className="font-bold">Quản lý Cư dân</Typography>
+              <Typography color="gray" className="mt-0.5 font-normal text-sm">
                 Danh sách người thuê trọ
               </Typography>
             </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-              <div className="w-full md:w-72">
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="w-full sm:w-64">
                 <Input
                   label="Tìm kiếm tên, sdt..."
                   icon={<MagnifyingGlassIcon className="h-5 w-5" />}
@@ -139,13 +139,13 @@ export function Residents() {
                   }}
                 />
               </div>
-              <Button className="flex items-center gap-3" onClick={handleAdd}>
-                <PlusIcon strokeWidth={2} className="h-4 w-4" /> Thêm Cư dân
+              <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={handleAdd}>
+                <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Cư dân
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardBody className="overflow-x-auto p-0">
+        <CardBody className="overflow-auto p-0 flex-1">
           {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
 
           {loading ? (
@@ -155,7 +155,7 @@ export function Residents() {
           ) : (
             <>
               <table className="mt-4 w-full min-w-max table-auto text-left">
-                <thead>
+                <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
                   <tr>
                     {["Họ tên", "Số điện thoại", "Phòng", "CMND/CCCD", "Trạng thái", "Thao tác"].map((head) => (
                       <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
@@ -195,10 +195,10 @@ export function Residents() {
                       </td>
                       <td className="py-0.5 px-4">
                         <div className="flex gap-2">
-                          <IconButton size="sm" variant="text" color="blue-gray" onClick={() => handleEdit(res.id)}>
+                          <IconButton size="sm" variant="text" color="blue-gray" title="Chỉnh sửa thông tin cư dân" onClick={() => handleEdit(res.id)}>
                             <PencilIcon className="h-4 w-4" />
                           </IconButton>
-                          <IconButton size="sm" variant="text" color="red" onClick={() => { setResidentToDelete(res); setDeleteDialogOpen(true); }}>
+                          <IconButton size="sm" variant="text" color="red" title="Xóa cư dân này" onClick={() => { setResidentToDelete(res); setDeleteDialogOpen(true); }}>
                             <TrashIcon className="h-4 w-4" />
                           </IconButton>
                         </div>

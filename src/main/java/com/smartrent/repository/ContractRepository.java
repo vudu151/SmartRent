@@ -24,5 +24,7 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
     @Query("SELECT COUNT(c) FROM Contract c WHERE c.tenant.id = :tenantId")
     long countByTenantId(@Param("tenantId") Long tenantId);
 
+    Optional<Contract> findByContractNumber(String contractNumber);
+
     Optional<Contract> findByPortalToken(String portalToken);
 }

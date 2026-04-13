@@ -21,6 +21,16 @@ export const updateTicketStatus = async (id: number, status: string) => {
   return res.data;
 };
 
+export const createTicket = async (data: any) => {
+  const tenantId = getTenantId();
+  const res = await apiFetch(`/api/tickets?tenantId=${tenantId}`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!res.success) throw new Error(res.message);
+  return res.data;
+};
+
 export const deleteTicket = async (id: number) => {
   const tenantId = getTenantId();
   const res = await apiFetch(`/api/tickets/${id}?tenantId=${tenantId}`, {

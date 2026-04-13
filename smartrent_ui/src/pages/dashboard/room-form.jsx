@@ -105,7 +105,7 @@ export function RoomModal({ open, onClose, roomId, onSuccess }) {
           {isEdit ? "Cập nhật Phòng" : "Thêm Phòng Mới"}
         </Typography>
       </DialogHeader>
-      <DialogBody divider className="max-h-[80vh] overflow-y-auto">
+      <DialogBody divider className="max-h-[80vh] overflow-y-auto pt-0">
         {loadingData ? (
           <div className="py-12 flex justify-center items-center">
             <Typography>Đang tải dữ liệu...</Typography>
@@ -187,7 +187,7 @@ export function RoomModal({ open, onClose, roomId, onSuccess }) {
               <Button variant="text" color="red" onClick={onClose} disabled={loading}>
                 Hủy
               </Button>
-              <Button type="submit" variant="gradient" disabled={loading}>
+              <Button type="submit" color="black" disabled={loading}>
                 {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo Mới"}
               </Button>
             </div>

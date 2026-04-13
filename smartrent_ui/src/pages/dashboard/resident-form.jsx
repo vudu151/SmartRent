@@ -227,7 +227,7 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
               <Button variant="text" color="red" onClick={onClose} disabled={loading}>
                 Hủy
               </Button>
-              <Button type="submit" variant="gradient" disabled={loading}>
+              <Button type="submit" color="black" disabled={loading}>
                 {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo Mới"}
               </Button>
             </div>

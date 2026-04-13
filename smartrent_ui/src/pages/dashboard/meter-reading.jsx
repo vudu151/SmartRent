@@ -33,8 +33,8 @@ export function MeterReading() {
     try {
       setLoading(true);
       const res = await getRooms({ page: 0, size: 100 });
-      // Filter out only RENTED rooms
-      const activeRooms = (res.content || []).filter(r => r.status === "RENTED");
+      // Filter out only OCCUPIED rooms
+      const activeRooms = (res.content || []).filter(r => r.status === "OCCUPIED");
       setRooms(activeRooms);
       
       // Init empty state
@@ -96,25 +96,25 @@ export function MeterReading() {
   };
 
   return (
-    <div className="mt-4 mb-8 flex flex-col gap-4">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none dark:bg-blue-gray-900 border-none">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-4">
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <Typography variant="h5" color="blue-gray" className="flex items-center gap-2 dark:text-white">
-                <CalculatorIcon className="w-6 h-6 text-indigo-500" /> Cửa sổ Chốt Điện Nước 
+              <Typography variant="h5" color="blue-gray" className="font-bold">
+                Cửa sổ Chốt Điện Nước
               </Typography>
-              <Typography color="gray" className="mt-1 font-normal dark:text-blue-gray-200">
+              <Typography color="gray" className="mt-0.5 font-normal text-sm">
                 Nhập số đầu - số cuối nhanh chóng. Hệ thống sẽ tự động tính hóa đơn.
               </Typography>
             </div>
-            <Button color="indigo" size="lg" className="flex items-center gap-2 shadow-indigo-100" onClick={handleSubmit} disabled={processing || loading}>
-              <CheckCircleIcon className="w-5 h-5" /> CHỐT ĐỒNG LOẠT
+            <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={handleSubmit} disabled={processing || loading}>
+              <CheckCircleIcon className="w-5 h-5" strokeWidth={2.5} /> CHỐT ĐỒNG LOẠT
             </Button>
           </div>
         </CardHeader>
 
-        <CardBody className="p-4 md:p-6 dark:bg-blue-gray-900/50">
+        <CardBody className="p-4 md:p-6 dark:bg-blue-gray-900/50 overflow-auto flex-1">
           {loading ? (
             <div className="text-center p-12 text-gray-500 dark:text-blue-gray-300">Đang tải danh sách phòng...</div>
           ) : rooms.length === 0 ? (
@@ -122,7 +122,7 @@ export function MeterReading() {
                 Khu trọ hiện đang Trống hoặc chưa cho thuê phòng nào.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                 {rooms.map((room) => {
                   const data = readings[room.id] || {};
                   return (
@@ -145,13 +145,14 @@ export function MeterReading() {
                                     <BoltIcon className="w-4 h-4" />
                                     <Typography variant="small" className="font-bold uppercase text-[10px]">ĐIỆN (KWh)</Typography>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-3 overflow-hidden">
                                     <Input 
                                         type="number" 
                                         label="Số cũ" 
                                         size="sm" 
                                         color="orange"
                                         className="dark:text-white"
+                                        containerProps={{ className: "min-w-[0]" }}
                                         value={data.eOld} 
                                         onChange={(e) => handleInputChange(room.id, "eOld", e.target.value)} 
                                     />
@@ -161,6 +162,7 @@ export function MeterReading() {
                                         size="sm" 
                                         color="orange"
                                         className="dark:text-white"
+                                        containerProps={{ className: "min-w-[0]" }}
                                         value={data.eNew} 
                                         onChange={(e) => handleInputChange(room.id, "eNew", e.target.value)} 
                                     />
@@ -173,13 +175,14 @@ export function MeterReading() {
                                     <BeakerIcon className="w-4 h-4" />
                                     <Typography variant="small" className="font-bold uppercase text-[10px]">NƯỚC (m³)</Typography>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-3 overflow-hidden">
                                     <Input 
                                         type="number" 
                                         label="Số cũ" 
                                         size="sm" 
                                         color="blue"
                                         className="dark:text-white"
+                                        containerProps={{ className: "min-w-[0]" }}
                                         value={data.wOld} 
                                         onChange={(e) => handleInputChange(room.id, "wOld", e.target.value)} 
                                     />
@@ -189,6 +192,7 @@ export function MeterReading() {
                                         size="sm" 
                                         color="blue"
                                         className="dark:text-white"
+                                        containerProps={{ className: "min-w-[0]" }}
                                         value={data.wNew} 
                                         onChange={(e) => handleInputChange(room.id, "wNew", e.target.value)} 
                                     />

@@ -75,10 +75,9 @@ export function LiquidationModal({ open, onClose, contract, onSuccess }) {
 
   return (
     <Dialog open={open} handler={onClose} size="lg" className={`min-w-[90%] md:min-w-[70%] ${darkMode ? "bg-blue-gray-900" : ""}`}>
-      <DialogHeader className="flex justify-between items-center border-b dark:border-blue-gray-800 pb-4">
+      <DialogHeader className="flex justify-between items-center border-b pb-4">
         <div className="flex items-center gap-2">
-          <ReceiptRefundIcon className="w-6 h-6 text-indigo-500" />
-          <Typography variant="h5" color="blue-gray" className="dark:text-white">
+          <Typography variant="h5" color="blue-gray">
             Quyết Toán Trả Phòng: {contract?.roomNumber}
           </Typography>
         </div>
@@ -107,8 +106,8 @@ export function LiquidationModal({ open, onClose, contract, onSuccess }) {
                 </div>
 
                 {/* TÍNH TOÁN LẺ NGÀY */}
-                <div className="bg-indigo-50/30 dark:bg-indigo-900/10 p-4 rounded-xl border border-indigo-50 dark:border-indigo-900/20">
-                    <Typography variant="h6" color="indigo" className="mb-4 flex items-center gap-2 font-bold dark:text-indigo-300 uppercase text-xs">
+                <div className="bg-blue-gray-50/50 p-4 rounded-xl border border-blue-gray-50">
+                    <Typography variant="h6" color="blue-gray" className="mb-4 flex items-center gap-2 font-bold uppercase text-xs">
                         <CalculatorIcon className="w-5 h-5" /> 2. Tiền phòng lẻ ngày
                     </Typography>
                     <div className="space-y-4">
@@ -190,7 +189,7 @@ export function LiquidationModal({ open, onClose, contract, onSuccess }) {
                         -{((summary?.totalDebts || 0) + otherDeductions).toLocaleString()} đ
                     </Typography>
                 </div>
-                <div className="flex gap-4 items-center bg-indigo-600 text-white p-5 rounded-xl mt-2 w-full md:w-1/2 shadow-lg shadow-indigo-100 dark:shadow-none">
+                <div className="flex gap-4 items-center bg-black text-white p-5 rounded-xl mt-2 w-full md:w-1/2 shadow-lg shadow-gray-200">
                     <Typography variant="h5" className="flex-grow uppercase font-normal text-sm opacity-80">THỰC HOÀN TRẢ:</Typography>
                     <Typography variant="h4" className="font-black text-2xl">
                         {finalRefundAmount?.toLocaleString()} đ
@@ -214,8 +213,8 @@ export function LiquidationModal({ open, onClose, contract, onSuccess }) {
       </DialogBody>
       
       <DialogFooter className="gap-2">
-        <Button variant="text" color="blue-gray" onClick={onClose} disabled={executing} className="dark:text-white">Đóng</Button>
-        <Button color="indigo" className="flex items-center gap-2 shadow-indigo-200" onClick={handleLiquidate} loading={executing}>
+        <Button variant="text" color="red" onClick={onClose} disabled={executing}>Đóng</Button>
+        <Button color="black" className="flex items-center gap-2 shadow-none" onClick={handleLiquidate} loading={executing}>
             <CheckBadgeIcon className="w-5 h-5" /> Hoàn Tất Quyết Toán
         </Button>
       </DialogFooter>

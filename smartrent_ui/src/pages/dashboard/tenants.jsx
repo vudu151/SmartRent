@@ -201,38 +201,22 @@ export function Tenants() {
   );
 
   return (
-    <div className="mt-[2px] mb-8 flex flex-col gap-4">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none">
-          <div className="flex items-center justify-between gap-8 mb-1">
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <Typography variant="h5" color="blue-gray">
+              <Typography variant="h5" color="blue-gray" className="font-bold">
                 Quản lý Tenant
               </Typography>
-              <Typography color="gray" className="mt-1 font-normal">
+              <Typography color="gray" className="mt-0.5 font-normal text-sm">
                 Thông tin các chủ trọ hệ thống
               </Typography>
             </div>
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
-              <div className="flex items-center gap-2">
-                <Typography variant="small" color="blue-gray" className="font-normal">
-                  Dòng:
-                </Typography>
-                <select
-                  value={pageSize}
-                  onChange={handleChangePageSize}
-                  className="rounded border border-blue-gray-200 px-1 py-0.5 text-xs outline-none bg-transparent"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
-              </div>
-              <div className="w-full md:w-64">
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="w-full sm:w-64">
                 <Input
                   label="Tìm kiếm..."
-                  size="sm"
                   icon={<MagnifyingGlassIcon className="h-5 w-5" />}
                   value={searchTerm}
                   onChange={(e) => {
@@ -242,17 +226,17 @@ export function Tenants() {
                 />
               </div>
               <Button
-                className="flex items-center gap-3"
-                size="sm"
+                color="black"
+                className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all"
                 onClick={handleAdd}
               >
-                <PlusIcon strokeWidth={2} className="h-4 w-4" />
+                <PlusIcon strokeWidth={2.5} className="h-4 w-4" />
                 Thêm Tenant
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardBody className="overflow-x-auto p-0">
+        <CardBody className="overflow-auto p-0 flex-1">
           {error && (
             <Alert color="red" className="mb-4 mx-4" onClose={() => setError("")}>
               {error}
@@ -268,7 +252,7 @@ export function Tenants() {
             </div>
           ) : (
             <table className="mt-2 w-full min-w-[640px] table-auto">
-              <thead>
+              <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
                 <tr>
                   {["ID", "Tên", "Email", "Số điện thoại", "Trạng thái", "Thao tác"].map((el) => (
                     <th

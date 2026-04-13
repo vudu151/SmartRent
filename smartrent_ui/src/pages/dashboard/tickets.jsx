@@ -9,14 +9,16 @@ import {
   Option,
   Button
 } from "@material-tailwind/react";
-import { WrenchScrewdriverIcon, CheckCircleIcon, ExclamationTriangleIcon, PlayIcon } from "@heroicons/react/24/solid";
+import { WrenchScrewdriverIcon, CheckCircleIcon, ExclamationTriangleIcon, PlayIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { getTickets, updateTicketStatus } from "@/api/ticket";
+import { TicketModal } from "./ticket-modal";
 import { showToast } from "@/lib/swal";
 
 export function Tickets() {
   const [tickets, setTickets] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [filterStr, setFilterStr] = React.useState("");
+  const [openModal, setOpenModal] = React.useState(false);
 
   React.useEffect(() => {
     loadTickets();
@@ -70,40 +72,45 @@ export function Tickets() {
   };
 
   return (
-    <div className="mt-4 mb-8 flex flex-col gap-4">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none">
-          <div className="flex items-center justify-between gap-8 mb-4">
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <Typography variant="h5" color="blue-gray">Quản lý Sự Cố</Typography>
-              <Typography color="gray" className="mt-1 font-normal">
-                Theo dõi tất cả yêu cầu báo hỏng và bảo trì từ khách thuê
+              <Typography variant="h5" color="blue-gray" className="font-bold">Quản lý Sự cố/Yêu cầu</Typography>
+              <Typography color="gray" className="mt-0.5 font-normal text-sm">
+                Danh sách các vấn đề từ cư dân và trạng thái xử lý
               </Typography>
             </div>
-            
-            <div className="w-56">
-              <Select label="Lọc trạng thái" value={filterStr} onChange={(val) => setFilterStr(val || "")}>
-                <Option value="">Tất cả</Option>
-                <Option value="PENDING">Mới báo (Đang chờ)</Option>
-                <Option value="IN_PROGRESS">Đang sửa</Option>
-                <Option value="RESOLVED">Đã xong</Option>
-              </Select>
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="w-full sm:w-48">
+                <Select label="Lọc trạng thái" size="sm" value={filterStr} onChange={(val) => setFilterStr(val || "")}>
+                  <Option value="">Tất cả</Option>
+                  <Option value="PENDING">Mới báo (Đang chờ)</Option>
+                  <Option value="IN_PROGRESS">Đang sửa</Option>
+                  <Option value="RESOLVED">Đã xong</Option>
+                </Select>
+              </div>
+              <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={() => setOpenModal(true)}>
+                <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Báo sự cố mới
+              </Button>
             </div>
           </div>
+          <TicketModal open={openModal} onClose={() => setOpenModal(false)} onSuccess={loadTickets} />
         </CardHeader>
 
-        <CardBody className="overflow-x-auto p-0">
+        <CardBody className="overflow-auto p-0 flex-1">
           {loading ? (
             <div className="text-center p-6 text-gray-500">Đang tải biểu dữ liệu...</div>
           ) : tickets.length === 0 ? (
             <div className="text-center p-6 text-gray-500">Khu trọ hiện rất ổn định. Không có sự cố nào.</div>
           ) : (
             <table className="w-full min-w-max table-auto text-left">
-              <thead>
+              <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
                 <tr>
                   {["Phòng", "Khách Báo", "Độ Ưu Tiên", "Tóm Tắt Sự Cố", "Trạng Thái", "Thao tác Nhanh"].map((h) => (
-                    <th key={h} className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                      <Typography variant="small" color="blue-gray" className="font-bold opacity-70">{h}</Typography>
+                    <th key={h} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
+                      <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">{h}</Typography>
                     </th>
                   ))}
                 </tr>

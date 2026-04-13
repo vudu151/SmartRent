@@ -14,11 +14,13 @@ import {
   DialogFooter,
   Alert,
 } from "@material-tailwind/react";
-import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, ArchiveBoxIcon } from "@heroicons/react/24/solid";
+import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, ArchiveBoxIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import { useMaterialTailwindController } from "@/context";
 import { getRooms, deleteRoom, updateRoom } from "@/api/room";
+import { getContracts } from "@/api/contract";
 import { RoomModal } from "./room-form";
 import { AssetModal } from "./asset-modal";
+import { LiquidationModal } from "./liquidation-modal";
 import { showToast } from "@/lib/swal";
 
 export function Rooms() {
@@ -34,7 +36,7 @@ export function Rooms() {
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [selectedRoomId, setSelectedRoomId] = React.useState(null);
-  
+
   const [assetModalOpen, setAssetModalOpen] = React.useState(false);
   const [roomForAsset, setRoomForAsset] = React.useState(null);
 
@@ -42,6 +44,10 @@ export function Rooms() {
   const [size, setSize] = React.useState(10);
   const [totalPages, setTotalPages] = React.useState(1);
   const [totalElements, setTotalElements] = React.useState(0);
+
+  const [liquidationOpen, setLiquidationOpen] = React.useState(false);
+  const [selectedContract, setSelectedContract] = React.useState(null);
+  const [liquidating, setLiquidating] = React.useState(false);
 
   const loadRooms = React.useCallback(async () => {
     try {
@@ -134,45 +140,54 @@ export function Rooms() {
     }
   };
 
-  const handleUpdateStatus = async (room, newStatus) => {
+  const handleLiquidationClick = async (room) => {
     try {
-      await updateRoom(room.id, { status: newStatus });
-      showToast("Cập nhật trạng thái thành công", "success");
-      loadRooms();
+      setLiquidating(true);
+      // Tìm hợp đồng đang hoạt động cho phòng này
+      const res = await getContracts({ roomId: room.id, status: 'ACTIVE' });
+      const contract = res.content ? res.content[0] : null;
+
+      if (!contract) {
+        showToast("Không tìm thấy hợp đồng hoạt động cho phòng này!", "warning");
+        return;
+      }
+
+      setSelectedContract(contract);
+      setLiquidationOpen(true);
     } catch (err) {
-      showToast(err.message || "Cập nhật thất bại", "error");
+      showToast("Lỗi khi tải thông tin hợp đồng", "error");
+    } finally {
+      setLiquidating(false);
     }
   };
 
   return (
-    <div className="mt-[2px] mb-8 flex flex-col gap-4">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none dark:bg-blue-gray-900 border-none">
-          <div className="flex items-center justify-between gap-8 mb-1">
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <Typography variant="h5" color="blue-gray" className="dark:text-white">Quản lý Phòng</Typography>
-              <Typography color="gray" className="mt-1 font-normal dark:text-blue-gray-200">
-                Danh sách phòng và trạng thái
+              <Typography variant="h5" color="blue-gray" className="font-bold">Quản lý Phòng</Typography>
+              <Typography color="gray" className="mt-0.5 font-normal text-sm">
+                Danh sách phòng và trạng thái hiện tại
               </Typography>
             </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-              <div className="w-full md:w-72">
+            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+              <div className="w-full sm:w-64">
                 <Input
                   label="Tìm kiếm số phòng..."
                   icon={<MagnifyingGlassIcon className="h-5 w-5" />}
                   value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                  }}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Button className="flex items-center gap-3 bg-indigo-600 hover:bg-indigo-700" onClick={handleAdd}>
-                <PlusIcon strokeWidth={2} className="h-4 w-4" /> Thêm Phòng
+              <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={handleAdd}>
+                <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Phòng
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardBody className="overflow-x-auto p-0">
+        <CardBody className="overflow-auto p-0 flex-1">
           {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
 
           {loading ? (
@@ -182,11 +197,11 @@ export function Rooms() {
           ) : (
             <>
               <table className="mt-4 w-full min-w-max table-auto text-left">
-                <thead>
+                <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
                   <tr>
                     {["Số Phòng", "Tầng", "Loại", "Diện tích (m²)", "Giá (VNĐ)", "Trạng thái", "Thao tác"].map((head) => (
-                      <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50/50 dark:bg-blue-gray-800 dark:border-blue-gray-700 py-3 px-4">
-                        <Typography variant="small" color="blue-gray" className="font-bold leading-none dark:text-blue-gray-100">
+                      <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
+                        <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">
                           {head}
                         </Typography>
                       </th>
@@ -210,15 +225,28 @@ export function Rooms() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
-                          <IconButton size="sm" variant="text" color="blue-gray" className="dark:text-white" onClick={() => handleEdit(room.id)}>
+                          <IconButton size="sm" variant="text" color="blue-gray" className="dark:text-white" title="Chỉnh sửa thông tin phòng" onClick={() => handleEdit(room.id)}>
                             <PencilIcon className="h-4 w-4" />
                           </IconButton>
-                          <IconButton size="sm" variant="text" color="indigo" className="text-indigo-600 dark:text-indigo-400" onClick={() => { setRoomForAsset(room); setAssetModalOpen(true); }}>
+                          <IconButton size="sm" variant="text" color="indigo" className="text-indigo-600 dark:text-indigo-400" title="Xem/Quản lý tài sản phòng" onClick={() => { setRoomForAsset(room); setAssetModalOpen(true); }}>
                             <ArchiveBoxIcon className="h-4 w-4" />
                           </IconButton>
-                          <IconButton size="sm" variant="text" color="red" onClick={() => { setRoomToDelete(room); setDeleteDialogOpen(true); }}>
+                          <IconButton size="sm" variant="text" color="red" title="Xóa phòng này" onClick={() => { setRoomToDelete(room); setDeleteDialogOpen(true); }}>
                             <TrashIcon className="h-4 w-4" />
                           </IconButton>
+                          {room.status === "OCCUPIED" && (
+                            <IconButton
+                              size="sm"
+                              variant="filled"
+                              color="red"
+                              className="bg-red-500 shadow-none hover:shadow-red-200"
+                              onClick={() => handleLiquidationClick(room)}
+                              disabled={liquidating}
+                              title="Thanh lý hợp đồng / Trả phòng"
+                            >
+                              <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                            </IconButton>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -226,19 +254,19 @@ export function Rooms() {
                 </tbody>
               </table>
 
-              <div className="mt-2 px-4 py-4 flex items-center justify-between border-t border-blue-gray-50 dark:border-blue-gray-800 bg-blue-gray-50/10 dark:bg-blue-gray-900/50">
+              <div className="mt-2 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
                 <div className="flex items-center gap-4">
-                  <Typography variant="small" color="blue-gray" className="font-normal dark:text-blue-gray-200">
+                  <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
                     Hiển thị {rooms.length} trong {totalElements} phòng
                   </Typography>
-                  <Typography variant="small" color="blue-gray" className="font-normal dark:text-blue-gray-200">
+                  <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
                     Trang {page} / {totalPages || 1}
                   </Typography>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outlined"
-                    color={darkMode ? "white" : "blue-gray"}
+                    color="blue-gray"
                     size="sm"
                     disabled={page <= 1 || loading}
                     onClick={() => setPage(p => p - 1)}
@@ -247,7 +275,7 @@ export function Rooms() {
                   </Button>
                   <Button
                     variant="outlined"
-                    color={darkMode ? "white" : "blue-gray"}
+                    color="blue-gray"
                     size="sm"
                     disabled={page >= totalPages || loading}
                     onClick={() => setPage(p => p + 1)}
@@ -268,10 +296,10 @@ export function Rooms() {
         onSuccess={handleModalSuccess}
       />
 
-      <AssetModal 
-        open={assetModalOpen} 
-        onClose={() => setAssetModalOpen(false)} 
-        room={roomForAsset} 
+      <AssetModal
+        open={assetModalOpen}
+        onClose={() => setAssetModalOpen(false)}
+        room={roomForAsset}
       />
 
       <Dialog open={deleteDialogOpen} handler={setDeleteDialogOpen}>
@@ -282,6 +310,13 @@ export function Rooms() {
           <Button variant="gradient" color="red" onClick={handleDelete}>Xóa</Button>
         </DialogFooter>
       </Dialog>
+
+      <LiquidationModal
+        open={liquidationOpen}
+        onClose={() => setLiquidationOpen(false)}
+        contract={selectedContract}
+        onSuccess={loadRooms}
+      />
     </div>
   );
 }

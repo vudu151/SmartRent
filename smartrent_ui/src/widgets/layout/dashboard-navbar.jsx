@@ -121,12 +121,14 @@ export function DashboardNavbar() {
                 </Button>
               </MenuHandler>
               <MenuList className={darkMode ? "bg-blue-gray-900 border-blue-gray-800 text-white" : ""}>
-                <MenuItem className={darkMode ? "hover:bg-blue-gray-800 focus:bg-blue-gray-800" : ""}>
-                  <div className="flex items-center gap-2">
-                    <UserCircleIcon className="h-5 w-5" />
-                    <Typography variant="small">Profile</Typography>
-                  </div>
-                </MenuItem>
+                <Link to="/dashboard/profile">
+                  <MenuItem className={darkMode ? "hover:bg-blue-gray-800 focus:bg-blue-gray-800" : ""}>
+                    <div className="flex items-center gap-2">
+                      <UserCircleIcon className="h-5 w-5" />
+                      <Typography variant="small">Profile</Typography>
+                    </div>
+                  </MenuItem>
+                </Link>
                 <MenuItem className={darkMode ? "hover:bg-blue-gray-800 focus:bg-blue-gray-800" : ""}>
                   <div className="flex items-center gap-2">
                     <Cog6ToothIcon className="h-5 w-5" />

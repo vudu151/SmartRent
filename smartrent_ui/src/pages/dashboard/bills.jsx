@@ -171,28 +171,27 @@ export function Bills() {
   };
 
   return (
-    <div className="mt-[2px] mb-8 flex flex-col gap-4">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none">
-          <div className="flex items-center justify-between gap-8 mb-1">
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
             <div>
-              <Typography variant="h5" color="blue-gray">Quản lý Phiếu Thu</Typography>
-              <Typography color="gray" className="mt-1 font-normal">
+              <Typography variant="h5" color="blue-gray" className="font-bold">Quản lý Phiếu Thu</Typography>
+              <Typography color="gray" className="mt-0.5 font-normal text-sm">
                 Theo dõi các thanh toán tiền phòng và dịch vụ
               </Typography>
             </div>
-            <div className="flex gap-2">
-              <Button className="flex items-center gap-3" variant="outlined" size="sm" onClick={handleRemind} disabled={loading}>
+            <div className="flex shrink-0 gap-2 items-center">
+              <Button variant="outlined" color="blue-gray" className="flex items-center gap-2 uppercase py-2.5 px-4 shadow-none transition-all" onClick={handleRemind} disabled={loading}>
                 <BellIcon className="h-4 w-4" /> Nhắc Nợ
               </Button>
-              <Button className="flex items-center gap-3" size="sm" onClick={handleAdd}>
-                <PlusIcon strokeWidth={2} className="h-4 w-4" /> Thêm Phiếu Thu
+              <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={handleAdd}>
+                <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Phiếu Thu
               </Button>
             </div>
           </div>
-
-          <div className="flex flex-col md:flex-row gap-4 mb-2">
-            <div className="w-full md:w-64">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="w-full sm:w-52">
               <Input
                 label="Tìm số phòng..."
                 size="sm"
@@ -200,7 +199,7 @@ export function Bills() {
                 onChange={(e) => { setRoomNumber(e.target.value); }}
               />
             </div>
-            <div className="w-full md:w-48">
+            <div className="w-full sm:w-44">
               <Select label="Trạng thái" size="sm" value={statusFilter} onChange={(v) => { setStatusFilter(v || ""); }}>
                 <Option value="">Tất cả</Option>
                 <Option value="UNPAID">Chưa Thu</Option>
@@ -208,7 +207,7 @@ export function Bills() {
                 <Option value="OVERDUE">Quá Hạn</Option>
               </Select>
             </div>
-            <div className="w-full md:w-48">
+            <div className="w-full sm:w-44">
               <Select label="Loại phí" size="sm" value={typeFilter} onChange={(v) => { setTypeFilter(v || ""); }}>
                 <Option value="">Tất cả</Option>
                 <Option value="RENT">Tiền Phòng</Option>
@@ -219,7 +218,7 @@ export function Bills() {
             </div>
           </div>
         </CardHeader>
-        <CardBody className="overflow-x-auto p-0">
+        <CardBody className="overflow-auto p-0 flex-1">
           {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
 
           {loading ? (
@@ -229,7 +228,7 @@ export function Bills() {
           ) : (
             <>
               <table className="mt-4 w-full min-w-max table-auto text-left">
-                <thead>
+                <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
                   <tr>
                     {["Phòng", "Loại", "Số Tiền (VNĐ)", "Hạn Thu", "Trạng Thái", "Mô tả", "Thao tác"].map((head) => (
                       <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
