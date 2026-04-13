@@ -57,6 +57,15 @@ public class Tenant {
     @Builder.Default
     private TenantStatus status = TenantStatus.ACTIVE;
 
+    @Column(name = "bank_name", length = 100)
+    private String bankName;
+
+    @Column(name = "bank_account", length = 50)
+    private String bankAccount;
+
+    @Column(name = "bank_owner", length = 100)
+    private String bankOwner;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
