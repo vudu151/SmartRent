@@ -22,7 +22,7 @@ export function Dashboard() {
           sidenavType === "dark" ? "/img/logo-ct.png" : "/img/logo-ct-dark.png"
         }
       />
-      <div className="p-4 xl:ml-80 h-screen flex flex-col">
+      <div className="p-2 xl:ml-[304px] h-screen flex flex-col">
         <DashboardNavbar />
         <Configurator />
         <IconButton
@@ -34,7 +34,9 @@ export function Dashboard() {
         >
           <Cog6ToothIcon className="h-5 w-5" />
         </IconButton>
-        <div className="flex-1 overflow-hidden mt-4">
+
+
+        <div className="flex-1 overflow-hidden mt-2">
           <Routes>
             {routes.map(
               ({ layout, pages }) =>

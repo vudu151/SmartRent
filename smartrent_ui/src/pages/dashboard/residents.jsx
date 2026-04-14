@@ -120,29 +120,36 @@ export function Residents() {
   return (
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
-        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <Typography variant="h5" color="blue-gray" className="font-bold">Quản lý Cư dân</Typography>
-              <Typography color="gray" className="mt-0.5 font-normal text-sm">
-                Danh sách người thuê trọ
-              </Typography>
+        <CardHeader variant="gradient" color="gray" className="mb-0 p-6 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <Typography variant="h6" color="white">
+              Quản lý Cư dân
+            </Typography>
+            <Typography color="white" className="mt-0.5 font-normal text-xs opacity-70">
+              Danh sách người thuê trọ
+            </Typography>
+          </div>
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="w-full sm:w-64">
+              <Input
+                label="Tìm kiếm tên, sdt..."
+                color="white"
+                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                }}
+              />
             </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-              <div className="w-full sm:w-64">
-                <Input
-                  label="Tìm kiếm tên, sdt..."
-                  icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                  }}
-                />
-              </div>
-              <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={handleAdd}>
-                <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Cư dân
-              </Button>
-            </div>
+            <Button
+              variant="white"
+              color="blue-gray"
+              size="sm"
+              className="flex items-center gap-2 uppercase"
+              onClick={handleAdd}
+            >
+              <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Cư dân
+            </Button>
           </div>
         </CardHeader>
         <CardBody className="overflow-auto p-0 flex-1">
@@ -154,12 +161,18 @@ export function Residents() {
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu cư dân</Typography></div>
           ) : (
             <>
-              <table className="mt-4 w-full min-w-max table-auto text-left">
-                <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
+              <table className="w-full min-w-max table-auto text-left">
+                <thead>
                   <tr>
                     {["Họ tên", "Số điện thoại", "Phòng", "CMND/CCCD", "Trạng thái", "Thao tác"].map((head) => (
-                      <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
-                        <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">
+                      <th
+                        key={head}
+                        className="border-b border-blue-gray-50 py-3 px-5"
+                      >
+                        <Typography
+                          variant="small"
+                          className="text-[11px] font-bold uppercase text-blue-gray-400"
+                        >
                           {head}
                         </Typography>
                       </th>
@@ -167,44 +180,87 @@ export function Residents() {
                   </tr>
                 </thead>
                 <tbody>
-                  {residents.map((res) => (
-                    <tr key={res.id} className="even:bg-blue-gray-50/50">
-                      <td className="py-0.5 px-4">
-                        <Typography variant="small" color="blue-gray" className="font-bold">
-                          {res.fullName}
-                        </Typography>
-                        <Typography variant="small" color="gray" className="font-normal">
-                          {res.email}
-                        </Typography>
-                      </td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray">{res.phone || "-"}</Typography></td>
-                      <td className="py-0.5 px-4">
-                        {res.rooms && res.rooms.length > 0 ? (
-                          <div className="flex gap-1 flex-wrap">
-                            {res.rooms.map((r) => (
-                              <Chip key={r.id} size="sm" variant="ghost" value={r.roomNumber} color="blue" />
-                            ))}
+                  {residents.map((res, key) => {
+                    const isLast = key === residents.length - 1;
+                    const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
+
+                    return (
+                      <tr key={res.id}>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="font-bold">
+                            {res.fullName}
+                          </Typography>
+                          <Typography className="text-xs font-normal text-blue-gray-500">
+                            {res.email}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray">
+                            {res.phone || "-"}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          {res.rooms && res.rooms.length > 0 ? (
+                            <div className="flex gap-1 flex-wrap">
+                              {res.rooms.map((r) => (
+                                <Chip
+                                  key={r.id}
+                                  size="sm"
+                                  variant="gradient"
+                                  value={r.roomNumber}
+                                  color="blue"
+                                  className="py-0.5 px-2 text-[10px] font-medium w-fit"
+                                />
+                              ))}
+                            </div>
+                          ) : (
+                            <Typography variant="small" color="gray" className="text-xs italic">
+                              Chưa xếp phòng
+                            </Typography>
+                          )}
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray">
+                            {res.idCard || "-"}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Chip
+                            variant="gradient"
+                            size="sm"
+                            value={getStatusLabel(res.status)}
+                            color={getStatusColor(res.status)}
+                            className="py-0.5 px-2 text-[11px] font-medium w-fit"
+                          />
+                        </td>
+                        <td className={className}>
+                          <div className="flex gap-2">
+                            <IconButton
+                              size="sm"
+                              variant="text"
+                              color="blue-gray"
+                              title="Chỉnh sửa thông tin cư dân"
+                              onClick={() => handleEdit(res.id)}
+                            >
+                              <PencilIcon className="h-4 w-4 text-blue-gray-500" />
+                            </IconButton>
+                            <IconButton
+                              size="sm"
+                              variant="text"
+                              color="red"
+                              title="Xóa cư dân này"
+                              onClick={() => {
+                                setResidentToDelete(res);
+                                setDeleteDialogOpen(true);
+                              }}
+                            >
+                              <TrashIcon className="h-4 w-4 text-red-500" />
+                            </IconButton>
                           </div>
-                        ) : (
-                          <Typography variant="small" color="gray">Chưa xếp phòng</Typography>
-                        )}
-                      </td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray">{res.idCard || "-"}</Typography></td>
-                      <td className="py-0.5 px-4">
-                        <Chip size="sm" variant="ghost" value={getStatusLabel(res.status)} color={getStatusColor(res.status)} />
-                      </td>
-                      <td className="py-0.5 px-4">
-                        <div className="flex gap-2">
-                          <IconButton size="sm" variant="text" color="blue-gray" title="Chỉnh sửa thông tin cư dân" onClick={() => handleEdit(res.id)}>
-                            <PencilIcon className="h-4 w-4" />
-                          </IconButton>
-                          <IconButton size="sm" variant="text" color="red" title="Xóa cư dân này" onClick={() => { setResidentToDelete(res); setDeleteDialogOpen(true); }}>
-                            <TrashIcon className="h-4 w-4" />
-                          </IconButton>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
 

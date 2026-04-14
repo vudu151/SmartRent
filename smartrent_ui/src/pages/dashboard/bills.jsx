@@ -173,33 +173,51 @@ export function Bills() {
   return (
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
-        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+        <CardHeader variant="gradient" color="gray" className="mb-0 p-6 shrink-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <Typography variant="h5" color="blue-gray" className="font-bold">Quản lý Phiếu Thu</Typography>
-              <Typography color="gray" className="mt-0.5 font-normal text-sm">
+              <Typography variant="h6" color="white">
+                Quản lý Phiếu Thu
+              </Typography>
+              <Typography color="white" className="mt-0.5 font-normal text-xs opacity-70">
                 Theo dõi các thanh toán tiền phòng và dịch vụ
               </Typography>
             </div>
             <div className="flex shrink-0 gap-2 items-center">
-              <Button variant="outlined" color="blue-gray" className="flex items-center gap-2 uppercase py-2.5 px-4 shadow-none transition-all" onClick={handleRemind} disabled={loading}>
+              <Button
+                variant="white"
+                color="blue-gray"
+                size="sm"
+                className="flex items-center gap-2 uppercase"
+                onClick={handleRemind}
+                disabled={loading}
+              >
                 <BellIcon className="h-4 w-4" /> Nhắc Nợ
               </Button>
-              <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={handleAdd}>
+              <Button
+                variant="white"
+                color="blue-gray"
+                size="sm"
+                className="flex items-center gap-2 uppercase"
+                onClick={handleAdd}
+              >
                 <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Phiếu Thu
               </Button>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="w-full sm:w-52">
+        </CardHeader>
+        <CardBody className="p-0 overflow-auto">
+          <div className="px-6 py-4 flex flex-col md:flex-row gap-4 border-b border-blue-gray-50">
+            <div className="w-full md:w-64">
               <Input
                 label="Tìm số phòng..."
                 size="sm"
+                icon={<MagnifyingGlassIcon className="h-4 w-4" />}
                 value={roomNumber}
                 onChange={(e) => { setRoomNumber(e.target.value); }}
               />
             </div>
-            <div className="w-full sm:w-44">
+            <div className="w-full md:w-44">
               <Select label="Trạng thái" size="sm" value={statusFilter} onChange={(v) => { setStatusFilter(v || ""); }}>
                 <Option value="">Tất cả</Option>
                 <Option value="UNPAID">Chưa Thu</Option>
@@ -207,7 +225,7 @@ export function Bills() {
                 <Option value="OVERDUE">Quá Hạn</Option>
               </Select>
             </div>
-            <div className="w-full sm:w-44">
+            <div className="w-full md:w-44">
               <Select label="Loại phí" size="sm" value={typeFilter} onChange={(v) => { setTypeFilter(v || ""); }}>
                 <Option value="">Tất cả</Option>
                 <Option value="RENT">Tiền Phòng</Option>
@@ -217,8 +235,6 @@ export function Bills() {
               </Select>
             </div>
           </div>
-        </CardHeader>
-        <CardBody className="overflow-auto p-0 flex-1">
           {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
 
           {loading ? (
@@ -227,12 +243,18 @@ export function Bills() {
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu phiếu thu</Typography></div>
           ) : (
             <>
-              <table className="mt-4 w-full min-w-max table-auto text-left">
-                <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
+              <table className="w-full min-w-max table-auto text-left">
+                <thead>
                   <tr>
                     {["Phòng", "Loại", "Số Tiền (VNĐ)", "Hạn Thu", "Trạng Thái", "Mô tả", "Thao tác"].map((head) => (
-                      <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
-                        <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">
+                      <th
+                        key={head}
+                        className="border-b border-blue-gray-50 py-3 px-5"
+                      >
+                        <Typography
+                          variant="small"
+                          className="text-[11px] font-bold uppercase text-blue-gray-400"
+                        >
                           {head}
                         </Typography>
                       </th>
@@ -240,33 +262,80 @@ export function Bills() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bills.map((bill) => (
-                    <tr key={bill.id} className="even:bg-blue-gray-50/50">
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray" className="font-bold">{bill.roomNumber || "-"}</Typography></td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray">{getTypeLabel(bill.billType)}</Typography></td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray" className="font-bold text-blue-800">{bill.amount?.toLocaleString()}</Typography></td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray">{new Date(bill.dueDate).toLocaleDateString("vi-VN")}</Typography></td>
-                      <td className="py-0.5 px-4">
-                        <Chip size="sm" variant="ghost" value={getStatusLabel(bill.status)} color={getStatusColor(bill.status)} />
-                      </td>
-                      <td className="py-0.5 px-4 text-xs max-w-xs truncate" title={bill.description}>{bill.description}</td>
-                      <td className="py-0.5 px-4">
-                        <div className="flex gap-2">
-                          {bill.status === "UNPAID" || bill.status === "OVERDUE" ? (
-                            <IconButton size="sm" variant="text" color="green" title="Thu Tiền" onClick={() => { setBillToPay(bill); setPayDialogOpen(true); }}>
-                              <CheckCircleIcon className="h-5 w-5" />
+                  {bills.map((bill, key) => {
+                    const isLast = key === bills.length - 1;
+                    const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
+
+                    return (
+                      <tr key={bill.id}>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="font-bold">
+                            {bill.roomNumber || "-"}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray">
+                            {getTypeLabel(bill.billType)}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="font-bold text-blue-800">
+                            {bill.amount?.toLocaleString()}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray">
+                            {new Date(bill.dueDate).toLocaleDateString("vi-VN")}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Chip
+                            variant="gradient"
+                            size="sm"
+                            value={getStatusLabel(bill.status)}
+                            color={getStatusColor(bill.status)}
+                            className="py-0.5 px-2 text-[11px] font-medium w-fit"
+                          />
+                        </td>
+                        <td className={className}>
+                          <Typography className="text-xs font-normal text-blue-gray-500 max-w-xs truncate" title={bill.description}>
+                            {bill.description}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <div className="flex gap-2">
+                            {bill.status === "UNPAID" || bill.status === "OVERDUE" ? (
+                              <IconButton
+                                size="sm"
+                                variant="text"
+                                color="green"
+                                title="Thu Tiền"
+                                onClick={() => { setBillToPay(bill); setPayDialogOpen(true); }}
+                              >
+                                <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                              </IconButton>
+                            ) : null}
+                            <IconButton
+                              size="sm"
+                              variant="text"
+                              color="blue-gray"
+                              onClick={() => handleEdit(bill.id)}
+                            >
+                              <PencilIcon className="h-4 w-4 text-blue-gray-500" />
                             </IconButton>
-                          ) : null}
-                          <IconButton size="sm" variant="text" color="blue-gray" onClick={() => handleEdit(bill.id)}>
-                            <PencilIcon className="h-4 w-4" />
-                          </IconButton>
-                          <IconButton size="sm" variant="text" color="red" onClick={() => { setBillToDelete(bill); setDeleteDialogOpen(true); }}>
-                            <TrashIcon className="h-4 w-4" />
-                          </IconButton>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            <IconButton
+                              size="sm"
+                              variant="text"
+                              color="red"
+                              onClick={() => { setBillToDelete(bill); setDeleteDialogOpen(true); }}
+                            >
+                              <TrashIcon className="h-4 w-4 text-red-500" />
+                            </IconButton>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
 

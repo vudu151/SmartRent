@@ -203,37 +203,38 @@ export function Tenants() {
   return (
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
-        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <Typography variant="h5" color="blue-gray" className="font-bold">
-                Quản lý Tenant
-              </Typography>
-              <Typography color="gray" className="mt-0.5 font-normal text-sm">
-                Thông tin các chủ trọ hệ thống
-              </Typography>
+        <CardHeader variant="gradient" color="gray" className="mb-0 p-6 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <Typography variant="h6" color="white">
+              Quản lý Tenant
+            </Typography>
+            <Typography color="white" className="mt-0.5 font-normal text-xs opacity-70">
+              Thông tin các chủ trọ hệ thống
+            </Typography>
+          </div>
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="w-full sm:w-64">
+              <Input
+                label="Tìm kiếm..."
+                color="white"
+                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
             </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-              <div className="w-full sm:w-64">
-                <Input
-                  label="Tìm kiếm..."
-                  icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-              </div>
-              <Button
-                color="black"
-                className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all"
-                onClick={handleAdd}
-              >
-                <PlusIcon strokeWidth={2.5} className="h-4 w-4" />
-                Thêm Tenant
-              </Button>
-            </div>
+            <Button
+              variant="white"
+              color="blue-gray"
+              size="sm"
+              className="flex items-center gap-2 uppercase"
+              onClick={handleAdd}
+            >
+              <PlusIcon strokeWidth={2.5} className="h-4 w-4" />
+              Thêm Tenant
+            </Button>
           </div>
         </CardHeader>
         <CardBody className="overflow-auto p-0 flex-1">
@@ -251,18 +252,17 @@ export function Tenants() {
               <Typography color="gray">Không có tenant nào</Typography>
             </div>
           ) : (
-            <table className="mt-2 w-full min-w-[640px] table-auto">
-              <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
+            <table className="w-full min-w-[640px] table-auto text-left">
+              <thead>
                 <tr>
                   {["ID", "Tên", "Email", "Số điện thoại", "Trạng thái", "Thao tác"].map((el) => (
                     <th
                       key={el}
-                      className="border-b border-blue-gray-100 py-0.5 px-4 text-left bg-blue-gray-50"
+                      className="border-b border-blue-gray-50 py-3 px-5"
                     >
                       <Typography
                         variant="small"
-                        color="blue-gray"
-                        className="font-normal leading-none opacity-70"
+                        className="text-[11px] font-bold uppercase text-blue-gray-400"
                       >
                         {el}
                       </Typography>
@@ -271,53 +271,67 @@ export function Tenants() {
                 </tr>
               </thead>
               <tbody>
-                {pageData.map((tenant) => (
-                  <tr key={tenant.id} className="even:bg-blue-gray-50/50">
-                    <td className="py-0.5 px-4">
-                      <Typography variant="small" color="blue-gray">{tenant.id}</Typography>
-                    </td>
-                    <td className="py-0.5 px-4">
-                      <Typography variant="small" color="blue-gray" className="font-bold">{tenant.name}</Typography>
-                    </td>
-                    <td className="py-0.5 px-4">
-                      <Typography variant="small" color="blue-gray">{tenant.email}</Typography>
-                    </td>
-                    <td className="py-0.5 px-4">
-                      <Typography variant="small" color="blue-gray">{tenant.phone || "-"}</Typography>
-                    </td>
-                    <td className="py-0.5 px-4">
-                      <Chip
-                        variant="ghost"
-                        size="sm"
-                        value={getStatusLabel(tenant.status)}
-                        color={getStatusColor(tenant.status)}
-                      />
-                    </td>
-                    <td className="py-0.5 px-4">
-                      <div className="flex items-center gap-2">
-                        <IconButton
-                          variant="text"
+                {pageData.map((tenant, key) => {
+                  const isLast = key === pageData.length - 1;
+                  const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
+
+                  return (
+                    <tr key={tenant.id}>
+                      <td className={className}>
+                        <Typography variant="small" color="blue-gray" className="font-semibold">
+                          {tenant.id}
+                        </Typography>
+                      </td>
+                      <td className={className}>
+                        <Typography variant="small" color="blue-gray" className="font-semibold">
+                          {tenant.name}
+                        </Typography>
+                      </td>
+                      <td className={className}>
+                        <Typography className="text-xs font-normal text-blue-gray-500">
+                          {tenant.email}
+                        </Typography>
+                      </td>
+                      <td className={className}>
+                        <Typography className="text-xs font-normal text-blue-gray-500">
+                          {tenant.phone || "-"}
+                        </Typography>
+                      </td>
+                      <td className={className}>
+                        <Chip
+                          variant="gradient"
                           size="sm"
-                          color="blue-gray"
-                          onClick={() => handleEdit(tenant.id)}
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </IconButton>
-                        <IconButton
-                          variant="text"
-                          size="sm"
-                          color="red"
-                          onClick={() => {
-                            setTenantToDelete(tenant);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </IconButton>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          value={getStatusLabel(tenant.status)}
+                          color={getStatusColor(tenant.status)}
+                          className="py-0.5 px-2 text-[11px] font-medium w-fit"
+                        />
+                      </td>
+                      <td className={className}>
+                        <div className="flex items-center gap-2">
+                          <IconButton
+                            variant="text"
+                            size="sm"
+                            color="blue-gray"
+                            onClick={() => handleEdit(tenant.id)}
+                          >
+                            <PencilIcon className="h-4 w-4 text-blue-gray-500" />
+                          </IconButton>
+                          <IconButton
+                            variant="text"
+                            size="sm"
+                            color="red"
+                            onClick={() => {
+                              setTenantToDelete(tenant);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <TrashIcon className="h-4 w-4 text-red-500" />
+                          </IconButton>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

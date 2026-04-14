@@ -164,27 +164,34 @@ export function Rooms() {
   return (
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
-        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <Typography variant="h5" color="blue-gray" className="font-bold">Quản lý Phòng</Typography>
-              <Typography color="gray" className="mt-0.5 font-normal text-sm">
-                Danh sách phòng và trạng thái hiện tại
-              </Typography>
+        <CardHeader variant="gradient" color="gray" className="mb-0 p-6 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <Typography variant="h6" color="white">
+              Quản lý Phòng
+            </Typography>
+            <Typography color="white" className="mt-0.5 font-normal text-xs opacity-70">
+              Danh sách phòng và trạng thái hiện tại
+            </Typography>
+          </div>
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="w-full sm:w-64">
+              <Input
+                label="Tìm số phòng..."
+                color="white"
+                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-              <div className="w-full sm:w-64">
-                <Input
-                  label="Tìm kiếm số phòng..."
-                  icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={handleAdd}>
-                <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Phòng
-              </Button>
-            </div>
+            <Button
+              variant="white"
+              color="blue-gray"
+              size="sm"
+              className="flex items-center gap-2 uppercase"
+              onClick={handleAdd}
+            >
+              <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Phòng
+            </Button>
           </div>
         </CardHeader>
         <CardBody className="overflow-auto p-0 flex-1">
@@ -196,12 +203,18 @@ export function Rooms() {
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu phòng</Typography></div>
           ) : (
             <>
-              <table className="mt-4 w-full min-w-max table-auto text-left">
-                <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
+              <table className="w-full min-w-max table-auto text-left">
+                <thead>
                   <tr>
                     {["Số Phòng", "Tầng", "Loại", "Diện tích (m²)", "Giá (VNĐ)", "Trạng thái", "Thao tác"].map((head) => (
-                      <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
-                        <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">
+                      <th
+                        key={head}
+                        className="border-b border-blue-gray-50 py-3 px-5"
+                      >
+                        <Typography
+                          variant="small"
+                          className="text-[11px] font-bold uppercase text-blue-gray-400"
+                        >
                           {head}
                         </Typography>
                       </th>
@@ -209,48 +222,74 @@ export function Rooms() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rooms.map((room) => (
-                    <tr key={room.id} className="border-b border-blue-gray-50 dark:border-blue-gray-800 hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 transition-colors">
-                      <td className="py-3 px-4">
-                        <Typography variant="small" color="blue-gray" className="font-bold dark:text-white">
-                          {room.roomNumber}
-                        </Typography>
-                      </td>
-                      <td className="py-3 px-4 text-right"><Typography variant="small" color="blue-gray" className="dark:text-blue-gray-200">{room.floor || "-"}</Typography></td>
-                      <td className="py-3 px-4"><Typography variant="small" color="blue-gray" className="dark:text-blue-gray-200">{getTypeLabel(room.type)}</Typography></td>
-                      <td className="py-3 px-4 text-right"><Typography variant="small" color="blue-gray" className="dark:text-blue-gray-200">{room.area || "-"}</Typography></td>
-                      <td className="py-3 px-4 text-right"><Typography variant="small" color="blue-gray" className="dark:text-blue-gray-200">{room.price != null ? Number(room.price).toLocaleString() : "-"}</Typography></td>
-                      <td className="py-3 px-4">
-                        <Chip size="sm" variant="ghost" value={getStatusLabel(room.status)} color={getStatusColor(room.status)} className="dark:bg-opacity-20" />
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex gap-2">
-                          <IconButton size="sm" variant="text" color="blue-gray" className="dark:text-white" title="Chỉnh sửa thông tin phòng" onClick={() => handleEdit(room.id)}>
-                            <PencilIcon className="h-4 w-4" />
-                          </IconButton>
-                          <IconButton size="sm" variant="text" color="indigo" className="text-indigo-600 dark:text-indigo-400" title="Xem/Quản lý tài sản phòng" onClick={() => { setRoomForAsset(room); setAssetModalOpen(true); }}>
-                            <ArchiveBoxIcon className="h-4 w-4" />
-                          </IconButton>
-                          <IconButton size="sm" variant="text" color="red" title="Xóa phòng này" onClick={() => { setRoomToDelete(room); setDeleteDialogOpen(true); }}>
-                            <TrashIcon className="h-4 w-4" />
-                          </IconButton>
-                          {room.status === "OCCUPIED" && (
-                            <IconButton
-                              size="sm"
-                              variant="filled"
-                              color="red"
-                              className="bg-red-500 shadow-none hover:shadow-red-200"
-                              onClick={() => handleLiquidationClick(room)}
-                              disabled={liquidating}
-                              title="Thanh lý hợp đồng / Trả phòng"
-                            >
-                              <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                  {rooms.map((room, key) => {
+                    const isLast = key === rooms.length - 1;
+                    const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
+
+                    return (
+                      <tr key={room.id}>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="font-bold">
+                            {room.roomNumber}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="text-right">
+                            {room.floor || "-"}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray">
+                            {getTypeLabel(room.type)}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="text-right">
+                            {room.area || "-"}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="text-right font-semibold">
+                            {room.price != null ? Number(room.price).toLocaleString() : "-"}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Chip
+                            variant="gradient"
+                            size="sm"
+                            value={getStatusLabel(room.status)}
+                            color={getStatusColor(room.status)}
+                            className="py-0.5 px-2 text-[11px] font-medium w-fit"
+                          />
+                        </td>
+                        <td className={className}>
+                          <div className="flex gap-2">
+                            <IconButton size="sm" variant="text" color="blue-gray" title="Chỉnh sửa thông tin phòng" onClick={() => handleEdit(room.id)}>
+                              <PencilIcon className="h-4 w-4 text-blue-gray-500" />
                             </IconButton>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            <IconButton size="sm" variant="text" color="indigo" title="Xem/Quản lý tài sản phòng" onClick={() => { setRoomForAsset(room); setAssetModalOpen(true); }}>
+                              <ArchiveBoxIcon className="h-4 w-4 text-indigo-500" />
+                            </IconButton>
+                            <IconButton size="sm" variant="text" color="red" title="Xóa phòng này" onClick={() => { setRoomToDelete(room); setDeleteDialogOpen(true); }}>
+                              <TrashIcon className="h-4 w-4 text-red-500" />
+                            </IconButton>
+                            {room.status === "OCCUPIED" && (
+                              <IconButton
+                                size="sm"
+                                variant="gradient"
+                                color="red"
+                                onClick={() => handleLiquidationClick(room)}
+                                disabled={liquidating}
+                                title="Thanh lý hợp đồng / Trả phòng"
+                              >
+                                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                              </IconButton>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
 

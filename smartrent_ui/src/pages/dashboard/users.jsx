@@ -91,25 +91,26 @@ export function Users() {
   return (
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
-        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <Typography variant="h5" color="blue-gray" className="font-bold">Quản lý Tài khoản</Typography>
-              <Typography color="gray" className="mt-0.5 font-normal text-sm">
-                Danh sách người dùng và nhân viên hệ thống
-              </Typography>
-            </div>
-            <div className="w-full sm:w-64">
-              <Input
-                label="Tìm tên hoặc email..."
-                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(0);
-                }}
-              />
-            </div>
+        <CardHeader variant="gradient" color="gray" className="mb-0 p-6 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <Typography variant="h6" color="white">
+              Quản lý Tài khoản
+            </Typography>
+            <Typography color="white" className="mt-0.5 font-normal text-xs opacity-70">
+              Danh sách người dùng và nhân viên hệ thống
+            </Typography>
+          </div>
+          <div className="w-full md:w-64">
+            <Input
+              label="Tìm tên hoặc email..."
+              color="white"
+              icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(0);
+              }}
+            />
           </div>
         </CardHeader>
         <CardBody className="overflow-auto p-0 flex-1">
@@ -119,12 +120,18 @@ export function Users() {
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu</Typography></div>
           ) : (
             <>
-              <table className="mt-4 w-full min-w-max table-auto text-left">
-                <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
+              <table className="w-full min-w-max table-auto text-left">
+                <thead>
                   <tr>
                     {["Tài khoản", "Họ tên", "Vai trò", "Trạng thái", "Ngày tạo", "Thao tác"].map((head) => (
-                      <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
-                        <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">
+                      <th
+                        key={head}
+                        className="border-b border-blue-gray-50 py-3 px-5"
+                      >
+                        <Typography
+                          variant="small"
+                          className="text-[11px] font-bold uppercase text-blue-gray-400"
+                        >
                           {head}
                         </Typography>
                       </th>
@@ -132,40 +139,78 @@ export function Users() {
                   </tr>
                 </thead>
                 <tbody>
-                  {usersList.map((usr) => (
-                    <tr key={usr.id} className="even:bg-blue-gray-50/50">
-                      <td className="py-0.5 px-4">
-                        <Typography variant="small" color="blue-gray" className="font-bold">
-                          {usr.username}
-                        </Typography>
-                        <Typography variant="small" color="gray" className="font-normal">
-                          {usr.email}
-                        </Typography>
-                      </td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray">{usr.fullName || "-"}</Typography></td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray" className="font-bold">{usr.role}</Typography></td>
-                      <td className="py-0.5 px-4">
-                        <Chip size="sm" variant="ghost" value={usr.status === "ACTIVE" ? "Hoạt động" : "Bị khóa"} color={usr.status === "ACTIVE" ? "green" : "red"} />
-                      </td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="gray">{new Date(usr.createdAt).toLocaleDateString("vi-VN")}</Typography></td>
-                      <td className="py-0.5 px-4">
-                        <div className="flex gap-2">
-                          {usr.status === "ACTIVE" ? (
-                            <IconButton variant="text" color="orange" title="Khóa TK" onClick={() => handleDeactivate(usr.id)}>
-                              <NoSymbolIcon className="h-4 w-4" />
+                  {usersList.map((usr, key) => {
+                    const isLast = key === usersList.length - 1;
+                    const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
+
+                    return (
+                      <tr key={usr.id}>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="font-bold">
+                            {usr.username}
+                          </Typography>
+                          <Typography className="text-xs font-normal text-blue-gray-500">
+                            {usr.email}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray">
+                            {usr.fullName || "-"}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="font-bold">
+                            {usr.role}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Chip
+                            variant="gradient"
+                            size="sm"
+                            value={usr.status === "ACTIVE" ? "Hoạt động" : "Bị khóa"}
+                            color={usr.status === "ACTIVE" ? "green" : "red"}
+                            className="py-0.5 px-2 text-[11px] font-medium w-fit"
+                          />
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray">
+                            {new Date(usr.createdAt).toLocaleDateString("vi-VN")}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <div className="flex gap-2">
+                            {usr.status === "ACTIVE" ? (
+                              <IconButton
+                                variant="text"
+                                color="orange"
+                                title="Khóa TK"
+                                onClick={() => handleDeactivate(usr.id)}
+                              >
+                                <NoSymbolIcon className="h-4 w-4 text-orange-500" />
+                              </IconButton>
+                            ) : (
+                              <IconButton
+                                variant="text"
+                                color="green"
+                                title="Mở khóa TK"
+                                onClick={() => handleActivate(usr.id)}
+                              >
+                                <CheckCircleIcon className="h-4 w-4 text-green-500" />
+                              </IconButton>
+                            )}
+                            <IconButton
+                              variant="text"
+                              color="red"
+                              title="Xóa"
+                              onClick={() => handleDelete(usr.id, usr.username)}
+                            >
+                              <TrashIcon className="h-4 w-4 text-red-500" />
                             </IconButton>
-                          ) : (
-                            <IconButton variant="text" color="green" title="Mở khóa TK" onClick={() => handleActivate(usr.id)}>
-                              <CheckCircleIcon className="h-4 w-4" />
-                            </IconButton>
-                          )}
-                          <IconButton variant="text" color="red" title="Xóa" onClick={() => handleDelete(usr.id, usr.username)}>
-                            <TrashIcon className="h-4 w-4" />
-                          </IconButton>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
 
