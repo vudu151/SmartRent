@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "schema_version": "1.1.0",
+    "awf_version": "4.0.2"
+  },
+  "project": {
+    "name": "SmartRent UI",
+    "type": "Property Management System (PMS)",
+    "status": "Development / UI Modernization Complete"
+  },
+  "tech_stack": {
+    "frontend": {
+      "framework": "React + Vite",
+      "styling": "Tailwind CSS + Material Tailwind",
+      "state_management": "React Context (MaterialTailwindController)"
+    },
+    "backend": {
+      "framework": "Spring Boot (local at http://localhost:8080)",
+      "api_style": "REST"
+    }
+  },
+  "design_system": {
+    "primary_theme": "Modern SaaS / High-Density",
+    "header_style": "Gradient Gray (variant='gradient' color='gray')",
+    "layout_pattern": "Fixed-Height (h-full) with internal table scrolling (CardBody overflow-auto)",
+    "spacing_standard": "Symmetric 8px (p-2, my-2, ml-2, xl:ml-[304px])",
+    "navigation": {
+      "sidebar_active_color": "gray (dark gradient)",
+      "navbar_style": "Minimalists (No breadcrumbs/title, top-aligned with sidebar)"
+    }
+  },
+  "features": [
+    "Tenant Management",
+    "Room Management",
+    "Resident Management",
+    "Bill Management",
+    "User Management",
+    "Contract Management"
+  ]
+}

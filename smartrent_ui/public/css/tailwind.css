@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* === Navbar Controls: Uniform Height === */
+.navbar-controls input,
+.navbar-controls select,
+.navbar-controls button,
+.navbar-controls .relative > div > input {
+  height: 38px !important;
+  min-height: 38px !important;
+  box-sizing: border-box;
+}
+
+/* === Sticky Table Header === */
+.overflow-auto thead,
+.overflow-y-auto thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
+}
+.overflow-auto thead th,
+.overflow-y-auto thead th {
+  background: inherit;
+}

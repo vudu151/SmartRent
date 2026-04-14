@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Card,
-  CardHeader,
   CardBody,
   Typography,
   Input,
@@ -9,6 +8,7 @@ import {
 } from "@material-tailwind/react";
 import { CalculatorIcon, BoltIcon, BeakerIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { useMaterialTailwindController } from "@/context";
+import { useNavbarHeader } from "@/context/navbar-header";
 import { getRooms } from "@/api/room";
 import { generateMeterBills } from "@/api/bill";
 import { showToast } from "@/lib/swal";
@@ -16,6 +16,7 @@ import { showToast } from "@/lib/swal";
 export function MeterReading() {
   const [controller] = useMaterialTailwindController();
   const { darkMode } = controller;
+  const { setNavbarHeader } = useNavbarHeader();
 
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,22 @@ export function MeterReading() {
   // State to hold dynamic grid inputs
   // Format: { [roomId]: { eOld, eNew, wOld, wNew } }
   const [readings, setReadings] = useState({});
+
+  useEffect(() => {
+    setNavbarHeader(
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full">
+        <div className="min-w-0">
+          <Typography variant="h6" color="blue-gray" className="font-bold truncate">Cửa sổ Chốt Điện Nước</Typography>
+          <Typography color="gray" className="font-normal text-xs">Nhập số đầu - số cuối nhanh chóng. Hệ thống sẽ tự động tính hóa đơn.</Typography>
+        </div>
+        <div className="flex shrink-0 gap-2 items-center">
+          <Button color="blue-gray" size="sm" className="flex items-center gap-1.5 whitespace-nowrap" onClick={() => document.getElementById('btn-submit-meter')?.click()}>
+            <CheckCircleIcon className="w-4 h-4" /> CHỐT ĐỒNG LOẠT
+          </Button>
+        </div>
+      </div>
+    );
+  }, [setNavbarHeader]);
 
   useEffect(() => {
     loadRooms();
@@ -97,22 +114,9 @@ export function MeterReading() {
 
   return (
     <div className="h-full flex flex-col">
+      {/* Hidden button for navbar trigger */}
+      <button id="btn-submit-meter" className="hidden" onClick={handleSubmit} disabled={processing || loading} />
       <Card className="h-full flex flex-col overflow-hidden">
-        <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <Typography variant="h5" color="blue-gray" className="font-bold">
-                Cửa sổ Chốt Điện Nước
-              </Typography>
-              <Typography color="gray" className="mt-0.5 font-normal text-sm">
-                Nhập số đầu - số cuối nhanh chóng. Hệ thống sẽ tự động tính hóa đơn.
-              </Typography>
-            </div>
-            <Button color="black" className="flex items-center gap-2 uppercase py-2.5 px-5 shadow-none hover:shadow-md hover:shadow-gray-300 transition-all" onClick={handleSubmit} disabled={processing || loading}>
-              <CheckCircleIcon className="w-5 h-5" strokeWidth={2.5} /> CHỐT ĐỒNG LOẠT
-            </Button>
-          </div>
-        </CardHeader>
 
         <CardBody className="p-4 md:p-6 dark:bg-blue-gray-900/50 overflow-auto flex-1">
           {loading ? (

@@ -4,8 +4,6 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Select,
-  Option,
   Chip,
 } from "@material-tailwind/react";
 import { 
@@ -18,20 +16,41 @@ import {
 import { StatisticsCard } from "@/widgets/cards";
 import { StatisticsChart } from "@/widgets/charts";
 import { getDashboardSummary } from "@/api/dashboard";
+import { useNavbarHeader } from "@/context/navbar-header";
 
 export function Home() {
+  const { setNavbarHeader } = useNavbarHeader();
   const [loading, setLoading] = React.useState(true);
   const [data, setData] = React.useState(null);
   const [months, setMonths] = React.useState(6); // Default 6 months
+
+  React.useEffect(() => {
+    setNavbarHeader(
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full">
+        <div className="min-w-0">
+          <Typography variant="h6" color="blue-gray" className="font-bold truncate">Tổng quan Dự án</Typography>
+          <Typography color="gray" className="font-normal text-xs">Báo cáo tổng hợp hoạt động kinh doanh</Typography>
+        </div>
+        <div className="flex shrink-0 gap-2 items-center">
+          <select
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+            value={months.toString()}
+            onChange={(e) => setMonths(Number(e.target.value))}
+          >
+            <option value="3">3 tháng gần đây</option>
+            <option value="6">6 tháng gần đây</option>
+            <option value="12">1 năm</option>
+            <option value="24">2 năm</option>
+          </select>
+        </div>
+      </div>
+    );
+  }, [setNavbarHeader, months]);
 
   const loadDashboard = React.useCallback(async () => {
     try {
       setLoading(true);
       const summary = await getDashboardSummary(months);
-      // Backend returns data sorted from oldest to newest if we reverse it, 
-      // but let's just use what backend gives natively (currently giving oldest-first or newest first based on iteration, we need chronological arrays for charts).
-      
-      // Ensuring chartData is chronological (oldest to newest left-to-right)
       const chronologicalChartData = [...(summary?.chartData || [])];
       
       setData({
@@ -120,18 +139,7 @@ export function Home() {
   };
 
   return (
-    <div className="mt-12">
-      <div className="flex justify-between items-center mb-6">
-        <Typography variant="h4" color="blue-gray">Tổng quan Dự án</Typography>
-        <div className="w-48">
-          <Select label="Kỳ báo cáo" value={months.toString()} onChange={(val) => setMonths(Number(val))}>
-            <Option value="3">3 tháng gần đây</Option>
-            <Option value="6">6 tháng gần đây</Option>
-            <Option value="12">1 năm</Option>
-            <Option value="24">2 năm</Option>
-          </Select>
-        </div>
-      </div>
+    <div className="mt-4">
 
       <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
         <StatisticsCard

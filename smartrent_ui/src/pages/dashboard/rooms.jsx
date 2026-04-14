@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Card,
-  CardHeader,
   CardBody,
   Typography,
   Button,
@@ -16,6 +15,7 @@ import {
 } from "@material-tailwind/react";
 import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, ArchiveBoxIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import { useMaterialTailwindController } from "@/context";
+import { useNavbarHeader } from "@/context/navbar-header";
 import { getRooms, deleteRoom, updateRoom } from "@/api/room";
 import { getContracts } from "@/api/contract";
 import { RoomModal } from "./room-form";
@@ -26,6 +26,7 @@ import { showToast } from "@/lib/swal";
 export function Rooms() {
   const [controller] = useMaterialTailwindController();
   const { darkMode } = controller;
+  const { setNavbarHeader } = useNavbarHeader();
 
   const [rooms, setRooms] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -48,6 +49,8 @@ export function Rooms() {
   const [liquidationOpen, setLiquidationOpen] = React.useState(false);
   const [selectedContract, setSelectedContract] = React.useState(null);
   const [liquidating, setLiquidating] = React.useState(false);
+
+  const searchRef = React.useRef(null);
 
   const loadRooms = React.useCallback(async () => {
     try {
@@ -78,12 +81,47 @@ export function Rooms() {
     setPage(1);
   }, [size, searchTerm]);
 
-
-
   const handleAdd = () => {
     setSelectedRoomId(null);
     setIsModalOpen(true);
   };
+
+  // Set navbar header content
+  React.useEffect(() => {
+    setNavbarHeader(
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full">
+        <div className="min-w-0">
+          <Typography variant="h6" color="blue-gray" className="font-bold truncate">
+            Quản lý Phòng
+          </Typography>
+          <Typography color="gray" className="font-normal text-xs">
+            Danh sách phòng và trạng thái hiện tại
+          </Typography>
+        </div>
+        <div className="flex shrink-0 gap-2 items-center">
+          <div className="w-48">
+            <Input
+              label="Tìm số phòng..."
+              size="md"
+              icon={<MagnifyingGlassIcon className="h-4 w-4" />}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              containerProps={{ className: "!min-w-0" }}
+            />
+          </div>
+          <Button
+            variant="gradient"
+            color="indigo"
+            size="sm"
+            className="flex items-center gap-2 whitespace-nowrap"
+            onClick={handleAdd}
+          >
+            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Phòng
+          </Button>
+        </div>
+      </div>
+    );
+  }, [searchTerm, setNavbarHeader]);
 
   const handleEdit = (id) => {
     setSelectedRoomId(id);
@@ -143,7 +181,6 @@ export function Rooms() {
   const handleLiquidationClick = async (room) => {
     try {
       setLiquidating(true);
-      // Tìm hợp đồng đang hoạt động cho phòng này
       const res = await getContracts({ roomId: room.id, status: 'ACTIVE' });
       const contract = res.content ? res.content[0] : null;
 
@@ -164,36 +201,6 @@ export function Rooms() {
   return (
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
-        <CardHeader variant="gradient" color="gray" className="mb-0 p-6 shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <Typography variant="h6" color="white">
-              Quản lý Phòng
-            </Typography>
-            <Typography color="white" className="mt-0.5 font-normal text-xs opacity-70">
-              Danh sách phòng và trạng thái hiện tại
-            </Typography>
-          </div>
-          <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="w-full sm:w-64">
-              <Input
-                label="Tìm số phòng..."
-                color="white"
-                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button
-              variant="white"
-              color="blue-gray"
-              size="sm"
-              className="flex items-center gap-2 uppercase"
-              onClick={handleAdd}
-            >
-              <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Phòng
-            </Button>
-          </div>
-        </CardHeader>
         <CardBody className="overflow-auto p-0 flex-1">
           {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
 
@@ -202,7 +209,6 @@ export function Rooms() {
           ) : rooms.length === 0 ? (
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu phòng</Typography></div>
           ) : (
-            <>
               <table className="w-full min-w-max table-auto text-left">
                 <thead>
                   <tr>
@@ -292,40 +298,40 @@ export function Rooms() {
                   })}
                 </tbody>
               </table>
-
-              <div className="mt-2 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
-                <div className="flex items-center gap-4">
-                  <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
-                    Hiển thị {rooms.length} trong {totalElements} phòng
-                  </Typography>
-                  <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
-                    Trang {page} / {totalPages || 1}
-                  </Typography>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outlined"
-                    color="blue-gray"
-                    size="sm"
-                    disabled={page <= 1 || loading}
-                    onClick={() => setPage(p => p - 1)}
-                  >
-                    Trước
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="blue-gray"
-                    size="sm"
-                    disabled={page >= totalPages || loading}
-                    onClick={() => setPage(p => p + 1)}
-                  >
-                    Sau
-                  </Button>
-                </div>
-              </div>
-            </>
           )}
         </CardBody>
+        {!loading && rooms.length > 0 && (
+          <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
+            <div className="flex items-center gap-4">
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+                Hiển thị {rooms.length} trong {totalElements} phòng
+              </Typography>
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+                Trang {page} / {totalPages || 1}
+              </Typography>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outlined"
+                color="blue-gray"
+                size="sm"
+                disabled={page <= 1 || loading}
+                onClick={() => setPage(p => p - 1)}
+              >
+                Trước
+              </Button>
+              <Button
+                variant="outlined"
+                color="blue-gray"
+                size="sm"
+                disabled={page >= totalPages || loading}
+                onClick={() => setPage(p => p + 1)}
+              >
+                Sau
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       <RoomModal

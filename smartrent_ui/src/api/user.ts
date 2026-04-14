@@ -82,3 +82,14 @@ export async function deleteUser(id: number): Promise<void> {
   })
   if (!response.success) throw new Error(response.message)
 }
+
+export async function uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await apiFetch<ApiResponse<{ avatarUrl: string }>>('/api/users/me/avatar', {
+    method: 'POST',
+    body: formData,
+  })
+  if (!response.success || !response.data) throw new Error(response.message)
+  return response.data
+}

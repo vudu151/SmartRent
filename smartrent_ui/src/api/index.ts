@@ -12,7 +12,7 @@ export { getContracts, getContractById, createContract, updateContract, deleteCo
 
 export { getBills, getBillById, createBill, updateBill, deleteBill, generateMeterBills, markBillAsPaid } from './bill';
 
-export { getUsers, getCurrentUser, changePassword, activateUser, deactivateUser, deleteUser } from './user';
+export { getUsers, getCurrentUser, changePassword, activateUser, deactivateUser, deleteUser, uploadAvatar } from './user';
 
 export { getAssetsByRoom, createAsset, updateAsset, deleteAsset } from './asset';
 

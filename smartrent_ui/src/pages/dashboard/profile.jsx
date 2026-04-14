@@ -6,12 +6,31 @@ import {
   Typography,
   Input,
   Button,
+  Avatar,
 } from "@material-tailwind/react";
+import { CameraIcon } from "@heroicons/react/24/solid";
 import { getTenantProfile, updateTenantProfile } from "@/api/tenant";
+import { uploadAvatar } from "@/api/user";
 import { showToast } from "@/lib/swal";
+import { useAuth } from "@/smartrent/auth";
+import { getUserInfo, saveTokens } from "@/lib/token";
+import { getAccessToken, getRefreshToken } from "@/lib/token";
+import { env } from "@/config/env";
+
+// Helper to resolve avatar URL
+function getAvatarSrc(avatarUrl) {
+  if (!avatarUrl) return null;
+  if (avatarUrl.startsWith("http")) return avatarUrl;
+  const base = env.apiBaseUrl?.replace(/\/+$/, "");
+  return base ? `${base}${avatarUrl}` : avatarUrl;
+}
 
 export function Profile() {
+  const { user } = useAuth();
   const [loading, setLoading] = React.useState(true);
+  const [avatarUrl, setAvatarUrl] = React.useState(user?.avatarUrl || null);
+  const [uploading, setUploading] = React.useState(false);
+  const fileInputRef = React.useRef(null);
   const [formData, setFormData] = React.useState({
     name: "",
     phone: "",
@@ -24,6 +43,12 @@ export function Profile() {
   React.useEffect(() => {
     loadProfile();
   }, []);
+
+  React.useEffect(() => {
+    if (user?.avatarUrl) {
+      setAvatarUrl(user.avatarUrl);
+    }
+  }, [user?.avatarUrl]);
 
   const loadProfile = async () => {
     try {
@@ -59,6 +84,57 @@ export function Profile() {
     }
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate on client side
+    if (!file.type.startsWith("image/")) {
+      showToast("Chỉ chấp nhận file ảnh (JPG, PNG, GIF...)", "error");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("File ảnh tối đa 5MB", "error");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const result = await uploadAvatar(file);
+
+      // Update avatar URL in state
+      setAvatarUrl(result.avatarUrl);
+
+      // Update user info in localStorage so navbar reflects change immediately
+      const currentUser = getUserInfo();
+      if (currentUser) {
+        currentUser.avatarUrl = result.avatarUrl;
+        const accessToken = getAccessToken();
+        const refreshToken = getRefreshToken();
+        if (accessToken && refreshToken) {
+          saveTokens(accessToken, refreshToken, currentUser);
+        }
+      }
+
+      showToast("Cập nhật ảnh đại diện thành công!", "success");
+
+      // Force reload to update navbar avatar
+      window.location.reload();
+    } catch (err) {
+      showToast(err.message || "Upload ảnh thất bại", "error");
+    } finally {
+      setUploading(false);
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const avatarSrc = getAvatarSrc(avatarUrl);
+
   if (loading) return <div className="p-8">Đang tải...</div>;
 
   return (
@@ -78,8 +154,59 @@ export function Profile() {
         <form onSubmit={handleSave} className="flex flex-col h-full justify-between">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
-            {/* Cột trái: Thông tin Cá nhân */}
+            {/* Cột trái: Avatar + Thông tin Cá nhân */}
             <div className="flex flex-col gap-5 border-b lg:border-b-0 lg:border-r border-blue-gray-100 pb-6 lg:pb-0 lg:pr-12">
+              
+              {/* Avatar Upload Section */}
+              <div className="flex items-center gap-5 mb-4">
+                <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+                  {avatarSrc ? (
+                    <Avatar
+                      src={avatarSrc}
+                      alt={user?.fullName || user?.username || "User"}
+                      size="xxl"
+                      variant="circular"
+                      className="border-4 border-blue-gray-100 shadow-lg w-24 h-24 object-cover"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white font-bold text-3xl shadow-lg border-4 border-blue-gray-100">
+                      {(user?.fullName || user?.username || "U").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <CameraIcon className="h-7 w-7 text-white" />
+                  </div>
+                  {uploading && (
+                    <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+                <div>
+                  <Typography variant="h6" color="blue-gray" className="font-bold">
+                    {user?.fullName || user?.username}
+                  </Typography>
+                  <Typography variant="small" className="text-blue-gray-500">
+                    {user?.role}
+                  </Typography>
+                  <Typography
+                    variant="small"
+                    className="text-indigo-500 cursor-pointer hover:text-indigo-700 mt-1 font-medium"
+                    onClick={handleAvatarClick}
+                  >
+                    {uploading ? "Đang tải lên..." : "Đổi ảnh đại diện"}
+                  </Typography>
+                </div>
+              </div>
+
               <div className="mb-2">
                 <Typography variant="h6" color="blue-gray" className="font-bold">
                   Thông tin Liên hệ

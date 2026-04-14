@@ -13,6 +13,7 @@ export interface UserInfo {
   fullName: string | null
   tenantId: number | null
   role: string
+  avatarUrl: string | null
   permissions: string[]
 }
 

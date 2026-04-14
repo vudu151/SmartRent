@@ -70,9 +70,9 @@ export function Notifications() {
   };
 
   return (
-    <div className="mt-[2px] mb-8 flex flex-col gap-4">
-      <Card>
-        <CardHeader floated={false} shadow={false} className="rounded-none">
+    <div className="h-full flex flex-col">
+      <Card className="h-full flex flex-col overflow-hidden">
+        <CardHeader floated={false} shadow={false} className="rounded-none shrink-0">
           <div className="flex items-center justify-between gap-8 mb-1">
             <div>
               <Typography variant="h5" color="blue-gray">Trung tâm Thông báo</Typography>
@@ -82,14 +82,13 @@ export function Notifications() {
             </div>
           </div>
         </CardHeader>
-        <CardBody className="overflow-x-auto p-0">
+        <CardBody className="overflow-auto p-0 flex-1">
           {loading ? (
             <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
           ) : notifications.length === 0 ? (
             <div className="flex justify-center py-8"><Typography>Không có thông báo nào</Typography></div>
           ) : (
-            <>
-              <table className="mt-4 w-full min-w-max table-auto text-left">
+              <table className="w-full min-w-max table-auto text-left">
                 <thead>
                   <tr>
                     {["Loại", "Tiêu đề", "Người gửi", "Ngày gửi", "Thao tác"].map((head) => (
@@ -123,40 +122,24 @@ export function Notifications() {
                   ))}
                 </tbody>
               </table>
-
-              <div className="mt-2 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
-                <div className="flex items-center gap-4">
-                  <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
-                    Hiển thị {notifications.length} trong {totalElements} thông báo
-                  </Typography>
-                  <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
-                    Trang {page} / {totalPages || 1}
-                  </Typography>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outlined"
-                    color="blue-gray"
-                    size="sm"
-                    disabled={page <= 1 || loading}
-                    onClick={() => setPage(p => p - 1)}
-                  >
-                    Trước
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="blue-gray"
-                    size="sm"
-                    disabled={page >= totalPages || loading}
-                    onClick={() => setPage(p => p + 1)}
-                  >
-                    Sau
-                  </Button>
-                </div>
-              </div>
-            </>
           )}
         </CardBody>
+        {!loading && notifications.length > 0 && (
+          <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
+            <div className="flex items-center gap-4">
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+                Hiển thị {notifications.length} trong {totalElements} thông báo
+              </Typography>
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+                Trang {page} / {totalPages || 1}
+              </Typography>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outlined" color="blue-gray" size="sm" disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)}>Trước</Button>
+              <Button variant="outlined" color="blue-gray" size="sm" disabled={page >= totalPages || loading} onClick={() => setPage(p => p + 1)}>Sau</Button>
+            </div>
+          </div>
+        )}
       </Card>
 
       <Dialog open={detailOpen} handler={setDetailOpen} size="md">

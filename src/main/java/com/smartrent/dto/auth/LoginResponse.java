@@ -34,6 +34,7 @@ public class LoginResponse {
         private String fullName;
         private Long tenantId;
         private String role;
+        private String avatarUrl;
         private Set<String> permissions;
     }
 }

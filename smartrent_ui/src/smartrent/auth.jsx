@@ -13,6 +13,7 @@ const STORAGE_KEY = "smartrent.session";
  *  fullName: string | null,
  *  tenantId: number | null,
  *  role: string,
+ *  avatarUrl: string | null,
  *  permissions: string[]
  * }} UserInfo
  */
