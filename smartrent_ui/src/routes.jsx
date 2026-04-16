@@ -32,36 +32,42 @@ export const routes = [
         name: "Tổng quan",
         path: "/home",
         element: <Home />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
       {
         icon: <RectangleStackIcon {...icon} />,
         name: "Phòng trọ",
         path: "/rooms",
         element: <Rooms />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
       {
         icon: <UserCircleIcon {...icon} />,
         name: "Cư dân",
         path: "/residents",
         element: <Residents />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
       },
       {
         icon: <DocumentTextIcon {...icon} />,
         name: "Hợp đồng",
         path: "/contracts",
         element: <Contracts />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
       {
         icon: <CurrencyDollarIcon {...icon} />,
         name: "Hóa đơn",
         path: "/bills",
         element: <Bills />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
       {
         icon: <CalculatorIcon {...icon} />,
         name: "Điện nước",
         path: "/meter-readings",
         element: <MeterReading />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
       {
         icon: <BoltIcon {...icon} />,
@@ -75,6 +81,7 @@ export const routes = [
         name: "Sự cố",
         path: "/tickets",
         element: <Tickets />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
       },
 
       // ===== Quản trị hệ thống (hiển thị nhưng nhóm riêng) =====
@@ -83,12 +90,14 @@ export const routes = [
         name: "Người dùng",
         path: "/users",
         element: <Users />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
       {
         icon: <BuildingOfficeIcon {...icon} />,
         name: "Chủ trọ",
         path: "/tenants",
         element: <Tenants />,
+        allowedRoles: ["SUPER_ADMIN"],
       },
 
       // ===== Ẩn khỏi sidebar (vẫn truy cập được bằng URL) =====

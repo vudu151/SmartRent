@@ -7,10 +7,17 @@ import {
   Input,
   IconButton,
   Chip,
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
+  Select,
+  Option,
 } from "@material-tailwind/react";
-import { MagnifyingGlassIcon, CheckCircleIcon, NoSymbolIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { MagnifyingGlassIcon, CheckCircleIcon, NoSymbolIcon, TrashIcon, UserPlusIcon } from "@heroicons/react/24/solid";
 import { useNavbarHeader } from "@/context/navbar-header";
-import { getUsers, activateUser, deactivateUser, deleteUser } from "@/api/user";
+import { getUsers, activateUser, deactivateUser, deleteUser, createUser } from "@/api/user";
+import { useAuth } from "@/smartrent/auth";
 import { showToast } from "@/lib/swal";
 import Swal from "sweetalert2";
 
@@ -23,6 +30,13 @@ export function Users() {
   const [size, setSize] = React.useState(10);
   const [totalPages, setTotalPages] = React.useState(0);
   const [totalElements, setTotalElements] = React.useState(0);
+
+  const { user } = useAuth();
+  const [openModal, setOpenModal] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+  const [formData, setFormData] = React.useState({ username: "", email: "", fullName: "", phone: "", password: "", role: "" });
+
+  const handleOpenModal = () => setOpenModal(!openModal);
 
   const loadUsers = React.useCallback(async () => {
     try {
@@ -49,6 +63,9 @@ export function Users() {
           <div className="w-52">
             <Input label="Tìm tên hoặc email..." size="md" icon={<MagnifyingGlassIcon className="h-4 w-4" />} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }} containerProps={{ className: "!min-w-0" }} />
           </div>
+          <Button className="flex items-center gap-2 h-10 px-4" color="gray" size="sm" onClick={() => setOpenModal(true)}>
+            <UserPlusIcon className="h-4 w-4" /> Thêm Tài Khoản
+          </Button>
         </div>
       </div>
     );
@@ -61,66 +78,104 @@ export function Users() {
     if (result.isConfirmed) { try { await deleteUser(id); showToast("Xóa thành công", "success"); loadUsers(); } catch (err) { showToast(err.message, "error"); } }
   };
 
+  const handleCreateUser = async () => {
+    try {
+      setSaving(true);
+      await createUser(formData);
+      showToast("Tạo tài khoản thành công!", "success");
+      setOpenModal(false);
+      setFormData({ username: "", email: "", fullName: "", phone: "", password: "", role: "" });
+      loadUsers();
+    } catch (error) {
+      showToast(error.message, "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="h-full flex flex-col">
-      <Card className="h-full flex flex-col overflow-hidden">
-        <CardBody className="overflow-auto p-0 flex-1">
-          {loading ? (
-            <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
-          ) : usersList.length === 0 ? (
-            <div className="flex justify-center py-8"><Typography>Không có dữ liệu</Typography></div>
-          ) : (
-              <table className="w-full min-w-max table-auto text-left">
-                <thead><tr>
-                  {["Tài khoản", "Họ tên", "Vai trò", "Trạng thái", "Ngày tạo", "Thao tác"].map((h) => (
-                    <th key={h} className="border-b border-blue-gray-50 py-3 px-5"><Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{h}</Typography></th>
-                  ))}
-                </tr></thead>
-                <tbody>
-                  {usersList.map((usr, key) => {
-                    const isLast = key === usersList.length - 1;
-                    const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
-                    return (
-                      <tr key={usr.id}>
-                        <td className={className}>
-                          <Typography variant="small" color="blue-gray" className="font-bold">{usr.username}</Typography>
-                          <Typography className="text-xs font-normal text-blue-gray-500">{usr.email}</Typography>
-                        </td>
-                        <td className={className}><Typography variant="small" color="blue-gray">{usr.fullName || "-"}</Typography></td>
-                        <td className={className}><Typography variant="small" color="blue-gray" className="font-bold">{usr.role}</Typography></td>
-                        <td className={className}><Chip variant="gradient" size="sm" value={usr.status === "ACTIVE" ? "Hoạt động" : "Bị khóa"} color={usr.status === "ACTIVE" ? "green" : "red"} className="py-0.5 px-2 text-[11px] font-medium w-fit" /></td>
-                        <td className={className}><Typography variant="small" color="blue-gray">{new Date(usr.createdAt).toLocaleDateString("vi-VN")}</Typography></td>
-                        <td className={className}>
-                          <div className="flex gap-2">
-                            {usr.status === "ACTIVE" ? (
-                              <IconButton variant="text" color="orange" title="Khóa TK" onClick={() => handleDeactivate(usr.id)}><NoSymbolIcon className="h-4 w-4 text-orange-500" /></IconButton>
-                            ) : (
-                              <IconButton variant="text" color="green" title="Mở khóa" onClick={() => handleActivate(usr.id)}><CheckCircleIcon className="h-4 w-4 text-green-500" /></IconButton>
-                            )}
-                            <IconButton variant="text" color="red" title="Xóa" onClick={() => handleDelete(usr.id, usr.username)}><TrashIcon className="h-4 w-4 text-red-500" /></IconButton>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+    <>
+      <div className="h-full flex flex-col">
+        <Card className="h-full flex flex-col overflow-hidden">
+          <CardBody className="overflow-auto p-0 flex-1">
+            {loading ? (
+              <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
+            ) : usersList.length === 0 ? (
+              <div className="flex justify-center py-8"><Typography>Không có dữ liệu</Typography></div>
+            ) : (
+                <table className="w-full min-w-max table-auto text-left">
+                  <thead><tr>
+                    {["Tài khoản", "Họ tên", "Vai trò", "Trạng thái", "Ngày tạo", "Thao tác"].map((h) => (
+                      <th key={h} className="border-b border-blue-gray-50 py-3 px-5"><Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{h}</Typography></th>
+                    ))}
+                  </tr></thead>
+                  <tbody>
+                    {usersList.map((usr, key) => {
+                      const isLast = key === usersList.length - 1;
+                      const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
+                      return (
+                        <tr key={usr.id}>
+                          <td className={className}>
+                            <Typography variant="small" color="blue-gray" className="font-bold">{usr.username}</Typography>
+                            <Typography className="text-xs font-normal text-blue-gray-500">{usr.email}</Typography>
+                          </td>
+                          <td className={className}><Typography variant="small" color="blue-gray">{usr.fullName || "-"}</Typography></td>
+                          <td className={className}><Typography variant="small" color="blue-gray" className="font-bold">{usr.role}</Typography></td>
+                          <td className={className}><Chip variant="gradient" size="sm" value={usr.status === "ACTIVE" ? "Hoạt động" : "Bị khóa"} color={usr.status === "ACTIVE" ? "green" : "red"} className="py-0.5 px-2 text-[11px] font-medium w-fit" /></td>
+                          <td className={className}><Typography variant="small" color="blue-gray">{new Date(usr.createdAt).toLocaleDateString("vi-VN")}</Typography></td>
+                          <td className={className}>
+                            <div className="flex gap-2">
+                              {usr.status === "ACTIVE" ? (
+                                <IconButton variant="text" color="orange" title="Khóa TK" onClick={() => handleDeactivate(usr.id)}><NoSymbolIcon className="h-4 w-4 text-orange-500" /></IconButton>
+                              ) : (
+                                <IconButton variant="text" color="green" title="Mở khóa" onClick={() => handleActivate(usr.id)}><CheckCircleIcon className="h-4 w-4 text-green-500" /></IconButton>
+                              )}
+                              <IconButton variant="text" color="red" title="Xóa" onClick={() => handleDelete(usr.id, usr.username)}><TrashIcon className="h-4 w-4 text-red-500" /></IconButton>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+            )}
+          </CardBody>
+          {!loading && usersList.length > 0 && (
+            <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
+              <div className="flex items-center gap-4">
+                <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {usersList.length} trong {totalElements}</Typography>
+                <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Trang {page + 1} / {totalPages || 1}</Typography>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outlined" color="blue-gray" size="sm" disabled={page === 0 || loading} onClick={() => setPage(p => p - 1)}>Trước</Button>
+                <Button variant="outlined" color="blue-gray" size="sm" disabled={page >= totalPages - 1 || loading} onClick={() => setPage(p => p + 1)}>Sau</Button>
+              </div>
+            </div>
           )}
-        </CardBody>
-        {!loading && usersList.length > 0 && (
-          <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
-            <div className="flex items-center gap-4">
-              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {usersList.length} trong {totalElements}</Typography>
-              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Trang {page + 1} / {totalPages || 1}</Typography>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outlined" color="blue-gray" size="sm" disabled={page === 0 || loading} onClick={() => setPage(p => p - 1)}>Trước</Button>
-              <Button variant="outlined" color="blue-gray" size="sm" disabled={page >= totalPages - 1 || loading} onClick={() => setPage(p => p + 1)}>Sau</Button>
-            </div>
-          </div>
-        )}
-      </Card>
-    </div>
+        </Card>
+      </div>
+      <Dialog open={openModal} handler={handleOpenModal} size="sm">
+        <DialogHeader><Typography variant="h5" color="blue-gray">Thêm Tài Khoản Mới</Typography></DialogHeader>
+        <DialogBody divider className="flex flex-col gap-4">
+          <Input label="Tên đăng nhập *" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
+          <Input label="Mật khẩu *" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+          <Input label="Email *" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+          <Input label="Họ và tên" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} />
+          <Input label="Số điện thoại" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+          
+          <Select label="Vai trò *" value={formData.role} onChange={(val) => setFormData({ ...formData, role: val })}>
+            {user?.role === "SUPER_ADMIN" && <Option value="TENANT_MANAGER">Chủ Trọ</Option>}
+            <Option value="GUARD">Bảo vệ</Option>
+          </Select>
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="text" color="red" onClick={handleOpenModal} className="mr-1">Hủy</Button>
+          <Button variant="gradient" color="gray" onClick={handleCreateUser} disabled={saving || !formData.username || !formData.password || !formData.email || !formData.role}>
+            {saving ? "Đang lưu..." : "Xác nhận"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+    </>
   );
 }
 

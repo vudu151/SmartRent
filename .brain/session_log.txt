@@ -1,0 +1,18 @@
+[18:02] START phase-02-backend
+[18:02] DONE task: Implement AOP TenantSecurityAspect
+[18:02] DONE task: Reflection capability on DTOs
+[18:02] END phase-02-backend ?
+[18:05] START phase-03-guardui
+[18:05] DONE task: Hide Add/Delete Residents from Guard
+[18:05] DONE task: Make Edit Resident form read-only for Guard
+[18:05] END phase-03-guardui ?
+[18:13] START phase-04-tenantportal
+[18:13] DONE task: Add getMyPortalToken API endpoint
+[18:13] DONE task: Update auth.jsx to redirect TENANT
+[18:13] DONE task: Intercept TENANT role in RequireAuth.jsx to enforce portal routing
+[18:13] END phase-04-tenantportal ?
+[18:22] START phase-05-testing
+[18:22] DONE task: Assert SuperAdmin Login works
+[18:22] DONE task: Assert Guard fetch is blocked by AOP / Spring Security config
+[18:22] DONE task: Assert Tenant fetch hits specific API and returns error logically instead of crashing
+[18:22] END phase-05-testing ?

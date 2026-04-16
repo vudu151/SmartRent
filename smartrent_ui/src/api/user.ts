@@ -62,6 +62,15 @@ export async function changePassword(data: any): Promise<void> {
   if (!response.success) throw new Error(response.message || 'Lỗi đổi mật khẩu')
 }
 
+export async function createUser(data: any): Promise<UserResponse> {
+  const response = await apiFetch<ApiResponse<UserResponse>>('/api/users', {
+    method: 'POST',
+    body: data,
+  })
+  if (!response.success || !response.data) throw new Error(response.message || 'Lỗi khi tạo tài khoản')
+  return response.data
+}
+
 export async function activateUser(id: number): Promise<void> {
   const response = await apiFetch<ApiResponse<void>>(`/api/users/${id}/activate`, {
     method: 'PATCH'
@@ -91,5 +100,13 @@ export async function uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
     body: formData,
   })
   if (!response.success || !response.data) throw new Error(response.message)
+  return response.data
+}
+
+export async function getMyPortalToken(): Promise<{ portalToken: string }> {
+  const response = await apiFetch<ApiResponse<{ portalToken: string }>>('/api/users/me/portal', {
+    method: 'GET'
+  })
+  if (!response.success || !response.data) throw new Error(response.message || 'Không thể lấy thông tin portal')
   return response.data
 }

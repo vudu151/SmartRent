@@ -16,8 +16,11 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
     @Query("SELECT c FROM Contract c WHERE c.tenant.id = :tenantId AND (c.contractNumber LIKE %:search% OR c.resident.fullName LIKE %:search% OR c.room.roomNumber LIKE %:search%)")
     Page<Contract> findByTenantId(@Param("tenantId") Long tenantId, @Param("search") String search, Pageable pageable);
 
-    @Query("SELECT c FROM Contract c WHERE c.room.id = :roomId AND c.status = 'ACTIVE'")
+    @Query("SELECT c FROM Contract c WHERE c.room.id = :roomId AND c.status = com.smartrent.domain.ContractStatus.ACTIVE")
     Optional<Contract> findActiveContractByRoom(@Param("roomId") Long roomId);
+
+    @Query("SELECT c FROM Contract c WHERE c.resident.id = :residentId AND c.status = com.smartrent.domain.ContractStatus.ACTIVE")
+    Optional<Contract> findActiveContractByResident(@Param("residentId") Long residentId);
 
     Optional<Contract> findByIdAndTenantId(Long id, Long tenantId);
 

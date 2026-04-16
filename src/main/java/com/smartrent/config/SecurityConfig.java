@@ -60,11 +60,25 @@ public class SecurityConfig {
                     "/api/auth/refresh",
                     "/api/auth/forgot-password",
                     "/api/auth/google",
+                    "/api/portal/**",
                     "/uploads/**",
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html"
                 ).permitAll()
+                // Tenant specific endpoints
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/me", "/api/users/me/portal").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER", "ROLE_GUARD", "ROLE_TENANT")
+
+                // GUARD has limited read-only permissions
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/residents/**", "/api/tickets/**", "/api/users/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER", "ROLE_GUARD")
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/tickets/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER", "ROLE_GUARD")
+                
+                // Manager and Admin have full access to these financial / core modules
+                .requestMatchers("/api/bills/**", "/api/contracts/**", "/api/rooms/**", "/api/assets/**", "/api/services/**", "/api/tenants/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER")
+
+                // Admin exclusive (system settings, etc if any)
+                // .requestMatchers("/api/admin/**").hasAuthority("ROLE_SUPER_ADMIN")
+                
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )

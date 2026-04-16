@@ -140,7 +140,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
                 </Typography>
               </li>
             )}
-            {pages.filter(({ hidden }) => !hidden).map(({ icon, name, path }) => (
+            {pages.filter(({ hidden, allowedRoles }) => !hidden && (!allowedRoles || allowedRoles.includes(user?.role))).map(({ icon, name, path }) => (
               <li key={name}>
                 <NavLink to={`/${layout}${path}`}>
                   {({ isActive }) => (

@@ -37,4 +37,6 @@ public interface ResidentRepository extends JpaRepository<Resident, Long>, JpaSp
     long countByTenantIdAndStatus(Long tenantId, Resident.ResidentStatus status);
 
     Optional<Resident> findByPhone(String phone);
+    
+    Optional<Resident> findByEmail(String email);
 }

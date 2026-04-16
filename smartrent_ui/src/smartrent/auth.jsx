@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { login as apiLogin, logout as apiLogout, refreshToken as apiRefreshToken, signUp as apiSignUp, googleLogin as apiGoogleLogin } from "@/api/auth";
 import { saveTokens, clearTokens, getUserInfo, getAccessToken, getRefreshToken, isAuthenticated } from "@/lib/token";
+import { getMyPortalToken } from "@/api/user";
 import { useNavigate } from "react-router-dom";
 
 const STORAGE_KEY = "smartrent.session";
@@ -79,6 +80,16 @@ export function AuthProvider({ children }) {
             saveTokens(accessToken, refreshToken, userInfo);
             setUser(userInfo);
 
+            if (userInfo.role === 'TENANT') {
+              try {
+                const data = await getMyPortalToken();
+                navigate(`/portal/${data.portalToken}`, { replace: true });
+                return;
+              } catch (err) {
+                throw new Error("Lỗi xác thực Portal: " + err.message);
+              }
+            }
+
             // Navigate to dashboard
             navigate("/dashboard/home", { replace: true });
           } else {
@@ -134,6 +145,16 @@ export function AuthProvider({ children }) {
             // Save tokens and user info
             saveTokens(accessToken, refreshToken, userInfo);
             setUser(userInfo);
+
+            if (userInfo.role === 'TENANT') {
+              try {
+                const data = await getMyPortalToken();
+                navigate(`/portal/${data.portalToken}`, { replace: true });
+                return;
+              } catch (err) {
+                throw new Error("Lỗi xác thực Portal: " + err.message);
+              }
+            }
 
             // Navigate to dashboard
             navigate("/dashboard/home", { replace: true });

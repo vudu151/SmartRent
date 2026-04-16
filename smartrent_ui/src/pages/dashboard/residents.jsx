@@ -15,12 +15,15 @@ import {
 } from "@material-tailwind/react";
 import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { useNavbarHeader } from "@/context/navbar-header";
+import { useAuth } from "@/smartrent/auth";
 import { getResidents, deleteResident } from "@/api/resident";
 import { ResidentModal } from "./resident-form";
 import { showToast } from "@/lib/swal";
 
 export function Residents() {
   const { setNavbarHeader } = useNavbarHeader();
+  const { user } = useAuth();
+  const isGuard = user?.role === "GUARD";
   const [residents, setResidents] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
@@ -68,13 +71,15 @@ export function Residents() {
           <div className="w-48">
             <Input label="Tìm kiếm tên, sdt..." size="md" icon={<MagnifyingGlassIcon className="h-4 w-4" />} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} containerProps={{ className: "!min-w-0" }} />
           </div>
-          <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleAdd}>
-            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Cư dân
-          </Button>
+          {!isGuard && (
+            <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleAdd}>
+              <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Cư dân
+            </Button>
+          )}
         </div>
       </div>
     );
-  }, [searchTerm, setNavbarHeader]);
+  }, [searchTerm, setNavbarHeader, isGuard]);
 
   const handleEdit = (id) => { setSelectedResidentId(id); setIsModalOpen(true); };
   const handleModalClose = () => { setIsModalOpen(false); setSelectedResidentId(null); };
@@ -140,8 +145,14 @@ export function Residents() {
                         </td>
                         <td className={className}>
                           <div className="flex gap-2">
-                            <IconButton size="sm" variant="text" color="blue-gray" title="Chỉnh sửa" onClick={() => handleEdit(res.id)}><PencilIcon className="h-4 w-4 text-blue-gray-500" /></IconButton>
-                            <IconButton size="sm" variant="text" color="red" title="Xóa" onClick={() => { setResidentToDelete(res); setDeleteDialogOpen(true); }}><TrashIcon className="h-4 w-4 text-red-500" /></IconButton>
+                            <IconButton size="sm" variant="text" color="blue-gray" title="Chi tiết" onClick={() => handleEdit(res.id)}>
+                              <PencilIcon className="h-4 w-4 text-blue-gray-500" />
+                            </IconButton>
+                            {!isGuard && (
+                              <IconButton size="sm" variant="text" color="red" title="Xóa" onClick={() => { setResidentToDelete(res); setDeleteDialogOpen(true); }}>
+                                <TrashIcon className="h-4 w-4 text-red-500" />
+                              </IconButton>
+                            )}
                           </div>
                         </td>
                       </tr>

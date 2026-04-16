@@ -62,7 +62,7 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     @Builder.Default
-    private UserRole role = UserRole.TENANT_STAFF;
+    private UserRole role = UserRole.TENANT;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -150,9 +150,8 @@ public class User implements UserDetails {
 
     public enum UserRole {
         SUPER_ADMIN,      // Quản trị hệ thống
-        TENANT_ADMIN,     // Quản trị tenant
         TENANT_MANAGER,    // Quản lý nhà trọ
-        TENANT_STAFF,     // Nhân viên
+        GUARD,            // Bảo vệ
         TENANT            // Người thuê trọ
     }
 

@@ -27,6 +27,11 @@
     "navigation": {
       "sidebar_active_color": "gray (dark gradient)",
       "navbar_style": "Minimalists (No breadcrumbs/title, top-aligned with sidebar)"
+    },
+    "controls_and_tables": {
+      "control_height": "Uniform 38px height for all input, select, and button elements in the navbar (handled by .navbar-controls global class)",
+      "table_headers": "Sticky top-0 z-10 for thead in scrollable containers",
+      "pagination": "Fixed at the bottom of the Card, outside the scrollable CardBody"
     }
   },
   "features": [

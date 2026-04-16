@@ -13,8 +13,11 @@ import {
 import { getResidentById, createResident, updateResident } from "@/api/resident";
 import { getRooms } from "@/api/room";
 import { showToast } from "@/lib/swal";
+import { useAuth } from "@/smartrent/auth";
 
 export function ResidentModal({ open, onClose, residentId, onSuccess }) {
+  const { user } = useAuth();
+  const isGuard = user?.role === "GUARD";
   const isEdit = Boolean(residentId);
   const [loading, setLoading] = React.useState(false);
   const [loadingData, setLoadingData] = React.useState(false);
@@ -138,14 +141,14 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
-                disabled={loading}
+                disabled={loading || isGuard}
               />
               <Input
                 label="Số điện thoại"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                disabled={loading}
+                disabled={loading || isGuard}
               />
               <Input
                 label="Email"
@@ -153,14 +156,14 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                disabled={loading}
+                disabled={loading || isGuard}
               />
               <Input
                 label="CMND/CCCD"
                 name="idCard"
                 value={formData.idCard}
                 onChange={handleChange}
-                disabled={loading}
+                disabled={loading || isGuard}
               />
               <Input
                 label="Ngày sinh"
@@ -168,7 +171,7 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                 name="dateOfBirth"
                 value={formData.dateOfBirth}
                 onChange={handleChange}
-                disabled={loading}
+                disabled={loading || isGuard}
               />
               
               <div className="flex flex-col gap-1">
@@ -176,7 +179,7 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                 <Select
                   value={formData.gender}
                   onChange={(val) => setFormData(p => ({ ...p, gender: val }))}
-                  disabled={loading}
+                  disabled={loading || isGuard}
                 >
                   <Option value="MALE">Nam</Option>
                   <Option value="FEMALE">Nữ</Option>
@@ -190,7 +193,7 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                   label="Chọn phòng"
                   value={formData.roomIds.length ? String(formData.roomIds[0]) : "0"}
                   onChange={(val) => handleRoomSelect(val)}
-                  disabled={loading}
+                  disabled={loading || isGuard}
                 >
                   <Option value="0">Chưa xếp phòng</Option>
                   {availableRooms.map((room) => (
@@ -205,7 +208,7 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                   <Select
                     value={formData.status}
                     onChange={(val) => setFormData(p => ({...p, status: val}))}
-                    disabled={loading}
+                    disabled={loading || isGuard}
                   >
                     <Option value="ACTIVE">Đang ở</Option>
                     <Option value="INACTIVE">Đã rời</Option>
@@ -220,16 +223,18 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
               name="notes"
               value={formData.notes}
               onChange={handleChange}
-              disabled={loading}
+              disabled={loading || isGuard}
             />
 
             <div className="flex gap-4 justify-end mt-4">
-              <Button variant="text" color="red" onClick={onClose} disabled={loading}>
-                Hủy
+              <Button variant="text" color={isGuard ? "black" : "red"} onClick={onClose} disabled={loading}>
+                {isGuard ? "Đóng" : "Hủy"}
               </Button>
-              <Button type="submit" color="black" disabled={loading}>
-                {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo Mới"}
-              </Button>
+              {!isGuard && (
+                <Button type="submit" color="black" disabled={loading}>
+                  {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo Mới"}
+                </Button>
+              )}
             </div>
           </form>
         )}

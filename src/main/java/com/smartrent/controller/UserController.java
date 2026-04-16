@@ -3,7 +3,14 @@ package com.smartrent.controller;
 import com.smartrent.domain.User;
 import com.smartrent.dto.ApiResponse;
 import com.smartrent.dto.auth.ChangePasswordRequest;
+import com.smartrent.domain.Tenant;
+import com.smartrent.dto.user.CreateUserRequest;
+import com.smartrent.repository.TenantRepository;
 import com.smartrent.repository.UserRepository;
+import com.smartrent.repository.ResidentRepository;
+import com.smartrent.repository.ContractRepository;
+import com.smartrent.domain.Resident;
+import com.smartrent.domain.Contract;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,6 +49,9 @@ import java.util.UUID;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final TenantRepository tenantRepository;
+    private final ResidentRepository residentRepository;
+    private final ContractRepository contractRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.upload.dir:uploads}")
@@ -73,6 +84,78 @@ public class UserController {
         User user = userRepository.findByUsernameOrEmail(userDetails.getUsername())
             .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(ApiResponse.success(toMap(user), "Lấy thông tin user thành công"));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_MANAGER')")
+    @Operation(summary = "Create user", description = "Admin or Manager can create staff/guard")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> createUser(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody CreateUserRequest request) {
+            
+        User currentUser = userRepository.findByUsernameOrEmail(userDetails.getUsername())
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (userRepository.existsByUsername(request.getUsername())) {
+             return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", "Tên đăng nhập đã tồn tại"));
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+             return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR", "Email đã tồn tại"));
+        }
+
+        User newUser = new User();
+        newUser.setUsername(request.getUsername());
+        newUser.setEmail(request.getEmail());
+        newUser.setFullName(request.getFullName());
+        newUser.setPhone(request.getPhone());
+        newUser.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        newUser.setStatus(User.UserStatus.ACTIVE);
+
+        if (currentUser.getRole() == User.UserRole.TENANT_MANAGER) {
+            // Manager can only create GUARD
+            if (request.getRole() != User.UserRole.GUARD) {
+                return ResponseEntity.status(403).body(ApiResponse.error("FORBIDDEN", "Quản lý chỉ có thể tạo tài khoản Bảo vệ"));
+            }
+            newUser.setRole(User.UserRole.GUARD);
+            newUser.setTenant(currentUser.getTenant());
+        } else if (currentUser.getRole() == User.UserRole.SUPER_ADMIN) {
+            newUser.setRole(request.getRole());
+            if (request.getTenantId() != null) {
+                Tenant tenant = tenantRepository.findById(request.getTenantId())
+                    .orElseThrow(() -> new RuntimeException("Tenant không tồn tại"));
+                newUser.setTenant(tenant);
+            }
+        }
+
+        userRepository.save(newUser);
+        return ResponseEntity.ok(ApiResponse.success(toMap(newUser), "Tạo tài khoản thành công"));
+    }
+
+    @GetMapping("/me/portal")
+    @Operation(summary = "Get portal token", description = "Get portal token for the current TENANT user")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getMyPortalToken(@AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByUsernameOrEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+
+        Resident resident = residentRepository.findByEmail(user.getEmail())
+                .orElseGet(() -> residentRepository.findByPhone(user.getPhone()).orElse(null));
+
+        if (resident == null) {
+            log.error("Portal Token Error: Resident NOT FOUND for email: {} phone: {}", user.getEmail(), user.getPhone());
+            return ResponseEntity.badRequest().body(ApiResponse.error("NOT_FOUND", "Không tìm thấy hồ sơ cư dân liên kết với email/số điện thoại này."));
+        }
+
+        Contract contract = contractRepository.findActiveContractByResident(resident.getId()).orElse(null);
+        if (contract == null) {
+            log.error("Portal Token Error: Contract NOT FOUND for resident_id: {}. All contracts for this resident: {}", resident.getId(), contractRepository.findAll().stream().filter(c -> c.getResident().getId().equals(resident.getId())).map(c -> c.getId() + ":" + c.getStatus()).toList());
+            return ResponseEntity.badRequest().body(ApiResponse.error("NOT_FOUND", "Bạn chưa có hợp đồng thuê phòng nào đang hiệu lực."));
+        }
+
+        log.info("Portal Token Success: Found contract {} for resident {}", contract.getId(), resident.getId());
+
+        Map<String, String> data = new HashMap<>();
+        data.put("portalToken", contract.getPortalToken());
+        return ResponseEntity.ok(ApiResponse.success(data, "Lấy token thành công"));
     }
 
     @PostMapping("/change-password")

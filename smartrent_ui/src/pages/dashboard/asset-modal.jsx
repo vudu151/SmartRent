@@ -78,30 +78,38 @@ export function AssetModal({ open, onClose, room }) {
         </IconButton>
       </DialogHeader>
       <DialogBody divider className={`h-[60vh] overflow-y-auto px-4 py-4 ${darkMode ? "border-blue-gray-800" : ""}`}>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-6 p-4 bg-blue-gray-50/50 rounded-xl border border-blue-gray-50">
-          <Input 
-            label="Tên tài sản (Máy lạnh...)" 
-            value={newAsset.name} 
-            color="black"
-            onChange={(e) => setNewAsset({...newAsset, name: e.target.value})} 
-          />
-          <Input 
-            type="number" 
-            label="Số lượng" 
-            value={newAsset.quantity} 
-            color="black"
-            onChange={(e) => setNewAsset({...newAsset, quantity: Number(e.target.value)})} 
-          />
-          <Input 
-            type="number" 
-            label="Giá đền bù (VNĐ)" 
-            value={newAsset.compensationValue} 
-            color="black"
-            onChange={(e) => setNewAsset({...newAsset, compensationValue: Number(e.target.value)})} 
-          />
-          <Button color="black" className="flex items-center justify-center gap-2 shadow-none" onClick={handleAddAsset}>
-            <PlusIcon strokeWidth={3} className="w-4 h-4" /> Thêm
-          </Button>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6 p-4 bg-blue-gray-50/50 rounded-xl border border-blue-gray-50">
+          <div className="md:col-span-5">
+            <Input 
+              label="Tên tài sản (Máy lạnh...)" 
+              value={newAsset.name} 
+              color="black"
+              onChange={(e) => setNewAsset({...newAsset, name: e.target.value})} 
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Input 
+              type="number" 
+              label="Số lượng" 
+              value={newAsset.quantity} 
+              color="black"
+              onChange={(e) => setNewAsset({...newAsset, quantity: Number(e.target.value)})} 
+            />
+          </div>
+          <div className="md:col-span-3">
+            <Input 
+              type="number" 
+              label="Giá đền bù (VNĐ)" 
+              value={newAsset.compensationValue} 
+              color="black"
+              onChange={(e) => setNewAsset({...newAsset, compensationValue: Number(e.target.value)})} 
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Button color="black" className="w-full h-full flex items-center justify-center gap-2 shadow-none" onClick={handleAddAsset}>
+              <PlusIcon strokeWidth={3} className="w-4 h-4" /> Thêm
+            </Button>
+          </div>
         </div>
 
         {loading ? (
