@@ -78,8 +78,8 @@ function makeTable(headers, rows) {
 function titlePage() {
   return [
     emptyLine(), emptyLine(), emptyLine(),
-    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'TRƯỜNG ĐẠI HỌC BÁCH KHOA HÀ NỘI', size: 28, bold: true, font: 'Times New Roman' })] }),
-    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'VIỆN CÔNG NGHỆ THÔNG TIN VÀ TRUYỀN THÔNG', size: 26, font: 'Times New Roman' })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'ĐẠI HỌC BÁCH KHOA HÀ NỘI', size: 28, bold: true, font: 'Times New Roman' })] }),
+    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'TRƯỜNG CÔNG NGHỆ THÔNG TIN VÀ TRUYỀN THÔNG', size: 26, font: 'Times New Roman' })] }),
     emptyLine(), emptyLine(), emptyLine(),
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 }, children: [new TextRun({ text: 'BÁO CÁO BÀI TẬP LỚN', size: 36, bold: true, font: 'Times New Roman' })] }),
     new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [new TextRun({ text: 'MÔN: NHẬP MÔN CÔNG NGHỆ PHẦN MỀM', size: 30, bold: true, font: 'Times New Roman' })] }),
@@ -628,6 +628,30 @@ function chapter7() {
       ['Thông báo', 'notifications.jsx', 'Gửi thông báo + Nhắc nợ'],
       ['Profile', 'profile.jsx', 'Thông tin chủ trọ'],
     ]),
+    emptyLine(),
+    boldPara('Hình 7.3: Giao diện Trang Tổng quan (Dashboard)'),
+    ...insertImage('dashboard.png', 16, 8, 'Hình 7.3: Dashboard theo dõi tỷ lệ lấp đầy và biểu đồ doanh thu'),
+    emptyLine(),
+    boldPara('Hình 7.4: Giao diện Quản lý Phòng trọ'),
+    ...insertImage('rooms.png', 16, 8, 'Hình 7.4: Danh sách các phòng trọ và thao tác quản lý'),
+    emptyLine(),
+    boldPara('Hình 7.5: Giao diện Quản lý Cư dân'),
+    ...insertImage('residents.png', 16, 8, 'Hình 7.5: Danh sách cư dân đang thuê trọ'),
+    emptyLine(),
+    boldPara('Hình 7.6: Giao diện Quản lý Hợp đồng'),
+    ...insertImage('contracts.png', 16, 8, 'Hình 7.6: Quản lý trạng thái các hợp đồng thuê'),
+    emptyLine(),
+    boldPara('Hình 7.7: Giao diện Quản lý Hóa đơn'),
+    ...insertImage('bills.png', 16, 8, 'Hình 7.7: Theo dõi trạng thái thu chi hóa đơn dịch vụ hàng tháng'),
+    emptyLine(),
+    boldPara('Hình 7.8: Giao diện Báo cáo sự cố (Tickets)'),
+    ...insertImage('tickets.png', 16, 8, 'Hình 7.8: Màn hình gửi yêu cầu hỗ trợ sửa chữa'),
+    emptyLine(),
+    boldPara('Hình 7.9: Giao diện Quản lý Cư dân (dành cho Bảo vệ)'),
+    ...insertImage('residents-guard.png', 16, 8, 'Hình 7.9: Chế độ chỉ xem dành cho các vai trò hạn chế quyền'),
+    emptyLine(),
+    boldPara('Hình 7.10: Giao diện Cổng thanh toán (Resident Portal)'),
+    ...insertImage('portal.png', 16, 8, 'Hình 7.10: Cổng theo dõi hóa đơn dành riêng cho Cư dân (không cần đăng nhập)'),
     new Paragraph({ children: [new PageBreak()] }),
   ];
 }
@@ -827,8 +851,8 @@ async function main() {
   });
 
   const buffer = await Packer.toBuffer(doc);
-  fs.writeFileSync('TaiLieu_DuAn_SmartRent.docx', buffer);
-  console.log('✅ Generated: TaiLieu_DuAn_SmartRent.docx');
+  fs.writeFileSync('TaiLieu_DuAn_SmartRent_v2.docx', buffer);
+  console.log('✅ Generated: TaiLieu_DuAn_SmartRent_v2.docx');
   console.log(`📊 File size: ${(buffer.length / 1024).toFixed(1)} KB`);
 }
 

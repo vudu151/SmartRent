@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "docx": "^8.5.0",
-    "mammoth": "^1.12.0"
+    "mammoth": "^1.12.0",
+    "pptxgenjs": "^4.0.1"
   },
   "name": "docs",
   "version": "1.0.0",
