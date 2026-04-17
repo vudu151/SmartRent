@@ -67,18 +67,94 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("✅ Default Room Fee Unit created for Tenant.");
         }
 
-        // 2. Create SuperAdmin
-        if (userRepository.findByUsername("superadmin").isEmpty()) {
-            User admin = new User();
-            admin.setTenant(tenant);
-            admin.setUsername("superadmin");
-            admin.setEmail("superadmin@smartrent.com");
-            admin.setPasswordHash(passwordEncoder.encode("admin123"));
-            admin.setFullName("Super Admin Test");
-            admin.setRole(User.UserRole.SUPER_ADMIN);
-            admin.setStatus(User.UserStatus.ACTIVE);
-            userRepository.save(admin);
-        }
+        // 2. Create Test Users for all 4 roles (create or update password)
+        // 2a. SUPER_ADMIN
+        userRepository.findByUsername("superadmin").ifPresentOrElse(
+            existing -> {
+                existing.setPasswordHash(passwordEncoder.encode("123456"));
+                userRepository.save(existing);
+                System.out.println("🔄 Updated SUPER_ADMIN password: superadmin / 123456");
+            },
+            () -> {
+                User admin = new User();
+                admin.setTenant(tenant);
+                admin.setUsername("superadmin");
+                admin.setEmail("superadmin@smartrent.com");
+                admin.setPasswordHash(passwordEncoder.encode("123456"));
+                admin.setFullName("Super Admin");
+                admin.setPhone("0901000001");
+                admin.setRole(User.UserRole.SUPER_ADMIN);
+                admin.setStatus(User.UserStatus.ACTIVE);
+                userRepository.save(admin);
+                System.out.println("✅ Created SUPER_ADMIN: superadmin / 123456");
+            }
+        );
+
+        // 2b. TENANT_MANAGER
+        userRepository.findByUsername("manager").ifPresentOrElse(
+            existing -> {
+                existing.setPasswordHash(passwordEncoder.encode("123456"));
+                userRepository.save(existing);
+                System.out.println("🔄 Updated TENANT_MANAGER password: manager / 123456");
+            },
+            () -> {
+                User manager = new User();
+                manager.setTenant(tenant);
+                manager.setUsername("manager");
+                manager.setEmail("manager@smartrent.com");
+                manager.setPasswordHash(passwordEncoder.encode("123456"));
+                manager.setFullName("Nguyễn Văn Quản Lý");
+                manager.setPhone("0901000002");
+                manager.setRole(User.UserRole.TENANT_MANAGER);
+                manager.setStatus(User.UserStatus.ACTIVE);
+                userRepository.save(manager);
+                System.out.println("✅ Created TENANT_MANAGER: manager / 123456");
+            }
+        );
+
+        // 2c. GUARD
+        userRepository.findByUsername("guard").ifPresentOrElse(
+            existing -> {
+                existing.setPasswordHash(passwordEncoder.encode("123456"));
+                userRepository.save(existing);
+                System.out.println("🔄 Updated GUARD password: guard / 123456");
+            },
+            () -> {
+                User guard = new User();
+                guard.setTenant(tenant);
+                guard.setUsername("guard");
+                guard.setEmail("guard@smartrent.com");
+                guard.setPasswordHash(passwordEncoder.encode("123456"));
+                guard.setFullName("Trần Văn Bảo Vệ");
+                guard.setPhone("0901000003");
+                guard.setRole(User.UserRole.GUARD);
+                guard.setStatus(User.UserStatus.ACTIVE);
+                userRepository.save(guard);
+                System.out.println("✅ Created GUARD: guard / 123456");
+            }
+        );
+
+        // 2d. TENANT (Người thuê trọ)
+        userRepository.findByUsername("tenant").ifPresentOrElse(
+            existing -> {
+                existing.setPasswordHash(passwordEncoder.encode("123456"));
+                userRepository.save(existing);
+                System.out.println("🔄 Updated TENANT password: tenant / 123456");
+            },
+            () -> {
+                User tenantUser = new User();
+                tenantUser.setTenant(tenant);
+                tenantUser.setUsername("tenant");
+                tenantUser.setEmail("tenant@smartrent.com");
+                tenantUser.setPasswordHash(passwordEncoder.encode("123456"));
+                tenantUser.setFullName("Lê Thị Người Thuê");
+                tenantUser.setPhone("0901000004");
+                tenantUser.setRole(User.UserRole.TENANT);
+                tenantUser.setStatus(User.UserStatus.ACTIVE);
+                userRepository.save(tenantUser);
+                System.out.println("✅ Created TENANT: tenant / 123456");
+            }
+        );
 
         // 3. Bulk Seed: 20 Rooms, Residents, Contracts
         if (roomRepository.findByTenantId(tenant.getId()).size() < 10) {
