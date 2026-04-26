@@ -30,10 +30,12 @@ export async function getUsers(params?: {
   page?: number
   size?: number
   search?: string
+  buildingId?: string | number | null
 }): Promise<PaginatedResponse<UserResponse>> {
   const tenantId = getTenantId()
   const searchParams = new URLSearchParams()
   if (tenantId) searchParams.append('tenantId', tenantId.toString())
+  if (params?.buildingId) searchParams.append('buildingId', params.buildingId.toString())
   if (params?.page !== undefined) searchParams.append('page', params.page.toString())
   if (params?.size !== undefined) searchParams.append('size', params.size.toString())
   if (params?.search) searchParams.append('search', params.search)

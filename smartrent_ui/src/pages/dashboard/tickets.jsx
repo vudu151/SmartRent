@@ -45,8 +45,8 @@ export function Tickets() {
           <Typography color="gray" className="font-normal text-xs">Danh sách vấn đề từ cư dân và trạng thái xử lý</Typography>
         </div>
         <div className="flex shrink-0 gap-2 items-center">
-          <div className="w-44">
-            <Select label="Lọc trạng thái" size="md" value={filterStr} onChange={(val) => setFilterStr(val || "")}>
+          <div className="w-52">
+            <Select label="Lọc trạng thái" size="md" value={filterStr} onChange={(val) => setFilterStr(val || "")} containerProps={{ className: "min-w-[0]" }}>
               <Option value="">Tất cả</Option>
               <Option value="PENDING">Mới báo (Đang chờ)</Option>
               <Option value="IN_PROGRESS">Đang sửa</Option>
@@ -75,11 +75,11 @@ export function Tickets() {
             <div className="text-center p-6 text-gray-500">Khu trọ hiện rất ổn định. Không có sự cố nào.</div>
           ) : (
             <table className="w-full min-w-max table-auto text-left">
-              <thead className="sticky top-0 z-20 bg-blue-gray-50 shadow-sm">
+              <thead>
                 <tr>
                   {["Phòng", "Khách Báo", "Độ Ưu Tiên", "Tóm Tắt Sự Cố", "Trạng Thái", "Thao tác Nhanh"].map((h) => (
-                    <th key={h} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
-                      <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">{h}</Typography>
+                    <th key={h} className="border-b border-blue-gray-50 py-3 px-5">
+                      <Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{h}</Typography>
                     </th>
                   ))}
                 </tr>

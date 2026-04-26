@@ -20,13 +20,17 @@ public class DataInitializer implements CommandLineRunner {
     private final ResidentRepository residentRepository;
     private final ContractRepository contractRepository;
     private final MeterReadingRepository meterReadingRepository;
-    private final RoomFeeUnitRepository roomFeeUnitRepository;
+    private final BuildingRepository buildingRepository;
+    private final BillRepository billRepository;
+    private final TicketRepository ticketRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(TenantRepository tenantRepository, UserRepository userRepository, 
                            RoomRepository roomRepository, ResidentRepository residentRepository,
                            ContractRepository contractRepository, MeterReadingRepository meterReadingRepository,
-                           RoomFeeUnitRepository roomFeeUnitRepository,
+                           BuildingRepository buildingRepository,
+                           BillRepository billRepository,
+                           TicketRepository ticketRepository,
                            PasswordEncoder passwordEncoder) {
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
@@ -34,7 +38,9 @@ public class DataInitializer implements CommandLineRunner {
         this.residentRepository = residentRepository;
         this.contractRepository = contractRepository;
         this.meterReadingRepository = meterReadingRepository;
-        this.roomFeeUnitRepository = roomFeeUnitRepository;
+        this.buildingRepository = buildingRepository;
+        this.billRepository = billRepository;
+        this.ticketRepository = ticketRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -54,133 +60,174 @@ public class DataInitializer implements CommandLineRunner {
                 });
 
         // 1.5. Setup Default Room Fee Unit
-        if (roomFeeUnitRepository.findByTenantId(tenant.getId()).isEmpty()) {
-            RoomFeeUnit feeUnit = new RoomFeeUnit();
-            feeUnit.setTenant(tenant);
-            feeUnit.setElectricityPerUnit(BigDecimal.valueOf(3500));
-            feeUnit.setWaterPerUnit(BigDecimal.valueOf(20000));
-            feeUnit.setInternetFee(BigDecimal.valueOf(100000));
-            feeUnit.setParkingFee(BigDecimal.valueOf(150000));
-            feeUnit.setRentPerSqm(BigDecimal.valueOf(0));
-            feeUnit.setServicePerSqm(BigDecimal.valueOf(5000));
-            roomFeeUnitRepository.save(feeUnit);
+        if (buildingRepository.findByTenantId(tenant.getId()).isEmpty()) {
+            Building building = new Building();
+            building.setTenant(tenant);
+            building.setName("Khu Mặc Định");
+            building.setElectricityPrice(BigDecimal.valueOf(3500));
+            building.setWaterPrice(BigDecimal.valueOf(25000));
+            building.setServicePrice(BigDecimal.valueOf(100000));
+            building.setInternetPrice(BigDecimal.valueOf(100000));
+            building.setParkingPrice(BigDecimal.valueOf(120000));
+            buildingRepository.save(building);
             System.out.println("✅ Default Room Fee Unit created for Tenant.");
         }
 
-        // 2. Create Test Users for all 4 roles (create or update password)
-        // 2a. SUPER_ADMIN
-        userRepository.findByUsername("superadmin").ifPresentOrElse(
-            existing -> {
-                existing.setPasswordHash(passwordEncoder.encode("123456"));
-                userRepository.save(existing);
-                System.out.println("🔄 Updated SUPER_ADMIN password: superadmin / 123456");
-            },
-            () -> {
-                User admin = new User();
-                admin.setTenant(tenant);
-                admin.setUsername("superadmin");
-                admin.setEmail("superadmin@smartrent.com");
-                admin.setPasswordHash(passwordEncoder.encode("123456"));
-                admin.setFullName("Super Admin");
-                admin.setPhone("0901000001");
-                admin.setRole(User.UserRole.SUPER_ADMIN);
-                admin.setStatus(User.UserStatus.ACTIVE);
-                userRepository.save(admin);
-                System.out.println("✅ Created SUPER_ADMIN: superadmin / 123456");
-            }
-        );
+        // 2. Create default users for all 4 roles (only INSERT if not exists)
+        // Default password: DTech@150102
+        final String defaultPassword = "DTech@150102";
+
+        // 2a. SUPER_ADMIN (superadmin)
+        if (userRepository.findByUsername("superadmin").isEmpty()) {
+            User admin = new User();
+            admin.setTenant(tenant);
+            admin.setUsername("superadmin");
+            admin.setEmail("superadmin@smartrent.com");
+            admin.setPasswordHash(passwordEncoder.encode(defaultPassword));
+            admin.setFullName("Super Admin");
+            admin.setPhone("0901000001");
+            admin.setRole(User.UserRole.SUPER_ADMIN);
+            admin.setStatus(User.UserStatus.ACTIVE);
+            userRepository.save(admin);
+            System.out.println("✅ Created SUPER_ADMIN: superadmin / " + defaultPassword);
+        }
+
+        // 2a2. SUPER_ADMIN (admin - legacy from V5 migration)
+        if (userRepository.findByUsername("admin").isEmpty()) {
+            User adminLegacy = new User();
+            adminLegacy.setTenant(tenant);
+            adminLegacy.setUsername("admin");
+            adminLegacy.setEmail("admin@smartrent.com");
+            adminLegacy.setPasswordHash(passwordEncoder.encode(defaultPassword));
+            adminLegacy.setFullName("System Administrator");
+            adminLegacy.setPhone("0901000000");
+            adminLegacy.setRole(User.UserRole.SUPER_ADMIN);
+            adminLegacy.setStatus(User.UserStatus.ACTIVE);
+            userRepository.save(adminLegacy);
+            System.out.println("✅ Created ADMIN: admin / " + defaultPassword);
+        }
 
         // 2b. TENANT_MANAGER
-        userRepository.findByUsername("manager").ifPresentOrElse(
-            existing -> {
-                existing.setPasswordHash(passwordEncoder.encode("123456"));
-                userRepository.save(existing);
-                System.out.println("🔄 Updated TENANT_MANAGER password: manager / 123456");
-            },
-            () -> {
-                User manager = new User();
-                manager.setTenant(tenant);
-                manager.setUsername("manager");
-                manager.setEmail("manager@smartrent.com");
-                manager.setPasswordHash(passwordEncoder.encode("123456"));
-                manager.setFullName("Nguyễn Văn Quản Lý");
-                manager.setPhone("0901000002");
-                manager.setRole(User.UserRole.TENANT_MANAGER);
-                manager.setStatus(User.UserStatus.ACTIVE);
-                userRepository.save(manager);
-                System.out.println("✅ Created TENANT_MANAGER: manager / 123456");
-            }
-        );
+        if (userRepository.findByUsername("manager").isEmpty()) {
+            User manager = new User();
+            manager.setTenant(tenant);
+            manager.setUsername("manager");
+            manager.setEmail("manager@smartrent.com");
+            manager.setPasswordHash(passwordEncoder.encode(defaultPassword));
+            manager.setFullName("Nguyễn Văn Quản Lý");
+            manager.setPhone("0901000002");
+            manager.setRole(User.UserRole.TENANT_MANAGER);
+            manager.setStatus(User.UserStatus.ACTIVE);
+            userRepository.save(manager);
+            System.out.println("✅ Created TENANT_MANAGER: manager / " + defaultPassword);
+        }
 
         // 2c. GUARD
-        userRepository.findByUsername("guard").ifPresentOrElse(
-            existing -> {
-                existing.setPasswordHash(passwordEncoder.encode("123456"));
-                userRepository.save(existing);
-                System.out.println("🔄 Updated GUARD password: guard / 123456");
-            },
-            () -> {
-                User guard = new User();
-                guard.setTenant(tenant);
-                guard.setUsername("guard");
-                guard.setEmail("guard@smartrent.com");
-                guard.setPasswordHash(passwordEncoder.encode("123456"));
-                guard.setFullName("Trần Văn Bảo Vệ");
-                guard.setPhone("0901000003");
-                guard.setRole(User.UserRole.GUARD);
-                guard.setStatus(User.UserStatus.ACTIVE);
-                userRepository.save(guard);
-                System.out.println("✅ Created GUARD: guard / 123456");
-            }
-        );
+        if (userRepository.findByUsername("guard").isEmpty()) {
+            User guard = new User();
+            guard.setTenant(tenant);
+            guard.setUsername("guard");
+            guard.setEmail("guard@smartrent.com");
+            guard.setPasswordHash(passwordEncoder.encode(defaultPassword));
+            guard.setFullName("Trần Văn Bảo Vệ");
+            guard.setPhone("0901000003");
+            guard.setRole(User.UserRole.GUARD);
+            guard.setStatus(User.UserStatus.ACTIVE);
+            userRepository.save(guard);
+            System.out.println("✅ Created GUARD: guard / " + defaultPassword);
+        }
 
         // 2d. TENANT (Người thuê trọ)
-        userRepository.findByUsername("tenant").ifPresentOrElse(
-            existing -> {
-                existing.setPasswordHash(passwordEncoder.encode("123456"));
-                userRepository.save(existing);
-                System.out.println("🔄 Updated TENANT password: tenant / 123456");
-            },
-            () -> {
-                User tenantUser = new User();
-                tenantUser.setTenant(tenant);
-                tenantUser.setUsername("tenant");
-                tenantUser.setEmail("tenant@smartrent.com");
-                tenantUser.setPasswordHash(passwordEncoder.encode("123456"));
-                tenantUser.setFullName("Lê Thị Người Thuê");
-                tenantUser.setPhone("0901000004");
-                tenantUser.setRole(User.UserRole.TENANT);
-                tenantUser.setStatus(User.UserStatus.ACTIVE);
-                userRepository.save(tenantUser);
-                System.out.println("✅ Created TENANT: tenant / 123456");
-            }
-        );
+        if (userRepository.findByUsername("tenant").isEmpty()) {
+            User tenantUser = new User();
+            tenantUser.setTenant(tenant);
+            tenantUser.setUsername("tenant");
+            tenantUser.setEmail("tenant@smartrent.com");
+            tenantUser.setPasswordHash(passwordEncoder.encode(defaultPassword));
+            tenantUser.setFullName("Lê Thị Người Thuê");
+            tenantUser.setPhone("0901000004");
+            tenantUser.setRole(User.UserRole.TENANT);
+            tenantUser.setStatus(User.UserStatus.ACTIVE);
+            userRepository.save(tenantUser);
+            System.out.println("✅ Created TENANT: tenant / " + defaultPassword);
+        }
 
-        // 3. Bulk Seed: 20 Rooms, Residents, Contracts
-        if (roomRepository.findByTenantId(tenant.getId()).size() < 10) {
-            for (int i = 1; i <= 20; i++) {
-                String roomNum = (100 + i) + "";
-                int floor = (i / 5) + 1;
-                Room.RoomStatus status = (i <= 12) ? Room.RoomStatus.OCCUPIED : Room.RoomStatus.VACANT;
-                Room room = createRoom(tenant, roomNum, floor, 3000000.0 + (i * 100000), status, i);
 
-                if (status == Room.RoomStatus.OCCUPIED) {
-                    Resident res = createResident(tenant, "Cư dân " + i, "resident" + i + "@gmail.com", "090" + (1000000 + i));
-                    createContract(tenant, room, res, "HD-" + roomNum, room.getPrice().doubleValue());
-                    
-                    // Initial Meter Readings (Previous values)
-                    createMeterReading(tenant, room, MeterType.ELECTRICITY, 100 + (i * 10));
-                    createMeterReading(tenant, room, MeterType.WATER, 10 + i);
+        // 3. Bulk Seed for Building A, B, C FOR ALL TENANTS
+        tenantRepository.findAll().forEach(t -> {
+            if (buildingRepository.findByTenantId(t.getId()).isEmpty()) {
+                String[] buildingNames = {"Khu A", "Khu B", "Khu C"};
+                for (String bName : buildingNames) {
+                    Building b = new Building();
+                    b.setTenant(t);
+                    b.setName(bName);
+                    b.setAddress("Địa chỉ " + bName + " của " + t.getEmail());
+                    b.setElectricityPrice(BigDecimal.valueOf(3500));
+                    b.setWaterPrice(BigDecimal.valueOf(25000));
+                    b.setServicePrice(BigDecimal.valueOf(100000));
+                    b.setInternetPrice(BigDecimal.valueOf(100000));
+                    b.setParkingPrice(BigDecimal.valueOf(120000));
+                    buildingRepository.save(b);
                 }
             }
-            System.out.println("✅ Bulk Seeding Completed: 20 Rooms, 12 Residents, 12 Contracts, 24 Meter Readings.");
-        }
+
+            // Also seed rooms if less than 8
+            buildingRepository.findByTenantId(t.getId()).forEach(building -> {
+                if (roomRepository.findByTenantId(t.getId()).stream().filter(r -> r.getBuilding() != null && r.getBuilding().getId().equals(building.getId())).count() < 8) {
+                    for (int i = 1; i <= 8; i++) {
+                        String roomNum = building.getName().replace("Khu ", "") + "0" + i;
+                        int floor = (i <= 4) ? 1 : 2;
+                        Room room = createRoom(t, building, roomNum, floor, 3000000.0 + (i * 100000), Room.RoomStatus.OCCUPIED, i);
+
+                        Resident res = createResident(t, "Cư dân " + roomNum, "resident" + t.getId() + roomNum + "@gmail.com", "090" + Math.abs((t.getId() + roomNum).hashCode() % 10000000));
+                        Contract contract = createContract(t, room, res, "HD-" + roomNum, room.getPrice().doubleValue());
+
+                        createMeterReading(t, room, MeterType.ELECTRICITY, 150 + (i * 10));
+                        createMeterReading(t, room, MeterType.WATER, 20 + i);
+
+                        createBill(t, room, roomNum);
+                        createTicket(t, room, res, roomNum);
+                    }
+                    System.out.println("✅ Seeded " + building.getName() + " for tenant " + t.getEmail());
+                }
+            });
+        });
 
         System.out.println("✨ System Ready!");
     }
 
+    private void createTicket(Tenant tenant, Room room, Resident resident, String roomNum) {
+        if (ticketRepository.findAll().stream().anyMatch(t -> t.getRoom().getId().equals(room.getId()))) return;
+        Ticket ticket = new Ticket();
+        ticket.setTenant(tenant);
+        ticket.setRoom(room);
+        ticket.setResident(resident);
+        ticket.setTitle("Sự cố điều hòa phòng " + roomNum);
+        ticket.setDescription("Điều hòa không mát, cần kiểm tra gas.");
+        ticket.setStatus(Ticket.TicketStatus.PENDING);
+        ticket.setPriority(Ticket.TicketPriority.MEDIUM);
+        ticket.setCategory(Ticket.TicketCategory.APPLIANCE);
+        ticketRepository.save(ticket);
+    }
+
+    private void createBill(Tenant tenant, Room room, String roomNum) {
+        if (billRepository.findAll().stream().anyMatch(b -> b.getRoom().getId().equals(room.getId()))) return;
+        Bill bill = new Bill();
+        bill.setTenant(tenant);
+        bill.setRoom(room);
+        bill.setRoomNumber(roomNum);
+        bill.setBillType(Bill.BillType.RENT);
+        bill.setDescription("Hóa đơn tiền thuê phòng " + roomNum + " tháng này");
+        bill.setAmount(BigDecimal.valueOf(room.getPrice().doubleValue() + 500000)); // Rent + utilities
+        bill.setStatus(Bill.BillStatus.UNPAID);
+        bill.setDueDate(LocalDate.now().plusDays(5));
+        billRepository.save(bill);
+    }
+
     private void createMeterReading(Tenant tenant, Room room, MeterType type, int value) {
         LocalDate lastMonth = LocalDate.now().minusMonths(1);
+        if (meterReadingRepository.findAll().stream().anyMatch(m -> m.getRoom().getId().equals(room.getId()) && m.getType() == type && m.getReadingMonth() == lastMonth.getMonthValue() && m.getReadingYear() == lastMonth.getYear())) return;
+        
         MeterReading reading = new MeterReading();
         reading.setTenant(tenant);
         reading.setRoom(room);
@@ -193,7 +240,7 @@ public class DataInitializer implements CommandLineRunner {
         meterReadingRepository.save(reading);
     }
 
-    private Room createRoom(Tenant tenant, String number, int floor, double price, Room.RoomStatus status, int index) {
+    private Room createRoom(Tenant tenant, Building building, String number, int floor, double price, Room.RoomStatus status, int index) {
         Optional<Room> existing = roomRepository.findAll().stream()
                 .filter(r -> r.getRoomNumber().equals(number) && r.getTenant().getId().equals(tenant.getId()))
                 .findFirst();
@@ -201,6 +248,7 @@ public class DataInitializer implements CommandLineRunner {
 
         Room room = new Room();
         room.setTenant(tenant);
+        room.setBuilding(building);
         room.setRoomNumber(number);
         room.setFloor(floor);
         room.setPrice(BigDecimal.valueOf(price));
@@ -221,8 +269,9 @@ public class DataInitializer implements CommandLineRunner {
                         .build()));
     }
 
-    private void createContract(Tenant tenant, Room room, Resident resident, String number, double rent) {
-        if (contractRepository.findByContractNumber(number).isPresent()) return;
+    private Contract createContract(Tenant tenant, Room room, Resident resident, String number, double rent) {
+        Optional<Contract> existing = contractRepository.findByContractNumber(number);
+        if (existing.isPresent()) return existing.get();
 
         Contract contract = new Contract();
         contract.setTenant(tenant);
@@ -234,6 +283,6 @@ public class DataInitializer implements CommandLineRunner {
         contract.setMonthlyRent(BigDecimal.valueOf(rent));
         contract.setDepositAmount(BigDecimal.valueOf(rent));
         contract.setStatus(ContractStatus.ACTIVE);
-        contractRepository.save(contract);
+        return contractRepository.save(contract);
     }
 }

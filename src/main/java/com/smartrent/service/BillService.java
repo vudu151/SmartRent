@@ -7,12 +7,12 @@ import com.smartrent.dto.ApiResponse;
 import com.smartrent.dto.bill.BillResponse;
 import com.smartrent.dto.bill.CreateBillRequest;
 import com.smartrent.dto.bill.UpdateBillRequest;
+import com.smartrent.exception.BusinessException;
 import com.smartrent.exception.ResourceNotFoundException;
 import com.smartrent.repository.BillRepository;
 import com.smartrent.repository.RoomRepository;
 import com.smartrent.repository.TenantRepository;
-import com.smartrent.repository.RoomFeeUnitRepository;
-import com.smartrent.domain.RoomFeeUnit;
+import com.smartrent.domain.Building;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,7 +34,7 @@ public class BillService {
     private final BillRepository billRepository;
     private final RoomRepository roomRepository;
     private final TenantRepository tenantRepository;
-    private final RoomFeeUnitRepository roomFeeUnitRepository;
+
 
     @Transactional(readOnly = true)
     public ApiResponse<Page<BillResponse>> getBills(Long tenantId, String status, String billType,
@@ -116,6 +116,11 @@ public class BillService {
     public ApiResponse<Void> deleteBill(Long id, Long tenantId) {
         Bill bill = billRepository.findByIdAndTenantId(id, tenantId)
             .orElseThrow(() -> new ResourceNotFoundException("Hóa đơn không tồn tại với ID: " + id));
+        
+        if (bill.getStatus() == Bill.BillStatus.PAID) {
+            throw new BusinessException("Không thể xóa hóa đơn đã được thanh toán (PAID).");
+        }
+        
         billRepository.delete(bill);
         log.info("Deleted bill {}", id);
         return ApiResponse.success(null, "Xóa hóa đơn thành công");
@@ -138,9 +143,6 @@ public class BillService {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tenant"));
                 
-        RoomFeeUnit feeUnit = roomFeeUnitRepository.findByTenantId(tenantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vui lòng thiết lập Đơn giá Dịch vụ trước khi Chốt số điện nước!"));
-
         List<Bill> finalBills = new ArrayList<>();
         java.time.LocalDate dueDate = java.time.LocalDate.now().plusDays(5); // Default due date 5 days ahead
         
@@ -148,10 +150,16 @@ public class BillService {
             Room room = roomRepository.findByIdAndTenantId(item.getRoomId(), tenantId).orElse(null);
             if(room == null) continue;
             
+            Building building = room.getBuilding();
+            if (building == null) {
+                log.warn("Room {} does not belong to any building, skipping bill generation.", room.getRoomNumber());
+                continue;
+            }
+            
             // Electricity Bill Formatter
             if(item.getOldElectricity() != null && item.getNewElectricity() != null && item.getNewElectricity() >= item.getOldElectricity()) {
                 int consumed = item.getNewElectricity() - item.getOldElectricity();
-                java.math.BigDecimal amount = feeUnit.getElectricityPerUnit().multiply(java.math.BigDecimal.valueOf(consumed));
+                java.math.BigDecimal amount = building.getElectricityPrice().multiply(java.math.BigDecimal.valueOf(consumed));
                 
                 Bill elecBill = Bill.builder()
                         .tenant(tenant)
@@ -161,7 +169,7 @@ public class BillService {
                         .amount(amount)
                         .dueDate(dueDate)
                         .status(Bill.BillStatus.UNPAID)
-                        .description(String.format("Tiêu thụ điện: %d kWh (Từ %d -> %d). Giá mức: %s đ/kWh", consumed, item.getOldElectricity(), item.getNewElectricity(), feeUnit.getElectricityPerUnit().longValue()))
+                        .description(String.format("Tiêu thụ điện: %d kWh (Từ %d -> %d). Giá mức: %s đ/kWh", consumed, item.getOldElectricity(), item.getNewElectricity(), building.getElectricityPrice().longValue()))
                         .build();
                 finalBills.add(elecBill);
             }
@@ -169,7 +177,7 @@ public class BillService {
             // Water Bill Formatter
             if(item.getOldWater() != null && item.getNewWater() != null && item.getNewWater() >= item.getOldWater()) {
                 int consumed = item.getNewWater() - item.getOldWater();
-                java.math.BigDecimal amount = feeUnit.getWaterPerUnit().multiply(java.math.BigDecimal.valueOf(consumed));
+                java.math.BigDecimal amount = building.getWaterPrice().multiply(java.math.BigDecimal.valueOf(consumed));
                 
                 Bill waterBill = Bill.builder()
                         .tenant(tenant)
@@ -179,7 +187,7 @@ public class BillService {
                         .amount(amount)
                         .dueDate(dueDate)
                         .status(Bill.BillStatus.UNPAID)
-                        .description(String.format("Tiêu thụ nước: %d khối (Từ %d -> %d). Giá mức: %s đ/khối", consumed, item.getOldWater(), item.getNewWater(), feeUnit.getWaterPerUnit().longValue()))
+                        .description(String.format("Tiêu thụ nước: %d khối (Từ %d -> %d). Giá mức: %s đ/khối", consumed, item.getOldWater(), item.getNewWater(), building.getWaterPrice().longValue()))
                         .build();
                 finalBills.add(waterBill);
             }

@@ -12,6 +12,8 @@ import { useNavbarHeader } from "@/context/navbar-header";
 import { getRooms } from "@/api/room";
 import { generateMeterBills } from "@/api/bill";
 import { showToast } from "@/lib/swal";
+import { FeeSettingsModal } from "@/pages/dashboard/fee-settings";
+import { Cog6ToothIcon } from "@heroicons/react/24/solid";
 
 export function MeterReading() {
   const [controller] = useMaterialTailwindController();
@@ -21,6 +23,9 @@ export function MeterReading() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [feeSettingsOpen, setFeeSettingsOpen] = useState(false);
+  const [isRecordingAllowed, setIsRecordingAllowed] = useState(true);
+  const [recordingDayInfo, setRecordingDayInfo] = useState("");
   
   // State to hold dynamic grid inputs
   // Format: { [roomId]: { eOld, eNew, wOld, wNew } }
@@ -34,7 +39,10 @@ export function MeterReading() {
           <Typography color="gray" className="font-normal text-xs">Nhập số đầu - số cuối nhanh chóng. Hệ thống sẽ tự động tính hóa đơn.</Typography>
         </div>
         <div className="flex shrink-0 gap-2 items-center">
-          <Button color="blue-gray" size="sm" className="flex items-center gap-1.5 whitespace-nowrap" onClick={() => document.getElementById('btn-submit-meter')?.click()}>
+          <Button variant="outlined" color="blue-gray" size="sm" className="flex items-center gap-1.5 whitespace-nowrap" onClick={() => document.getElementById('btn-open-settings')?.click()}>
+            <Cog6ToothIcon className="w-4 h-4" /> CẤU HÌNH GIÁ
+          </Button>
+          <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-1.5 whitespace-nowrap" onClick={() => document.getElementById('btn-submit-meter')?.click()}>
             <CheckCircleIcon className="w-4 h-4" /> CHỐT ĐỒNG LOẠT
           </Button>
         </div>
@@ -49,6 +57,24 @@ export function MeterReading() {
   const loadRooms = async () => {
     try {
       setLoading(true);
+      
+      try {
+        const { getFeeConfig } = await import("@/api/service");
+        const config = await getFeeConfig();
+        const currentDay = new Date().getDate();
+        const startDay = config.meterRecordingStartDay || 1;
+        const endDay = config.meterRecordingEndDay || 31;
+        const allowed = currentDay >= startDay && currentDay <= endDay;
+        setIsRecordingAllowed(allowed);
+        if (!allowed) {
+          setRecordingDayInfo(`Chỉ cho phép chốt điện nước từ ngày ${startDay} đến ngày ${endDay} hàng tháng.`);
+        } else {
+          setRecordingDayInfo("");
+        }
+      } catch(e) {
+        // ignore
+      }
+
       const res = await getRooms({ page: 0, size: 100 });
       // Filter out only OCCUPIED rooms
       const activeRooms = (res.content || []).filter(r => r.status === "OCCUPIED");
@@ -57,7 +83,7 @@ export function MeterReading() {
       // Init empty state
       const initialReadings = {};
       activeRooms.forEach(r => {
-        initialReadings[r.id] = { eOld: "", eNew: "", wOld: "", wNew: "" };
+        initialReadings[r.id] = { eOld: "Tự động", eNew: "", wOld: "Tự động", wNew: "" };
       });
       setReadings(initialReadings);
     } catch (err) {
@@ -78,6 +104,14 @@ export function MeterReading() {
   };
 
   const handleSubmit = async () => {
+    let hasError = false;
+    // Bỏ qua validate eNew < eOld vì eOld giờ là "Tự động"
+
+    if (hasError) {
+      showToast("Vui lòng kiểm tra lại các chỉ số điện/nước báo đỏ", "error");
+      return;
+    }
+
     // Build payload
     const payloadArray = [];
     Object.keys(readings).forEach(roomId => {
@@ -86,9 +120,9 @@ export function MeterReading() {
       if (data.eNew !== "" || data.wNew !== "") {
         payloadArray.push({
           roomId: Number(roomId),
-          oldElectricity: data.eOld !== "" ? Number(data.eOld) : null,
+          oldElectricity: null, // Backend sẽ tự lấy
           newElectricity: data.eNew !== "" ? Number(data.eNew) : null,
-          oldWater: data.wOld !== "" ? Number(data.wOld) : null,
+          oldWater: null, // Backend sẽ tự lấy
           newWater: data.wNew !== "" ? Number(data.wNew) : null,
         });
       }
@@ -112,12 +146,22 @@ export function MeterReading() {
     }
   };
 
+  const hasGlobalError = false; // Bỏ validate eNew < eOld vì eOld là tự động
+
   return (
     <div className="h-full flex flex-col">
-      {/* Hidden button for navbar trigger */}
-      <button id="btn-submit-meter" className="hidden" onClick={handleSubmit} disabled={processing || loading} />
-      <Card className="h-full flex flex-col overflow-hidden">
+      {/* Hidden buttons for navbar trigger */}
+      <button id="btn-submit-meter" className="hidden" onClick={handleSubmit} disabled={processing || loading || hasGlobalError || !isRecordingAllowed} />
+      <button id="btn-open-settings" className="hidden" onClick={() => setFeeSettingsOpen(true)} />
+      
+      <FeeSettingsModal open={feeSettingsOpen} onClose={() => setFeeSettingsOpen(false)} />
 
+      <Card className="h-full flex flex-col overflow-hidden">
+        {recordingDayInfo && (
+          <div className="bg-orange-50 border-b border-orange-100 p-3 text-orange-800 text-sm text-center font-medium">
+            ⚠️ {recordingDayInfo} Hiện tại chỉ xem được dữ liệu, không thể sửa hay chốt mới!
+          </div>
+        )}
         <CardBody className="p-4 md:p-6 dark:bg-blue-gray-900/50 overflow-auto flex-1">
           {loading ? (
             <div className="text-center p-12 text-gray-500 dark:text-blue-gray-300">Đang tải danh sách phòng...</div>
@@ -151,25 +195,28 @@ export function MeterReading() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 overflow-hidden">
                                     <Input 
-                                        type="number" 
-                                        label="Số cũ" 
+                                        type="text" 
+                                        label="Số cũ (Auto)" 
                                         size="sm" 
                                         color="orange"
                                         className="dark:text-white"
                                         containerProps={{ className: "min-w-[0]" }}
                                         value={data.eOld} 
-                                        onChange={(e) => handleInputChange(room.id, "eOld", e.target.value)} 
+                                        disabled={true}
                                     />
-                                    <Input 
-                                        type="number" 
-                                        label="Số mới" 
-                                        size="sm" 
-                                        color="orange"
-                                        className="dark:text-white"
-                                        containerProps={{ className: "min-w-[0]" }}
-                                        value={data.eNew} 
-                                        onChange={(e) => handleInputChange(room.id, "eNew", e.target.value)} 
-                                    />
+                                    <div>
+                                      <Input 
+                                          type="number" 
+                                          label="Số mới" 
+                                          size="sm" 
+                                          color="orange"
+                                          className="dark:text-white"
+                                          containerProps={{ className: "min-w-[0]" }}
+                                          value={data.eNew} 
+                                          disabled={!isRecordingAllowed}
+                                          onChange={(e) => handleInputChange(room.id, "eNew", e.target.value)} 
+                                      />
+                                    </div>
                                 </div>
                             </div>
 
@@ -181,25 +228,28 @@ export function MeterReading() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-3 overflow-hidden">
                                     <Input 
-                                        type="number" 
-                                        label="Số cũ" 
+                                        type="text" 
+                                        label="Số cũ (Auto)" 
                                         size="sm" 
                                         color="blue"
                                         className="dark:text-white"
                                         containerProps={{ className: "min-w-[0]" }}
                                         value={data.wOld} 
-                                        onChange={(e) => handleInputChange(room.id, "wOld", e.target.value)} 
+                                        disabled={true}
                                     />
-                                    <Input 
-                                        type="number" 
-                                        label="Số mới" 
-                                        size="sm" 
-                                        color="blue"
-                                        className="dark:text-white"
-                                        containerProps={{ className: "min-w-[0]" }}
-                                        value={data.wNew} 
-                                        onChange={(e) => handleInputChange(room.id, "wNew", e.target.value)} 
-                                    />
+                                    <div>
+                                      <Input 
+                                          type="number" 
+                                          label="Số mới" 
+                                          size="sm" 
+                                          color="blue"
+                                          className="dark:text-white"
+                                          containerProps={{ className: "min-w-[0]" }}
+                                          value={data.wNew} 
+                                          disabled={!isRecordingAllowed}
+                                          onChange={(e) => handleInputChange(room.id, "wNew", e.target.value)} 
+                                      />
+                                    </div>
                                 </div>
                             </div>
                         </div>

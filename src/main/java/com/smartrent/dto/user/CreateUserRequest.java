@@ -31,4 +31,7 @@ public class CreateUserRequest {
     
     // Optional, if SUPER_ADMIN creates a user for a specific tenant
     private Long tenantId;
+
+    // Optional, if assigning to a specific building
+    private Long buildingId;
 }

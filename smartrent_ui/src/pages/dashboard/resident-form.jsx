@@ -14,6 +14,7 @@ import { getResidentById, createResident, updateResident } from "@/api/resident"
 import { getRooms } from "@/api/room";
 import { showToast } from "@/lib/swal";
 import { useAuth } from "@/smartrent/auth";
+import ReactSelect from "react-select";
 
 export function ResidentModal({ open, onClose, residentId, onSuccess }) {
   const { user } = useAuth();
@@ -34,6 +35,7 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
     notes: "",
     roomIds: [],
   });
+  const [errors, setErrors] = React.useState({});
 
   React.useEffect(() => {
     if (open) {
@@ -52,6 +54,7 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
           notes: "",
           roomIds: [],
         });
+        setErrors({});
       }
     }
   }, [open, isEdit, residentId]);
@@ -91,14 +94,42 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Auto validate
+    if (name === "idCard") {
+      if (value && !/^\d{12}$/.test(value)) {
+        setErrors(prev => ({ ...prev, idCard: "CCCD phải đúng 12 chữ số" }));
+      } else {
+        setErrors(prev => ({ ...prev, idCard: null }));
+      }
+    }
+    if (name === "phone") {
+      if (value && !/^0\d{9}$/.test(value)) {
+        setErrors(prev => ({ ...prev, phone: "SĐT không hợp lệ (10 số, bắt đầu bằng 0)" }));
+      } else {
+        setErrors(prev => ({ ...prev, phone: null }));
+      }
+    }
   };
 
-  const handleRoomSelect = (val) => {
-    setFormData(prev => ({ ...prev, roomIds: [Number(val)] }));
+  const handleRoomSelect = (option) => {
+    setFormData(prev => ({ ...prev, roomIds: [Number(option.value)] }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (errors.idCard || errors.phone) {
+      showToast("Vui lòng sửa các thông tin chưa hợp lệ", "error");
+      return;
+    }
+    if (formData.idCard && !/^\d{12}$/.test(formData.idCard)) {
+      showToast("CCCD phải đúng 12 chữ số", "error");
+      return;
+    }
+    if (formData.phone && !/^0\d{9}$/.test(formData.phone)) {
+      showToast("SĐT không hợp lệ (10 số, bắt đầu bằng 0)", "error");
+      return;
+    }
     try {
       setLoading(true);
       const payload = { ...formData };
@@ -118,6 +149,32 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const roomOptions = [
+    { value: "0", label: "Chưa xếp phòng" },
+    ...availableRooms.map(r => ({ value: String(r.id), label: `Phòng ${r.roomNumber}` }))
+  ];
+
+  const selectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: '40px',
+      borderRadius: '7px',
+      borderColor: state.isFocused ? '#263238' : '#b0bec5',
+      boxShadow: 'none',
+      '&:hover': { borderColor: '#263238' },
+      fontSize: '14px',
+      backgroundColor: 'transparent'
+    }),
+    menu: (base) => ({
+      ...base,
+      zIndex: 9999
+    }),
+    menuList: (base) => ({
+      ...base,
+      maxHeight: '220px' // Hiển thị khoảng 6 items
+    })
   };
 
   return (
@@ -143,13 +200,17 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                 required
                 disabled={loading || isGuard}
               />
-              <Input
-                label="Số điện thoại"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                disabled={loading || isGuard}
-              />
+              <div>
+                <Input
+                  label="Số điện thoại"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  error={!!errors.phone}
+                  disabled={loading || isGuard}
+                />
+                {errors.phone && <Typography variant="small" color="red" className="mt-1 text-[11px] font-medium">{errors.phone}</Typography>}
+              </div>
               <Input
                 label="Email"
                 type="email"
@@ -158,13 +219,17 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                 onChange={handleChange}
                 disabled={loading || isGuard}
               />
-              <Input
-                label="CMND/CCCD"
-                name="idCard"
-                value={formData.idCard}
-                onChange={handleChange}
-                disabled={loading || isGuard}
-              />
+              <div>
+                <Input
+                  label="CMND/CCCD"
+                  name="idCard"
+                  value={formData.idCard}
+                  onChange={handleChange}
+                  error={!!errors.idCard}
+                  disabled={loading || isGuard}
+                />
+                {errors.idCard && <Typography variant="small" color="red" className="mt-1 text-[11px] font-medium">{errors.idCard}</Typography>}
+              </div>
               <Input
                 label="Ngày sinh"
                 type="date"
@@ -174,32 +239,29 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                 disabled={loading || isGuard}
               />
               
-              <div className="flex flex-col gap-1">
-                <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Giới tính</Typography>
-                <Select
-                  value={formData.gender}
-                  onChange={(val) => setFormData(p => ({ ...p, gender: val }))}
-                  disabled={loading || isGuard}
-                >
-                  <Option value="MALE">Nam</Option>
-                  <Option value="FEMALE">Nữ</Option>
-                  <Option value="OTHER">Chưa rõ</Option>
-                </Select>
-              </div>
+              <Select
+                label="Giới tính"
+                value={formData.gender}
+                onChange={(val) => setFormData(p => ({ ...p, gender: val }))}
+                disabled={loading || isGuard}
+              >
+                <Option value="MALE">Nam</Option>
+                <Option value="FEMALE">Nữ</Option>
+                <Option value="OTHER">Chưa rõ</Option>
+              </Select>
 
               <div className="flex flex-col gap-1">
                 <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Phòng thuê hiện tại</Typography>
-                <Select
-                  label="Chọn phòng"
-                  value={formData.roomIds.length ? String(formData.roomIds[0]) : "0"}
-                  onChange={(val) => handleRoomSelect(val)}
-                  disabled={loading || isGuard}
-                >
-                  <Option value="0">Chưa xếp phòng</Option>
-                  {availableRooms.map((room) => (
-                    <Option key={room.id} value={String(room.id)}>Phòng {room.roomNumber}</Option>
-                  ))}
-                </Select>
+                <ReactSelect
+                  options={roomOptions}
+                  styles={selectStyles}
+                  value={roomOptions.find(o => o.value === (formData.roomIds.length ? String(formData.roomIds[0]) : "0"))}
+                  onChange={handleRoomSelect}
+                  isDisabled={loading || isGuard}
+                  placeholder="Chọn phòng..."
+                  isSearchable={true}
+                  noOptionsMessage={() => "Không tìm thấy phòng"}
+                />
               </div>
 
               {isEdit && (

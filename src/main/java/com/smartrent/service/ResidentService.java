@@ -7,6 +7,7 @@ import com.smartrent.dto.ApiResponse;
 import com.smartrent.dto.resident.CreateResidentRequest;
 import com.smartrent.dto.resident.ResidentResponse;
 import com.smartrent.dto.resident.UpdateResidentRequest;
+import com.smartrent.exception.BusinessException;
 import com.smartrent.exception.ResourceNotFoundException;
 import com.smartrent.repository.ResidentRepository;
 import com.smartrent.repository.RoomRepository;
@@ -137,13 +138,23 @@ public class ResidentService {
         Resident resident = residentRepository.findByIdAndTenantId(id, tenantId)
             .orElseThrow(() -> new ResourceNotFoundException("Cư dân không tồn tại với ID: " + id));
 
-        // Remove from rooms first
-        for (Room room : new HashSet<>(resident.getRooms())) {
-            room.getResidents().remove(resident);
-            roomRepository.save(room);
+        if (resident.getStatus() == Resident.ResidentStatus.ACTIVE) {
+            throw new BusinessException("Không thể xóa cư dân đang ở trạng thái ACTIVE. Vui lòng thanh lý hợp đồng hoặc chuyển trạng thái.");
         }
 
-        residentRepository.delete(resident);
+        try {
+            // Remove from rooms first
+            for (Room room : new HashSet<>(resident.getRooms())) {
+                room.getResidents().remove(resident);
+                roomRepository.save(room);
+            }
+
+            residentRepository.delete(resident);
+            residentRepository.flush();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new BusinessException("Không thể xóa cư dân này vì đã có lịch sử dữ liệu (Hợp đồng, Hóa đơn) liên kết.");
+        }
+        
         log.info("Deleted resident {}", id);
         return ApiResponse.success(null, "Xóa cư dân thành công");
     }

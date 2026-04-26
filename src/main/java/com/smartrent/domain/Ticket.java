@@ -7,10 +7,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Filter;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Filter(name = "buildingFilter", condition = "room_id IN (SELECT r.id FROM rooms r WHERE r.building_id = :buildingId)")
 @Table(name = "tickets", indexes = {
     @Index(name = "idx_tickets_tenant_id", columnList = "tenant_id"),
     @Index(name = "idx_tickets_room_id", columnList = "room_id"),

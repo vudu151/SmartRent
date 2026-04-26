@@ -1,6 +1,7 @@
 import { apiFetch } from '../lib/http'
 import { getTenantId } from './auth'
 
+
 export interface ResidentResponse {
   id: number
   tenantId: number
@@ -64,8 +65,8 @@ export async function getResidentById(id: number): Promise<ResidentResponse> {
 }
 
 export async function createResident(data: any): Promise<ResidentResponse> {
-  data.tenantId = getTenantId()
-  const response = await apiFetch<ApiResponse<ResidentResponse>>('/api/residents', {
+  const tenantId = getTenantId()
+  const response = await apiFetch<ApiResponse<ResidentResponse>>(`/api/residents?tenantId=${tenantId}`, {
     method: 'POST',
     body: data,
   })

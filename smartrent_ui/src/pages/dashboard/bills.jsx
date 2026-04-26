@@ -26,7 +26,6 @@ export function Bills() {
   const { setNavbarHeader } = useNavbarHeader();
   const [bills, setBills] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
-  const [loadingMore, setLoadingMore] = React.useState(false);
   const [error, setError] = React.useState("");
 
   const [roomNumber, setRoomNumber] = React.useState("");
@@ -166,7 +165,16 @@ export function Bills() {
                               <IconButton size="sm" variant="text" color="green" title="Thu Tiền" onClick={() => { setBillToPay(bill); setPayDialogOpen(true); }}><CheckCircleIcon className="h-5 w-5 text-green-500" /></IconButton>
                             )}
                             <IconButton size="sm" variant="text" color="blue-gray" onClick={() => handleEdit(bill.id)}><PencilIcon className="h-4 w-4 text-blue-gray-500" /></IconButton>
-                            <IconButton size="sm" variant="text" color="red" onClick={() => { setBillToDelete(bill); setDeleteDialogOpen(true); }}><TrashIcon className="h-4 w-4 text-red-500" /></IconButton>
+                            <IconButton 
+                              size="sm" 
+                              variant="text" 
+                              color="red" 
+                              title={bill.status === "PAID" ? "Không thể xóa hóa đơn đã thanh toán" : "Xóa"}
+                              disabled={bill.status === "PAID"}
+                              onClick={() => { setBillToDelete(bill); setDeleteDialogOpen(true); }}
+                            >
+                              <TrashIcon className={`h-4 w-4 ${bill.status === "PAID" ? "text-gray-400" : "text-red-500"}`} />
+                            </IconButton>
                           </div>
                         </td>
                       </tr>

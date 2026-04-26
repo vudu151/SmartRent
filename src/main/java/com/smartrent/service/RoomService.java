@@ -123,7 +123,18 @@ public class RoomService {
     public ApiResponse<Void> deleteRoom(Long id, Long tenantId) {
         Room room = roomRepository.findByIdAndTenantId(id, tenantId)
             .orElseThrow(() -> new ResourceNotFoundException("Phòng không tồn tại với ID: " + id));
-        roomRepository.delete(room);
+            
+        if (room.getStatus() != Room.RoomStatus.VACANT) {
+            throw new BusinessException("Chỉ có thể xóa phòng TRỐNG. Phòng đang có người thuê hoặc bảo trì không thể xóa.");
+        }
+        
+        try {
+            roomRepository.delete(room);
+            roomRepository.flush();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new BusinessException("Không thể xóa phòng này vì đã có lịch sử dữ liệu (Hợp đồng, Hóa đơn) liên kết với nó.");
+        }
+        
         log.info("Deleted room {}", id);
         return ApiResponse.success(null, "Xóa phòng thành công");
     }

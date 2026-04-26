@@ -222,7 +222,7 @@ export function SignUp() {
 
           <div className="mb-1 flex flex-col gap-4">
             <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
-              Tên đăng nhập hoặc Email <span className="text-red-500">*</span>
+              Email <span className="text-red-500">*</span>
             </Typography>
             <Input
               inputRef={emailInputRef}

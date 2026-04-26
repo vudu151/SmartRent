@@ -36,19 +36,29 @@ export function Users() {
   const [saving, setSaving] = React.useState(false);
   const [formData, setFormData] = React.useState({ username: "", email: "", fullName: "", phone: "", password: "", role: "" });
 
+  const getSelectedBuildingId = () => localStorage.getItem("selectedBuildingId");
+  const [buildingId, setBuildingId] = React.useState(getSelectedBuildingId);
+
+  React.useEffect(() => {
+    const handleStorageChange = () => setBuildingId(getSelectedBuildingId());
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   const handleOpenModal = () => setOpenModal(!openModal);
 
   const loadUsers = React.useCallback(async () => {
+    if (!buildingId) return; // Wait until a building is selected
     try {
       setLoading(true);
-      const response = await getUsers({ page, size, search: searchTerm });
+      const response = await getUsers({ page, size, search: searchTerm, buildingId });
       setUsersList(response.content || []);
       setTotalPages(response.totalPages);
       setTotalElements(response.totalElements);
     } catch (err) {
       showToast(err.message || "Không thể tải danh sách tài khoản.", "error");
     } finally { setLoading(false); }
-  }, [page, size, searchTerm]);
+  }, [page, size, searchTerm, buildingId]);
 
   React.useEffect(() => { loadUsers(); }, [loadUsers]);
 
@@ -63,7 +73,7 @@ export function Users() {
           <div className="w-52">
             <Input label="Tìm tên hoặc email..." size="md" icon={<MagnifyingGlassIcon className="h-4 w-4" />} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }} containerProps={{ className: "!min-w-0" }} />
           </div>
-          <Button className="flex items-center gap-2 h-10 px-4" color="gray" size="sm" onClick={() => setOpenModal(true)}>
+          <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 h-10 px-4 whitespace-nowrap" onClick={() => setOpenModal(true)}>
             <UserPlusIcon className="h-4 w-4" /> Thêm Tài Khoản
           </Button>
         </div>
@@ -81,7 +91,7 @@ export function Users() {
   const handleCreateUser = async () => {
     try {
       setSaving(true);
-      await createUser(formData);
+      await createUser({ ...formData, buildingId });
       showToast("Tạo tài khoản thành công!", "success");
       setOpenModal(false);
       setFormData({ username: "", email: "", fullName: "", phone: "", password: "", role: "" });

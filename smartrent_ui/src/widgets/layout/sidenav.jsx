@@ -20,6 +20,7 @@ import {
 import { useMaterialTailwindController, setOpenSidenav } from "@/context";
 import { useAuth } from "@/smartrent/auth";
 import { env } from "@/config/env";
+import { BuildingSelector } from "@/widgets/layout/building-selector";
 
 function getAvatarSrc(avatarUrl) {
   if (!avatarUrl) return null;
@@ -110,6 +111,11 @@ export function Sidenav({ brandImg, brandName, routes }) {
           </Menu>
         </div>
 
+        {/* ===== BUILDING SELECTOR ===== */}
+        <div className="px-4 mb-3">
+          <BuildingSelector />
+        </div>
+
         <IconButton
           variant="text"
           color="white"
@@ -148,7 +154,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
                       variant={isActive ? "gradient" : "text"}
                       color={
                         isActive
-                          ? sidenavColor
+                          ? "indigo"
                           : isDark
                           ? "white"
                           : "blue-gray"

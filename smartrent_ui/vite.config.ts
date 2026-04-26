@@ -16,6 +16,15 @@ export default defineConfig({
   },
   build: {
     sourcemap: true, // Enable source maps for production builds
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@material-tailwind/react', '@heroicons/react'],
+          charts: ['apexcharts', 'react-apexcharts']
+        }
+      }
+    }
   },
   // Ensure source maps are enabled in dev mode (default is true)
   css: {

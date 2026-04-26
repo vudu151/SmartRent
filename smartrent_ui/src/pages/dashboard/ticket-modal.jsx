@@ -14,6 +14,7 @@ import { getRooms } from "@/api/room";
 import { getResidents } from "@/api/resident";
 import { createTicket } from "@/api/ticket";
 import { showToast } from "@/lib/swal";
+import ReactSelect from "react-select";
 
 export function TicketModal({ open, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
@@ -73,6 +74,11 @@ export function TicketModal({ open, onClose, onSuccess }) {
       return;
     }
     
+    if (!formData.title.trim()) {
+      showToast("Vui lòng nhập tiêu đề sự cố!", "warning");
+      return;
+    }
+    
     try {
       setLoading(true);
       await createTicket({
@@ -90,23 +96,52 @@ export function TicketModal({ open, onClose, onSuccess }) {
     }
   };
 
+  const roomOptions = [
+    { value: "", label: "Chọn phòng", isDisabled: true },
+    ...rooms.map(r => ({ value: String(r.id), label: `Phòng ${r.roomNumber}` }))
+  ];
+
+  const selectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: '40px',
+      borderRadius: '7px',
+      borderColor: state.isFocused ? '#263238' : '#b0bec5',
+      boxShadow: 'none',
+      '&:hover': { borderColor: '#263238' },
+      fontSize: '14px',
+      backgroundColor: 'transparent'
+    }),
+    menu: (base) => ({
+      ...base,
+      zIndex: 9999
+    }),
+    menuList: (base) => ({
+      ...base,
+      maxHeight: '220px' // Hiển thị khoảng 6 items
+    })
+  };
+
   return (
-    <Dialog open={open} handler={onClose} size="md">
+    <Dialog open={open} handler={onClose} size="md" className="z-[9999]" overlayProps={{ className: "z-[9998]" }}>
       <DialogHeader>
         <Typography variant="h5" color="blue-gray">Báo Cáo Sự Cố Mới</Typography>
       </DialogHeader>
-      <DialogBody divider className="max-h-[80vh] overflow-y-auto pt-0">
+      <DialogBody divider className="max-h-[80vh] overflow-y-auto pt-4">
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Select 
-              label="Chọn Phòng *" 
-              value={formData.roomId} 
-              onChange={handleRoomChange}
-            >
-              {rooms.map(r => (
-                <Option key={r.id} value={r.id.toString()}>Phòng {r.roomNumber}</Option>
-              ))}
-            </Select>
+            <div className="flex flex-col gap-1">
+              <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Chọn Phòng *</Typography>
+              <ReactSelect
+                options={roomOptions}
+                styles={selectStyles}
+                value={roomOptions.find(o => o.value === String(formData.roomId)) || null}
+                onChange={(option) => handleRoomChange(option.value)}
+                placeholder="Chọn phòng..."
+                isSearchable={true}
+                noOptionsMessage={() => "Không tìm thấy phòng"}
+              />
+            </div>
 
             <Input 
               label="Cư dân (Gán tự động)" 
@@ -123,7 +158,7 @@ export function TicketModal({ open, onClose, onSuccess }) {
             onChange={(e) => setFormData(p => ({...p, title: e.target.value}))}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Select 
                 label="Độ ưu tiên" 
                 value={formData.priority}
@@ -133,6 +168,16 @@ export function TicketModal({ open, onClose, onSuccess }) {
               <Option value="HIGH">Cao</Option>
               <Option value="MEDIUM">Trung bình</Option>
               <Option value="LOW">Thấp</Option>
+            </Select>
+
+            <Select 
+                label="Trạng thái" 
+                value={formData.status}
+                onChange={(val) => setFormData(p => ({...p, status: val}))}
+            >
+              <Option value="PENDING">Mới báo (Đang chờ)</Option>
+              <Option value="IN_PROGRESS">Đang sửa</Option>
+              <Option value="RESOLVED">Hoàn thành</Option>
             </Select>
 
             <Select 

@@ -41,6 +41,10 @@ public class User implements UserDetails {
     @JoinColumn(name = "tenant_id")
     private Tenant tenant;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "building_id")
+    private Building building;
+
     @Column(nullable = false, unique = true, length = 100)
     private String username;
 

@@ -1,35 +1,96 @@
-﻿{
-  "updated_at": "2026-04-17T01:40:00+07:00",
+{
+  "updated_at": "2026-04-27T01:53:00+07:00",
   "working_on": {
-    "feature": "RBAC & Data Isolation",
-    "task": "Tenant Magic Link Portal & Security Optimization",
+    "feature": "UI Standardization & API tenantId Fix",
+    "task": "Đồng bộ giao diện dashboard + Fix thiếu tenantId toàn bộ API frontend",
     "status": "completed",
     "files": [
-      "src/main/java/com/smartrent/security/TenantSecurityAspect.java",
-      "src/main/java/com/smartrent/config/SecurityConfig.java",
-      "src/main/java/com/smartrent/repository/ContractRepository.java",
-      "smartrent_ui/src/smartrent/RequireAuth.jsx",
-      "smartrent_ui/src/smartrent/auth.jsx"
+      "smartrent_ui/src/api/dashboard.ts",
+      "smartrent_ui/src/api/contract.ts",
+      "smartrent_ui/src/api/bill.ts",
+      "smartrent_ui/src/api/room.ts",
+      "smartrent_ui/src/api/resident.ts",
+      "smartrent_ui/src/api/service.ts",
+      "smartrent_ui/src/api/notification.ts",
+      "smartrent_ui/src/api/liquidation.ts",
+      "smartrent_ui/src/api/asset.ts",
+      "smartrent_ui/src/widgets/layout/building-selector.jsx",
+      "smartrent_ui/src/layouts/dashboard.jsx",
+      "smartrent_ui/src/pages/dashboard/home.jsx",
+      "smartrent_ui/src/pages/dashboard/meter-reading.jsx",
+      "smartrent_ui/src/pages/dashboard/users.jsx",
+      "src/main/java/com/smartrent/controller/UserController.java",
+      "src/main/java/com/smartrent/domain/User.java",
+      "src/main/java/com/smartrent/repository/UserRepository.java",
+      "src/main/java/com/smartrent/dto/user/CreateUserRequest.java",
+      "src/main/resources/db/migration/V23__Add_building_id_to_users.sql"
     ],
-    "notes": "Hoàn tất Phase 05: Đã cách ly Guard (không đọc được tenant khác), chặn Tenant vào Dashboard, và fix Enum JPQL cho ContractStatus."
+    "blockers": [],
+    "notes": "Building selector dropdown width vẫn chưa khớp 100% với container viền xám - cần kiểm tra lại"
   },
   "pending_tasks": [
-    {"task": "Triển khai Production/Deploy API Server", "priority": "high", "notes": "Chuẩn bị deploy lên Cloud sau khi core tính năng xong"},
-    {"task": "Build Module Notification", "priority": "medium", "notes": "Gửi email hoá đơn, nhắc nợ"}
+    { "task": "Kiểm tra dropdown building-selector width đã khớp chưa", "priority": "low", "notes": "Đã đo width bằng ref + getBoundingClientRect, ép cả min/max/width. Cần test lại sau restart." },
+    { "task": "Kiểm tra tất cả màn hình hoạt động bình thường sau fix tenantId", "priority": "high", "notes": "Đã fix 8 file API, cần test thủ công từng màn." },
+    { "task": "Mở rộng lọc theo buildingId cho các module khác (hợp đồng, cư dân...)", "priority": "medium", "notes": "Hiện chỉ màn Người Dùng lọc theo buildingId" }
   ],
   "recent_changes": [
-    {"timestamp": "2026-04-17T01:38:00+07:00", "type": "bugfix", "description": "Fix lỗi syntax JSX (dư thẻ div) làm hỏng hiển thị trang Users", "files": ["users.jsx"]},
-    {"timestamp": "2026-04-17T01:30:00+07:00", "type": "bugfix", "description": "Sửa lại Enum mappings của ContractStatus trong ContractRepository cho đúng chuẩn JPQL của Hibernate 7", "files": ["ContractRepository.java"]},
-    {"timestamp": "2026-04-17T01:25:00+07:00", "type": "feature", "description": "Thêm AOP Aspect để chặn Account truy cập chéo dữ liệu Tenant, chặn Tenant vào Admin Dashboard", "files": ["TenantSecurityAspect.java", "RequireAuth.jsx", "auth.jsx", "SecurityConfig.java"]},
-    {"timestamp": "2026-04-16T23:57:00+07:00", "type": "feature", "description": "Tính năng Magic Link getPortalToken cho Cư dân", "files": ["UserController.java", "user.ts"]}
+    {
+      "timestamp": "2026-04-27T01:00:00+07:00",
+      "type": "bugfix",
+      "description": "Fix toàn bộ 8 file API frontend thiếu tenantId - gây lỗi 400 MissingServletRequestParameterException",
+      "files": ["dashboard.ts", "contract.ts", "bill.ts", "room.ts", "resident.ts", "service.ts", "notification.ts", "liquidation.ts", "asset.ts"]
+    },
+    {
+      "timestamp": "2026-04-27T00:50:00+07:00",
+      "type": "bugfix",
+      "description": "Fix contract.ts dùng params object nhưng apiFetch không hỗ trợ - phải build URLSearchParams thủ công",
+      "files": ["contract.ts", "notification.ts"]
+    },
+    {
+      "timestamp": "2026-04-27T00:30:00+07:00",
+      "type": "feature",
+      "description": "Thêm building_id vào bảng users (V23 migration), lọc user theo khu trọ, đồng bộ màu nút với sidebar",
+      "files": ["V23__Add_building_id_to_users.sql", "User.java", "UserController.java", "users.jsx"]
+    },
+    {
+      "timestamp": "2026-04-27T00:20:00+07:00",
+      "type": "ui",
+      "description": "Fix dashboard layout không scroll được (overflow-hidden → overflow-y-auto), đổi nút Chốt Đồng Loạt sang gradient indigo",
+      "files": ["dashboard.jsx", "home.jsx", "meter-reading.jsx"]
+    },
+    {
+      "timestamp": "2026-04-27T00:45:00+07:00",
+      "type": "ui",
+      "description": "Building selector dropdown width khớp container viền xám - dùng ref + getBoundingClientRect",
+      "files": ["building-selector.jsx"]
+    }
   ],
   "errors_encountered": [
-    {"error": "Portal token báo NOT_FOUND kể cả khi user Cư Dân tồn tại", "solution": "Sửa lại @Query trong JPQL để truyền đúng absolute classpath enum com.smartrent.domain.ContractStatus.ACTIVE", "resolved": true},
-    {"error": "Lỗi React biên dịch JSX ở users.jsx", "solution": "Xóa dòng đóng div dư do gõ nhầm", "resolved": true}
+    {
+      "error": "MissingServletRequestParameterException: Required request parameter 'tenantId' not present",
+      "solution": "Thêm getTenantId() import từ auth.ts và truyền tenantId vào URL query string cho mọi API call",
+      "resolved": true
+    },
+    {
+      "error": "apiFetch không hỗ trợ params object (contract.ts, notification.ts)",
+      "solution": "Build URLSearchParams thủ công và ghép vào URL string thay vì truyền qua { params: {...} }",
+      "resolved": true
+    },
+    {
+      "error": "room.ts và resident.ts dùng biến tenantId mà không khai báo",
+      "solution": "Import getTenantId() từ auth.ts và gọi để lấy giá trị",
+      "resolved": true
+    },
+    {
+      "error": "mvn command not found trên Windows",
+      "solution": "Dùng .\\mvnw.cmd thay vì mvn",
+      "resolved": true
+    }
   ],
   "decisions_made": [
-    {"decision": "Sử dụng Magic Link token thay vì auth truyền thống cho Tenant Portal", "reason": "Cư dân hiếm đăng nhập, link dễ dùng cho UX tốt nhất."},
-    {"decision": "Dùng CGLIB Proxy & AspectJ (@Around) để wrap Repository Interfaces trong Spring", "reason": "Cách ly dữ liệu (Data Isolation) tự động cho Guard/Tenant/Manager mà không sợ dev quên viết filter parameter."},
-    {"decision": "RBAC phân cấp RÕ RÀNG ở Frontend (RequireAuth) lẫn Backend (SecurityConfig)", "reason": "Double Security, an toàn khi call API trực tiếp."}
+    { "decision": "Tất cả API frontend phải truyền tenantId qua URL query string", "reason": "Backend yêu cầu @RequestParam Long tenantId bắt buộc" },
+    { "decision": "Dùng getTenantId() từ api/auth.ts", "reason": "Centralized - lấy tenantId từ user profile trong localStorage" },
+    { "decision": "Sidebar active color: variant='gradient' color='indigo'", "reason": "Đồng bộ style toàn bộ hệ thống" },
+    { "decision": "Dashboard layout overflow-y-auto", "reason": "Cho phép scroll nội dung dài như trang Tổng Quan" }
   ]
 }

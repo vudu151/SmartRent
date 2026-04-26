@@ -11,6 +11,7 @@ import {
 } from "@material-tailwind/react";
 import { getPortalContractInfo, notifyPortalPayment, getPortalTickets, createPortalTicket, getPortalAssets } from "@/api/portal";
 import { WrenchScrewdriverIcon, ShieldExclamationIcon, ArchiveBoxIcon } from "@heroicons/react/24/solid";
+import { showToast } from "@/lib/swal";
 
 
 export default function PortalPage() {
@@ -65,13 +66,13 @@ export default function PortalPage() {
       await notifyPortalPayment(token);
       setNotified(true);
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      showToast(err.message || "Không thể gửi thông báo", "error");
     }
   };
 
   const handleTicketSubmit = async () => {
     if(!ticketForm.title) {
-        alert("Vui lòng nhập tóm tắt sự cố");
+        showToast("Vui lòng nhập tóm tắt sự cố", "warning");
         return;
     }
     try {
@@ -79,9 +80,9 @@ export default function PortalPage() {
       setOpenTicketModal(false);
       setTicketForm({ title: "", description: "", priority: "MEDIUM" });
       loadTickets(); // Refresh
-      alert("Đã gửi yêu cầu hỗ trợ thành công. Chủ trọ sẽ sớm liên hệ!");
+      showToast("Đã gửi yêu cầu hỗ trợ thành công. Chủ trọ sẽ sớm liên hệ!", "success");
     } catch(err) {
-      alert("Lỗi: " + err.message);
+      showToast(err.message || "Có lỗi xảy ra", "error");
     }
   }
 

@@ -41,7 +41,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * Find user by username or email with roles and permissions loaded
      */
     @EntityGraph(attributePaths = {"roles", "roles.permissions"})
-    @Query("SELECT u FROM User u WHERE u.username = :identifier OR u.email = :identifier")
+    @Query("SELECT u FROM User u WHERE u.username = :identifier OR u.email = :identifier OR u.phone = :identifier")
     Optional<User> findByUsernameOrEmail(@Param("identifier") String identifier);
 
     /**
@@ -62,4 +62,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT u FROM User u WHERE u.tenant.id = :tenantId")
     Page<User> findByTenantId(@Param("tenantId") Long tenantId, Pageable pageable);
+
+    /**
+     * Find users by building ID (paginated)
+     */
+    @Query("SELECT u FROM User u WHERE u.building.id = :buildingId")
+    Page<User> findByBuildingId(@Param("buildingId") Long buildingId, Pageable pageable);
 }

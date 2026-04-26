@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Filter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
  * Entity representing a Bill/Invoice
  */
 @Entity
+@Filter(name = "buildingFilter", condition = "room_id IN (SELECT r.id FROM rooms r WHERE r.building_id = :buildingId)")
 @Table(name = "bills", indexes = {
     @Index(name = "idx_bills_tenant_id", columnList = "tenant_id"),
     @Index(name = "idx_bills_room_id", columnList = "room_id"),

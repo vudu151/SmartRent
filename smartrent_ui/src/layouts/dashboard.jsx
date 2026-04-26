@@ -38,7 +38,7 @@ export function Dashboard() {
           </IconButton>
 
 
-          <div className="flex-1 overflow-hidden mt-2">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 mt-2 pr-1">
             <Routes>
               {routes.map(
                 ({ layout, pages }) =>

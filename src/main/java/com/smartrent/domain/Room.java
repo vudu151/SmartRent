@@ -9,6 +9,9 @@ import lombok.ToString;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.ParamDef;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,6 +22,8 @@ import java.util.Set;
  * Entity representing a Room/Apartment in the system (multi-tenant)
  */
 @Entity
+@FilterDef(name = "buildingFilter", parameters = @ParamDef(name = "buildingId", type = Long.class))
+@Filter(name = "buildingFilter", condition = "building_id = :buildingId")
 @Table(name = "rooms", indexes = {
     @Index(name = "idx_rooms_tenant_id", columnList = "tenant_id"),
     @Index(name = "idx_rooms_status", columnList = "status"),
@@ -42,6 +47,10 @@ public class Room {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "building_id")
+    private Building building;
 
     @Column(name = "room_number", nullable = false, length = 50)
     private String roomNumber;

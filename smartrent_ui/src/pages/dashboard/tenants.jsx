@@ -108,7 +108,7 @@ export function Tenants() {
           ) : (
             <table className="w-full min-w-[640px] table-auto text-left">
               <thead><tr>
-                {["ID", "Tên", "Email", "Số điện thoại", "Trạng thái", "Thao tác"].map((el) => (
+                {["STT", "Tên", "Email", "Số điện thoại", "Trạng thái", "Thao tác"].map((el) => (
                   <th key={el} className="border-b border-blue-gray-50 py-3 px-5"><Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{el}</Typography></th>
                 ))}
               </tr></thead>
@@ -116,9 +116,10 @@ export function Tenants() {
                 {tenants.map((tenant, key) => {
                   const isLast = key === tenants.length - 1;
                   const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
+                  const stt = (currentPage - 1) * pageSize + key + 1;
                   return (
                     <tr key={tenant.id}>
-                      <td className={className}><Typography variant="small" color="blue-gray" className="font-semibold">{tenant.id}</Typography></td>
+                      <td className={className}><Typography variant="small" color="blue-gray" className="font-semibold">{stt}</Typography></td>
                       <td className={className}><Typography variant="small" color="blue-gray" className="font-semibold">{tenant.name}</Typography></td>
                       <td className={className}><Typography className="text-xs font-normal text-blue-gray-500">{tenant.email}</Typography></td>
                       <td className={className}><Typography className="text-xs font-normal text-blue-gray-500">{tenant.phone || "-"}</Typography></td>

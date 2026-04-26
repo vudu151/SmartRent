@@ -14,8 +14,10 @@ import {
 } from "@material-tailwind/react";
 import { EyeIcon } from "@heroicons/react/24/solid";
 import { getNotifications } from "@/api/notification";
+import { useNavbarHeader } from "@/context/navbar-header";
 
 export function Notifications() {
+  const { setNavbarHeader } = useNavbarHeader();
   const [notifications, setNotifications] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [page, setPage] = React.useState(1);
@@ -24,6 +26,17 @@ export function Notifications() {
   
   const [selectedNotif, setSelectedNotif] = React.useState(null);
   const [detailOpen, setDetailOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    setNavbarHeader(
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full">
+        <div className="min-w-0">
+          <Typography variant="h6" color="blue-gray" className="font-bold truncate">Trung tâm Thông báo</Typography>
+          <Typography color="gray" className="font-normal text-xs">Quản lý và theo dõi các thông báo gửi đến cư dân</Typography>
+        </div>
+      </div>
+    );
+  }, [setNavbarHeader]);
 
   const loadNotifications = React.useCallback(async () => {
     try {
@@ -70,18 +83,8 @@ export function Notifications() {
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <Card className="h-full flex flex-col overflow-hidden">
-        <CardHeader floated={false} shadow={false} className="rounded-none shrink-0">
-          <div className="flex items-center justify-between gap-8 mb-1">
-            <div>
-              <Typography variant="h5" color="blue-gray">Trung tâm Thông báo</Typography>
-              <Typography color="gray" className="mt-1 font-normal">
-                Quản lý và theo dõi các thông báo gửi đến cư dân
-              </Typography>
-            </div>
-          </div>
-        </CardHeader>
+    <div className="h-full flex flex-col mt-4">
+      <Card className="h-full flex flex-col overflow-hidden border border-blue-gray-100 shadow-sm">
         <CardBody className="overflow-auto p-0 flex-1">
           {loading ? (
             <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>

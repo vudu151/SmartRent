@@ -4,7 +4,9 @@ import com.smartrent.domain.User;
 import com.smartrent.dto.ApiResponse;
 import com.smartrent.dto.auth.ChangePasswordRequest;
 import com.smartrent.domain.Tenant;
+import com.smartrent.domain.Building;
 import com.smartrent.dto.user.CreateUserRequest;
+import com.smartrent.repository.BuildingRepository;
 import com.smartrent.repository.TenantRepository;
 import com.smartrent.repository.UserRepository;
 import com.smartrent.repository.ResidentRepository;
@@ -52,6 +54,7 @@ public class UserController {
     private final TenantRepository tenantRepository;
     private final ResidentRepository residentRepository;
     private final ContractRepository contractRepository;
+    private final BuildingRepository buildingRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Value("${app.upload.dir:uploads}")
@@ -61,6 +64,7 @@ public class UserController {
     @Operation(summary = "Get users", description = "Get paginated list of users")
     public ResponseEntity<ApiResponse<Page<Map<String, Object>>>> getUsers(
             @RequestParam(required = false) Long tenantId,
+            @RequestParam(required = false) Long buildingId,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -68,7 +72,9 @@ public class UserController {
             @RequestParam(defaultValue = "DESC") Sort.Direction sortDir) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir, sortBy));
         Page<User> users;
-        if (tenantId != null) {
+        if (buildingId != null) {
+            users = userRepository.findByBuildingId(buildingId, pageable);
+        } else if (tenantId != null) {
             users = userRepository.findByTenantId(tenantId, pageable);
         } else {
             users = userRepository.findAll(pageable);
@@ -118,12 +124,22 @@ public class UserController {
             }
             newUser.setRole(User.UserRole.GUARD);
             newUser.setTenant(currentUser.getTenant());
+            if (request.getBuildingId() != null) {
+                Building building = buildingRepository.findById(request.getBuildingId())
+                    .orElseThrow(() -> new RuntimeException("Khu trọ không tồn tại"));
+                newUser.setBuilding(building);
+            }
         } else if (currentUser.getRole() == User.UserRole.SUPER_ADMIN) {
             newUser.setRole(request.getRole());
             if (request.getTenantId() != null) {
                 Tenant tenant = tenantRepository.findById(request.getTenantId())
                     .orElseThrow(() -> new RuntimeException("Tenant không tồn tại"));
                 newUser.setTenant(tenant);
+            }
+            if (request.getBuildingId() != null) {
+                Building building = buildingRepository.findById(request.getBuildingId())
+                    .orElseThrow(() -> new RuntimeException("Khu trọ không tồn tại"));
+                newUser.setBuilding(building);
             }
         }
 

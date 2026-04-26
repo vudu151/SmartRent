@@ -29,6 +29,7 @@ export function TenantModal({ open, onClose, tenantId, onSuccess }) {
     address: "",
     taxCode: "",
   });
+  const [errors, setErrors] = React.useState({});
 
   React.useEffect(() => {
     if (open) {
@@ -44,6 +45,7 @@ export function TenantModal({ open, onClose, tenantId, onSuccess }) {
           taxCode: "",
         });
         setError("");
+        setErrors({});
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -61,6 +63,7 @@ export function TenantModal({ open, onClose, tenantId, onSuccess }) {
         address: tenant.address || "",
         taxCode: tenant.taxCode || "",
       });
+      setErrors({});
     } catch (err) {
       console.error("Error loading tenant:", err);
       let errorMessage = "Không thể tải thông tin tenant. Vui lòng thử lại.";
@@ -73,8 +76,38 @@ export function TenantModal({ open, onClose, tenantId, onSuccess }) {
     }
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    let errorMsg = null;
+    if (name === "phone" && value && !/^0\d{9}$/.test(value)) {
+      errorMsg = "SĐT không hợp lệ (10 số, bắt đầu bằng 0)";
+    }
+    if (name === "email" && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      errorMsg = "Email không đúng định dạng";
+    }
+    if (name === "taxCode" && value && !/^\d{10,14}$/.test(value)) {
+      errorMsg = "Mã số thuế phải từ 10 đến 14 chữ số";
+    }
+    setErrors(prev => ({ ...prev, [name]: errorMsg }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.name.trim()) {
+      showToast("Vui lòng nhập tên chủ trọ!", "error");
+      return;
+    }
+    if (!formData.email.trim()) {
+      showToast("Vui lòng nhập email!", "error");
+      return;
+    }
+    if (errors.phone || errors.email || errors.taxCode) {
+      showToast("Vui lòng sửa các thông tin chưa hợp lệ", "error");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -146,34 +179,51 @@ export function TenantModal({ open, onClose, tenantId, onSuccess }) {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <Input
                 label="Tên tenant *"
+                name="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={handleInputChange}
                 required
                 disabled={loading}
               />
-              <Input
-                label="Email *"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-                disabled={loading}
-              />
-              <Input
-                label="Số điện thoại"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                disabled={loading}
-              />
-              <Input
-                label="Mã số thuế"
-                value={formData.taxCode}
-                onChange={(e) => setFormData({ ...formData, taxCode: e.target.value })}
-                disabled={loading}
-              />
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Email *"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  error={!!errors.email}
+                  required
+                  disabled={loading}
+                />
+                {errors.email && <Typography variant="small" color="red" className="mt-1 text-[11px] font-medium">{errors.email}</Typography>}
+              </div>
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Số điện thoại"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  error={!!errors.phone}
+                  disabled={loading}
+                />
+                {errors.phone && <Typography variant="small" color="red" className="mt-1 text-[11px] font-medium">{errors.phone}</Typography>}
+              </div>
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Mã số thuế"
+                  name="taxCode"
+                  value={formData.taxCode}
+                  onChange={handleInputChange}
+                  error={!!errors.taxCode}
+                  disabled={loading}
+                />
+                {errors.taxCode && <Typography variant="small" color="red" className="mt-1 text-[11px] font-medium">{errors.taxCode}</Typography>}
+              </div>
             </div>
             <Textarea
               label="Địa chỉ"
+              name="address"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               rows={3}

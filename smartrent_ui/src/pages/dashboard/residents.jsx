@@ -149,8 +149,15 @@ export function Residents() {
                               <PencilIcon className="h-4 w-4 text-blue-gray-500" />
                             </IconButton>
                             {!isGuard && (
-                              <IconButton size="sm" variant="text" color="red" title="Xóa" onClick={() => { setResidentToDelete(res); setDeleteDialogOpen(true); }}>
-                                <TrashIcon className="h-4 w-4 text-red-500" />
+                              <IconButton 
+                                size="sm" 
+                                variant="text" 
+                                color="red" 
+                                title={res.status === "ACTIVE" ? "Không thể xóa cư dân đang ở" : "Xóa"}
+                                disabled={res.status === "ACTIVE"}
+                                onClick={() => { setResidentToDelete(res); setDeleteDialogOpen(true); }}
+                              >
+                                <TrashIcon className={`h-4 w-4 ${res.status === "ACTIVE" ? "text-gray-400" : "text-red-500"}`} />
                               </IconButton>
                             )}
                           </div>

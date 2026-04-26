@@ -21,8 +21,7 @@ public class TicketController {
 
     private final TicketService ticketService;
 
-    // TODO: Extract tenantId from Principal in production security config
-    
+
     @GetMapping
     @Operation(summary = "Get paginated and filtered tickets")
     public ResponseEntity<ApiResponse<Page<TicketDTO.Response>>> getTickets(

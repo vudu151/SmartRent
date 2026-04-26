@@ -19,8 +19,8 @@ function resolveUrl(path: string) {
 
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json }
 
-// Debug mode - set to true to enable detailed logging
-const DEBUG_MODE = import.meta.env.DEV || import.meta.env.VITE_DEBUG === 'true'
+// Debug mode - set to true via env var to enable detailed logging
+const DEBUG_MODE = import.meta.env.VITE_DEBUG === 'true'
 
 export async function apiFetch<T = unknown>(
   path: string,
@@ -39,6 +39,12 @@ export async function apiFetch<T = unknown>(
   const basic = getBasicAuthHeader()
   if (basic && !headers.has('Authorization')) {
     headers.set('Authorization', basic)
+  }
+
+  // Add Building context header
+  const buildingId = localStorage.getItem('selectedBuildingId')
+  if (buildingId && !headers.has('X-Building-Id')) {
+    headers.set('X-Building-Id', buildingId)
   }
 
   let body: BodyInit | undefined

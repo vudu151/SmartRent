@@ -3,7 +3,7 @@ package com.smartrent.controller;
 import com.smartrent.dto.ApiResponse;
 import com.smartrent.dto.service.MeterReadingDTO;
 import com.smartrent.dto.service.RecordMeterRequest;
-import com.smartrent.dto.service.RoomFeeUnitDTO;
+import com.smartrent.dto.service.BuildingDTO;
 import com.smartrent.service.ServiceManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,18 +26,21 @@ public class ServiceController {
 
     // --- Fee Configurations ---
 
-    @GetMapping("/fees")
-    @Operation(summary = "Get room fee units configuration")
-    public ResponseEntity<ApiResponse<RoomFeeUnitDTO>> getRoomFeeUnit(@RequestParam Long tenantId) {
-        return ResponseEntity.ok(serviceManagementService.getRoomFeeUnit(tenantId));
+    @GetMapping("/buildings")
+    @Operation(summary = "Get building configurations")
+    public ResponseEntity<ApiResponse<BuildingDTO>> getBuildingConfig(
+            @RequestParam Long tenantId,
+            @RequestParam Long buildingId) {
+        return ResponseEntity.ok(serviceManagementService.getBuildingConfig(tenantId, buildingId));
     }
 
-    @PutMapping("/fees")
-    @Operation(summary = "Update room fee units configuration")
-    public ResponseEntity<ApiResponse<RoomFeeUnitDTO>> updateRoomFeeUnit(
+    @PutMapping("/buildings")
+    @Operation(summary = "Update building configuration")
+    public ResponseEntity<ApiResponse<BuildingDTO>> updateBuildingConfig(
             @RequestParam Long tenantId,
-            @Valid @RequestBody RoomFeeUnitDTO request) {
-        return ResponseEntity.ok(serviceManagementService.updateRoomFeeUnit(tenantId, request));
+            @RequestParam Long buildingId,
+            @Valid @RequestBody BuildingDTO request) {
+        return ResponseEntity.ok(serviceManagementService.updateBuildingConfig(tenantId, buildingId, request));
     }
 
     // --- Meter Readings ---

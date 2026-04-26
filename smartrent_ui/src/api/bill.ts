@@ -1,6 +1,7 @@
 import { apiFetch } from '../lib/http'
 import { getTenantId } from './auth'
 
+
 export interface BillResponse {
   id: number
   tenantId: number
@@ -66,8 +67,8 @@ export async function getBillById(id: number): Promise<BillResponse> {
 }
 
 export async function createBill(data: any): Promise<BillResponse> {
-  data.tenantId = getTenantId()
-  const response = await apiFetch<ApiResponse<BillResponse>>('/api/bills', {
+  const tenantId = getTenantId()
+  const response = await apiFetch<ApiResponse<BillResponse>>(`/api/bills?tenantId=${tenantId}`, {
     method: 'POST',
     body: data,
   })
@@ -86,7 +87,7 @@ export async function updateBill(id: number, data: any): Promise<BillResponse> {
 }
 
 export const deleteBill = async (id: number) => {
-  const tenantId = getTenantId();
+  const tenantId = getTenantId()
   const res = await apiFetch<ApiResponse<void>>(`/api/bills/${id}?tenantId=${tenantId}`, {
     method: 'DELETE',
   });
@@ -95,7 +96,7 @@ export const deleteBill = async (id: number) => {
 };
 
 export const generateMeterBills = async (readings: any[]) => {
-  const tenantId = getTenantId();
+  const tenantId = getTenantId()
   const res = await apiFetch<ApiResponse<any>>(`/api/bills/meter-readings?tenantId=${tenantId}`, {
     method: 'POST',
     body: { readings }

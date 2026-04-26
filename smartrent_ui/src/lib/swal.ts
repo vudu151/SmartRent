@@ -43,6 +43,7 @@ export function showToast(
       </div>
     `,
     customClass: {
+      container: '!z-[99999]',
       popup: '!bg-white dark:!bg-blue-gray-900 !rounded-xl !overflow-hidden !shadow-2xl !shadow-blue-gray-500/10 !border !border-blue-gray-50 dark:!border-blue-gray-800 !py-4 !px-5 !w-auto !min-w-[320px] !max-w-[450px] !mb-6 !mr-4',
       htmlContainer: '!m-0 !p-0 !overflow-hidden',
       timerProgressBar: type === 'success' ? '!bg-green-500' : type === 'error' ? '!bg-red-500' : '!bg-amber-500',

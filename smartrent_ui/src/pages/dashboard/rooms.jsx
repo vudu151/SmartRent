@@ -212,16 +212,24 @@ export function Rooms() {
               <table className="w-full min-w-max table-auto text-left">
                 <thead>
                   <tr>
-                    {["Số Phòng", "Tầng", "Loại", "Diện tích (m²)", "Giá (VNĐ)", "Trạng thái", "Thao tác"].map((head) => (
+                    {[
+                      { label: "Số Phòng", align: "text-left" },
+                      { label: "Tầng", align: "text-left" },
+                      { label: "Loại", align: "text-left" },
+                      { label: "Diện tích (m²)", align: "text-left" },
+                      { label: "Giá (VNĐ)", align: "text-left" },
+                      { label: "Trạng thái", align: "text-left" },
+                      { label: "Thao tác", align: "text-left" }
+                    ].map(({ label, align }) => (
                       <th
-                        key={head}
-                        className="border-b border-blue-gray-50 py-3 px-5"
+                        key={label}
+                        className={`border-b border-blue-gray-50 py-3 px-5 ${align}`}
                       >
                         <Typography
                           variant="small"
                           className="text-[11px] font-bold uppercase text-blue-gray-400"
                         >
-                          {head}
+                          {label}
                         </Typography>
                       </th>
                     ))}
@@ -240,7 +248,7 @@ export function Rooms() {
                           </Typography>
                         </td>
                         <td className={className}>
-                          <Typography variant="small" color="blue-gray" className="text-right">
+                          <Typography variant="small" color="blue-gray">
                             {room.floor || "-"}
                           </Typography>
                         </td>
@@ -250,12 +258,12 @@ export function Rooms() {
                           </Typography>
                         </td>
                         <td className={className}>
-                          <Typography variant="small" color="blue-gray" className="text-right">
+                          <Typography variant="small" color="blue-gray">
                             {room.area || "-"}
                           </Typography>
                         </td>
                         <td className={className}>
-                          <Typography variant="small" color="blue-gray" className="text-right font-semibold">
+                          <Typography variant="small" color="blue-gray" className="font-semibold">
                             {room.price != null ? Number(room.price).toLocaleString() : "-"}
                           </Typography>
                         </td>
@@ -276,8 +284,15 @@ export function Rooms() {
                             <IconButton size="sm" variant="text" color="indigo" title="Xem/Quản lý tài sản phòng" onClick={() => { setRoomForAsset(room); setAssetModalOpen(true); }}>
                               <ArchiveBoxIcon className="h-4 w-4 text-indigo-500" />
                             </IconButton>
-                            <IconButton size="sm" variant="text" color="red" title="Xóa phòng này" onClick={() => { setRoomToDelete(room); setDeleteDialogOpen(true); }}>
-                              <TrashIcon className="h-4 w-4 text-red-500" />
+                            <IconButton 
+                              size="sm" 
+                              variant="text" 
+                              color="red" 
+                              title={room.status !== "VACANT" ? "Chỉ có thể xóa phòng Trống" : "Xóa phòng này"}
+                              disabled={room.status !== "VACANT"}
+                              onClick={() => { setRoomToDelete(room); setDeleteDialogOpen(true); }}
+                            >
+                              <TrashIcon className={`h-4 w-4 ${room.status !== "VACANT" ? "text-gray-400" : "text-red-500"}`} />
                             </IconButton>
                             {room.status === "OCCUPIED" && (
                               <IconButton

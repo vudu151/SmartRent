@@ -1,5 +1,5 @@
 import { apiFetch } from '@/lib/http';
-import { getTenantId, type ApiResponse } from './auth';
+
 
 export interface Tenant {
   id: number;
@@ -69,15 +69,15 @@ export const deleteTenant = async (id: number) => {
 };
 
 export const getTenantProfile = async () => {
-  const tenantId = getTenantId();
-  const res = await apiFetch<ApiResponse<Tenant>>(`/api/tenant-profile?tenantId=${tenantId}`);
+  
+  const res = await apiFetch<ApiResponse<Tenant>>(`/api/tenant-profile`);
   if (!res.success) throw new Error(res.message || 'Lỗi khi lấy hồ sơ tenant');
   return res.data;
 };
 
 export const updateTenantProfile = async (data: Partial<Tenant>) => {
-  const tenantId = getTenantId();
-  const res = await apiFetch<ApiResponse<Tenant>>(`/api/tenant-profile?tenantId=${tenantId}`, {
+  
+  const res = await apiFetch<ApiResponse<Tenant>>(`/api/tenant-profile`, {
     method: 'PUT',
     body: data,
   });

@@ -28,12 +28,14 @@ public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificat
     List<Integer> findDistinctFloorsByTenantId(@Param("tenantId") Long tenantId);
 
     @Query("SELECT r FROM Room r WHERE r.tenant.id = :tenantId " +
+           "AND (:buildingId IS NULL OR r.building.id = :buildingId) " +
            "AND (:status IS NULL OR r.status = :status) " +
            "AND (:type IS NULL OR r.type = :type) " +
            "AND (:floor IS NULL OR r.floor = :floor) " +
            "AND (:search IS NULL OR LOWER(r.roomNumber) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Room> findByFilters(
         @Param("tenantId") Long tenantId,
+        @Param("buildingId") Long buildingId,
         @Param("status") Room.RoomStatus status,
         @Param("type") Room.RoomType type,
         @Param("floor") Integer floor,
@@ -42,4 +44,7 @@ public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificat
     );
 
     long countByTenantIdAndStatus(Long tenantId, Room.RoomStatus status);
+
+    @Query("SELECT r.id FROM Room r WHERE r.building.id = :buildingId")
+    List<Long> findRoomIdsByBuildingId(@Param("buildingId") Long buildingId);
 }

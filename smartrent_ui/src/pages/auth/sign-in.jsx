@@ -117,7 +117,7 @@ export function SignIn() {
 
     try {
       if (!username || !password) {
-        setError("Vui lòng nhập tên đăng nhập và mật khẩu");
+        setError("Vui lòng nhập số điện thoại hoặc email và mật khẩu");
         return;
       }
 
@@ -160,7 +160,7 @@ export function SignIn() {
       if (apiError) {
         const lowerError = apiError.toLowerCase();
         if (lowerError.includes("tài khoản không tồn tại") || lowerError.includes("không tồn tại")) {
-          errorMessage = "Tài khoản không tồn tại. Vui lòng kiểm tra lại tên đăng nhập hoặc email.";
+          errorMessage = "Tài khoản không tồn tại. Vui lòng kiểm tra lại số điện thoại hoặc email.";
         } else if (lowerError.includes("mật khẩu không đúng") || lowerError.includes("password")) {
           errorMessage = "Mật khẩu không đúng. Vui lòng thử lại.";
         } else if (lowerError.includes("tài khoản đã bị vô hiệu hóa") || lowerError.includes("disabled")) {
@@ -227,12 +227,12 @@ export function SignIn() {
 
           <div className="mb-1 flex flex-col gap-4">
             <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
-              Tên đăng nhập hoặc Email <span className="text-red-500">*</span>
+              Số điện thoại / Email <span className="text-red-500">*</span>
             </Typography>
             <Input
               inputRef={usernameInputRef}
               size="lg"
-              placeholder="admin"
+              placeholder="Nhập số điện thoại hoặc email"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               onKeyDown={(e) => {

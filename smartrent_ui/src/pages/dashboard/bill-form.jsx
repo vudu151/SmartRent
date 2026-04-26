@@ -13,6 +13,7 @@ import {
 import { getBillById, createBill, updateBill } from "@/api/bill";
 import { getRooms } from "@/api/room";
 import { showToast } from "@/lib/swal";
+import ReactSelect from "react-select";
 
 export function BillModal({ open, onClose, billId, onSuccess }) {
   const isEdit = Boolean(billId);
@@ -28,6 +29,7 @@ export function BillModal({ open, onClose, billId, onSuccess }) {
     dueDate: "",
     status: "UNPAID",
   });
+  const [errors, setErrors] = React.useState({});
 
   React.useEffect(() => {
     if (open) {
@@ -43,6 +45,7 @@ export function BillModal({ open, onClose, billId, onSuccess }) {
           dueDate: "",
           status: "UNPAID",
         });
+        setErrors({});
       }
     }
   }, [open, isEdit, billId]);
@@ -79,10 +82,21 @@ export function BillModal({ open, onClose, billId, onSuccess }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === "amount") {
+      if (Number(value) <= 0) {
+        setErrors(prev => ({ ...prev, amount: "Số tiền phải lớn hơn 0" }));
+      } else {
+        setErrors(prev => ({ ...prev, amount: null }));
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (errors.amount || Number(formData.amount) <= 0) {
+      showToast("Số tiền không hợp lệ", "error");
+      return;
+    }
     try {
       setLoading(true);
       const payload = {
@@ -107,6 +121,32 @@ export function BillModal({ open, onClose, billId, onSuccess }) {
     }
   };
 
+  const roomOptions = [
+    { value: "", label: "Chọn phòng", isDisabled: true },
+    ...availableRooms.map(r => ({ value: String(r.id), label: `Phòng ${r.roomNumber}` }))
+  ];
+
+  const selectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: '40px',
+      borderRadius: '7px',
+      borderColor: state.isFocused ? '#263238' : '#b0bec5',
+      boxShadow: 'none',
+      '&:hover': { borderColor: '#263238' },
+      fontSize: '14px',
+      backgroundColor: 'transparent'
+    }),
+    menu: (base) => ({
+      ...base,
+      zIndex: 9999
+    }),
+    menuList: (base) => ({
+      ...base,
+      maxHeight: '220px' // Hiển thị khoảng 6 items
+    })
+  };
+
   return (
     <Dialog open={open} handler={onClose} size="lg">
       <DialogHeader>
@@ -125,16 +165,16 @@ export function BillModal({ open, onClose, billId, onSuccess }) {
               
               <div className="flex flex-col gap-1">
                 <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Phòng thu tiền *</Typography>
-                <Select
-                  label="Chọn phòng"
-                  value={formData.roomId}
-                  onChange={(val) => setFormData(p => ({ ...p, roomId: val }))}
-                  disabled={loading}
-                >
-                  {availableRooms.map((room) => (
-                    <Option key={room.id} value={String(room.id)}>Phòng {room.roomNumber}</Option>
-                  ))}
-                </Select>
+                <ReactSelect
+                  options={roomOptions}
+                  styles={selectStyles}
+                  value={roomOptions.find(o => o.value === String(formData.roomId)) || null}
+                  onChange={(option) => setFormData(p => ({ ...p, roomId: option.value }))}
+                  isDisabled={loading}
+                  placeholder="Chọn phòng..."
+                  isSearchable={true}
+                  noOptionsMessage={() => "Không tìm thấy phòng"}
+                />
               </div>
 
               <div className="flex flex-col gap-1">
@@ -152,15 +192,19 @@ export function BillModal({ open, onClose, billId, onSuccess }) {
                 </Select>
               </div>
 
-              <Input
-                label="Số tiền (VNĐ) *"
-                type="number"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Số tiền (VNĐ) *"
+                  type="number"
+                  name="amount"
+                  value={formData.amount}
+                  onChange={handleChange}
+                  error={!!errors.amount}
+                  required
+                  disabled={loading}
+                />
+                {errors.amount && <Typography variant="small" color="red" className="mt-1 text-[11px] font-medium">{errors.amount}</Typography>}
+              </div>
               <Input
                 label="Hạn thanh toán *"
                 type="date"

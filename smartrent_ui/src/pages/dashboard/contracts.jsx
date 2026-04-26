@@ -127,13 +127,22 @@ export function Contracts() {
                         <td className={className}><Typography variant="small" color="blue-gray">{contract.residentName}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray">{new Date(contract.startDate).toLocaleDateString("vi-VN")}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray">{new Date(contract.endDate).toLocaleDateString("vi-VN")}</Typography></td>
-                        <td className={className}><Typography variant="small" color="blue-gray" className="text-right font-semibold">{contract.monthlyRent?.toLocaleString()} VNĐ</Typography></td>
+                        <td className={className}><Typography variant="small" color="blue-gray" className="text-left font-semibold">{contract.monthlyRent?.toLocaleString()} VNĐ</Typography></td>
                         <td className={className}><Chip variant="gradient" size="sm" value={getStatusLabel(contract.status)} color={getStatusColor(contract.status)} className="py-0.5 px-2 text-[11px] font-medium w-fit" /></td>
                         <td className={className}>
                           <div className="flex gap-2">
                             <IconButton size="sm" variant="text" color="indigo" onClick={() => handleCopyPortalLink(contract.portalToken)} title="Copy link Portal"><LinkIcon className="h-4 w-4 text-indigo-500" /></IconButton>
                             <IconButton size="sm" variant="text" color="blue-gray" onClick={() => handleEdit(contract.id)}><PencilIcon className="h-4 w-4 text-blue-gray-500" /></IconButton>
-                            <IconButton size="sm" variant="text" color="red" onClick={() => { setContractToDelete(contract); setDeleteDialogOpen(true); }}><TrashIcon className="h-4 w-4 text-red-500" /></IconButton>
+                            <IconButton 
+                              size="sm" 
+                              variant="text" 
+                              color="red" 
+                              title={contract.status === "ACTIVE" ? "Không thể xóa hợp đồng Đang hiệu lực" : "Xóa"}
+                              disabled={contract.status === "ACTIVE"}
+                              onClick={() => { setContractToDelete(contract); setDeleteDialogOpen(true); }}
+                            >
+                              <TrashIcon className={`h-4 w-4 ${contract.status === "ACTIVE" ? "text-gray-400" : "text-red-500"}`} />
+                            </IconButton>
                             {contract.status === "ACTIVE" && (
                               <IconButton size="sm" variant="text" color="green" title="Thanh lý" onClick={() => { setContractToLiquidate(contract); setLiquidationOpen(true); }}><CheckBadgeIcon className="h-4 w-4 text-green-500" /></IconButton>
                             )}

@@ -4,7 +4,7 @@ import com.smartrent.domain.*;
 import com.smartrent.dto.ApiResponse;
 import com.smartrent.dto.service.MeterReadingDTO;
 import com.smartrent.dto.service.RecordMeterRequest;
-import com.smartrent.dto.service.RoomFeeUnitDTO;
+import com.smartrent.dto.service.BuildingDTO;
 import com.smartrent.exception.ResourceNotFoundException;
 import com.smartrent.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import java.util.Optional;
 public class ServiceManagementService {
 
     private final MeterReadingRepository meterReadingRepository;
-    private final RoomFeeUnitRepository roomFeeUnitRepository;
+    private final BuildingRepository buildingRepository;
     private final BillRepository billRepository;
     private final RoomRepository roomRepository;
     private final TenantRepository tenantRepository;
@@ -33,33 +33,30 @@ public class ServiceManagementService {
     // --- Room Fee Unit Configurations ---
 
     @Transactional(readOnly = true)
-    public ApiResponse<RoomFeeUnitDTO> getRoomFeeUnit(Long tenantId) {
-        RoomFeeUnit feeUnit = roomFeeUnitRepository.findByTenantId(tenantId)
-                .orElseGet(() -> {
-                    // Create default if not exists
-                    Tenant tenant = tenantRepository.findById(tenantId)
-                            .orElseThrow(() -> new ResourceNotFoundException("Tenant không tồn tại"));
-                    RoomFeeUnit newFee = RoomFeeUnit.builder().tenant(tenant).build();
-                    return roomFeeUnitRepository.save(newFee);
-                });
-        return ApiResponse.success(toFeeUnitDTO(feeUnit), "Lấy cấu hình giá dịch vụ thành công");
+    public ApiResponse<BuildingDTO> getBuildingConfig(Long tenantId, Long buildingId) {
+        Building building = buildingRepository.findByIdAndTenantId(buildingId, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Khu trọ không tồn tại"));
+        return ApiResponse.success(toBuildingDTO(building), "Lấy cấu hình giá dịch vụ thành công");
     }
 
     @Transactional
-    public ApiResponse<RoomFeeUnitDTO> updateRoomFeeUnit(Long tenantId, RoomFeeUnitDTO request) {
-        RoomFeeUnit feeUnit = roomFeeUnitRepository.findByTenantId(tenantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Chưa có cấu hình giá cho chủ trọ này"));
+    public ApiResponse<BuildingDTO> updateBuildingConfig(Long tenantId, Long buildingId, BuildingDTO request) {
+        Building building = buildingRepository.findByIdAndTenantId(buildingId, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Khu trọ không tồn tại"));
 
-        if (request.getRentPerSqm() != null) feeUnit.setRentPerSqm(request.getRentPerSqm());
-        if (request.getServicePerSqm() != null) feeUnit.setServicePerSqm(request.getServicePerSqm());
-        if (request.getParkingFee() != null) feeUnit.setParkingFee(request.getParkingFee());
-        if (request.getWaterPerUnit() != null) feeUnit.setWaterPerUnit(request.getWaterPerUnit());
-        if (request.getElectricityPerUnit() != null) feeUnit.setElectricityPerUnit(request.getElectricityPerUnit());
-        if (request.getInternetFee() != null) feeUnit.setInternetFee(request.getInternetFee());
+        if (request.getName() != null) building.setName(request.getName());
+        if (request.getAddress() != null) building.setAddress(request.getAddress());
+        if (request.getServicePrice() != null) building.setServicePrice(request.getServicePrice());
+        if (request.getParkingPrice() != null) building.setParkingPrice(request.getParkingPrice());
+        if (request.getWaterPrice() != null) building.setWaterPrice(request.getWaterPrice());
+        if (request.getElectricityPrice() != null) building.setElectricityPrice(request.getElectricityPrice());
+        if (request.getInternetPrice() != null) building.setInternetPrice(request.getInternetPrice());
+        if (request.getMeterRecordingStartDay() != null) building.setMeterRecordingStartDay(request.getMeterRecordingStartDay());
+        if (request.getMeterRecordingEndDay() != null) building.setMeterRecordingEndDay(request.getMeterRecordingEndDay());
 
-        feeUnit = roomFeeUnitRepository.save(feeUnit);
-        log.info("Updated room fee units for tenant {}", tenantId);
-        return ApiResponse.success(toFeeUnitDTO(feeUnit), "Cập nhật giá dịch vụ thành công");
+        building = buildingRepository.save(building);
+        log.info("Updated building config for building {}", buildingId);
+        return ApiResponse.success(toBuildingDTO(building), "Cập nhật khu trọ thành công");
     }
 
     // --- Meter Readings ---
@@ -117,8 +114,10 @@ public class ServiceManagementService {
         Room room = roomRepository.findByIdAndTenantId(roomId, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Phòng không tồn tại"));
 
-        RoomFeeUnit feeUnit = roomFeeUnitRepository.findByTenantId(tenantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Chưa có cấu hình giá cơ sở"));
+        Building building = room.getBuilding();
+        if (building == null) {
+            throw new ResourceNotFoundException("Phòng chưa được gán vào khu trọ nào");
+        }
 
         // Retrieve readings for the month
         Optional<MeterReading> elecReading = meterReadingRepository.findByRoomAndTypeAndPeriod(roomId, MeterType.ELECTRICITY, month, year);
@@ -143,7 +142,7 @@ public class ServiceManagementService {
             MeterReading er = elecReading.get();
             BigDecimal usage = er.getNewIndex().subtract(er.getOldIndex());
             if (usage.compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal elecCost = usage.multiply(feeUnit.getElectricityPerUnit());
+                BigDecimal elecCost = usage.multiply(building.getElectricityPrice());
                 totalAmount = totalAmount.add(elecCost);
                 description.append(String.format("- Điện (Cũ: %.0f, Mới: %.0f, Dùng: %.0f): %,.0f đ\n", 
                     er.getOldIndex(), er.getNewIndex(), usage, elecCost));
@@ -155,7 +154,7 @@ public class ServiceManagementService {
             MeterReading wr = waterReading.get();
             BigDecimal usage = wr.getNewIndex().subtract(wr.getOldIndex());
             if (usage.compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal waterCost = usage.multiply(feeUnit.getWaterPerUnit());
+                BigDecimal waterCost = usage.multiply(building.getWaterPrice());
                 totalAmount = totalAmount.add(waterCost);
                 description.append(String.format("- Nước (Cũ: %.0f, Mới: %.0f, Dùng: %.0f): %,.0f đ\n", 
                     wr.getOldIndex(), wr.getNewIndex(), usage, waterCost));
@@ -163,13 +162,13 @@ public class ServiceManagementService {
         }
 
         // 4. Other Fixed Fees (Internet, Service, Parking)
-        if (feeUnit.getInternetFee() != null && feeUnit.getInternetFee().compareTo(BigDecimal.ZERO) > 0) {
-            totalAmount = totalAmount.add(feeUnit.getInternetFee());
-            description.append(String.format("- Internet: %,.0f đ\n", feeUnit.getInternetFee()));
+        if (building.getInternetPrice() != null && building.getInternetPrice().compareTo(BigDecimal.ZERO) > 0) {
+            totalAmount = totalAmount.add(building.getInternetPrice());
+            description.append(String.format("- Internet: %,.0f đ\n", building.getInternetPrice()));
         }
-        if (feeUnit.getParkingFee() != null && feeUnit.getParkingFee().compareTo(BigDecimal.ZERO) > 0) {
-            totalAmount = totalAmount.add(feeUnit.getParkingFee());
-            description.append(String.format("- Gửi xe định mức: %,.0f đ\n", feeUnit.getParkingFee()));
+        if (building.getParkingPrice() != null && building.getParkingPrice().compareTo(BigDecimal.ZERO) > 0) {
+            totalAmount = totalAmount.add(building.getParkingPrice());
+            description.append(String.format("- Gửi xe định mức: %,.0f đ\n", building.getParkingPrice()));
         }
 
         // Check if an UNPAID bill for this month already exists to combine or override
@@ -191,16 +190,19 @@ public class ServiceManagementService {
         return ApiResponse.success(null, "Chốt hóa đơn gộp thành công");
     }
 
-    private RoomFeeUnitDTO toFeeUnitDTO(RoomFeeUnit fee) {
-        return RoomFeeUnitDTO.builder()
-                .id(fee.getId())
-                .tenantId(fee.getTenant().getId())
-                .rentPerSqm(fee.getRentPerSqm())
-                .servicePerSqm(fee.getServicePerSqm())
-                .parkingFee(fee.getParkingFee())
-                .waterPerUnit(fee.getWaterPerUnit())
-                .electricityPerUnit(fee.getElectricityPerUnit())
-                .internetFee(fee.getInternetFee())
+    private BuildingDTO toBuildingDTO(Building b) {
+        return BuildingDTO.builder()
+                .id(b.getId())
+                .tenantId(b.getTenant().getId())
+                .name(b.getName())
+                .address(b.getAddress())
+                .servicePrice(b.getServicePrice())
+                .parkingPrice(b.getParkingPrice())
+                .waterPrice(b.getWaterPrice())
+                .electricityPrice(b.getElectricityPrice())
+                .internetPrice(b.getInternetPrice())
+                .meterRecordingStartDay(b.getMeterRecordingStartDay())
+                .meterRecordingEndDay(b.getMeterRecordingEndDay())
                 .build();
     }
 

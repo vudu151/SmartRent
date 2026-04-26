@@ -15,14 +15,14 @@ export interface LiquidationSummary {
 
 export const getLiquidationSummary = async (contractId: number, stayDays: number = 0) => {
   const tenantId = getTenantId();
-  const response = await apiFetch(`/api/contracts/${contractId}/liquidation?tenantId=${tenantId}&stayDays=${stayDays}`);
+  const response = await apiFetch<ApiResponse<any>>(`/api/contracts/${contractId}/liquidation?tenantId=${tenantId}&stayDays=${stayDays}`);
   if (!response.success) throw new Error(response.message);
   return response.data as LiquidationSummary;
 };
 
 export const executeLiquidation = async (contractId: number, data: { stayDays: number; otherDeductions: number; notes: string }) => {
   const tenantId = getTenantId();
-  const response = await apiFetch(`/api/contracts/${contractId}/liquidate?tenantId=${tenantId}`, {
+  const response = await apiFetch<ApiResponse<any>>(`/api/contracts/${contractId}/liquidate?tenantId=${tenantId}`, {
     method: "POST",
     body: data,
   });

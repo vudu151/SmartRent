@@ -14,6 +14,7 @@ import { getContractById, createContract, updateContract } from "@/api/contract"
 import { getRooms } from "@/api/room";
 import { getResidents } from "@/api/resident";
 import { showToast } from "@/lib/swal";
+import ReactSelect from "react-select";
 
 export function ContractModal({ open, onClose, contractId, onSuccess }) {
   const isEdit = Boolean(contractId);
@@ -33,6 +34,7 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
     status: "ACTIVE",
     notes: ""
   });
+  const [errors, setErrors] = React.useState({});
 
   // Load complementary data (Rooms & Residents)
   React.useEffect(() => {
@@ -74,6 +76,7 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
           status: "ACTIVE",
           notes: ""
         });
+        setErrors({});
       }
     }
   }, [open, isEdit, contractId]);
@@ -104,6 +107,29 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
+    if (name === "depositAmount" || name === "monthlyRent") {
+      if (Number(value) < 0) {
+        setErrors(prev => ({ ...prev, [name]: "Không được nhập số âm" }));
+      } else {
+        setErrors(prev => ({ ...prev, [name]: null }));
+      }
+    }
+
+    if (name === "startDate" || name === "endDate") {
+      const start = name === "startDate" ? value : formData.startDate;
+      const end = name === "endDate" ? value : formData.endDate;
+      if (start && end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        startDate.setMonth(startDate.getMonth() + 1);
+        if (endDate < startDate) {
+          setErrors(prev => ({ ...prev, date: "Ngày kết thúc phải sau ngày bắt đầu ít nhất 1 tháng" }));
+        } else {
+          setErrors(prev => ({ ...prev, date: null }));
+        }
+      }
+    }
+    
     // Auto-fill price if room changes
     if (name === "roomId" && !isEdit) {
       const selectedRoom = rooms.find(r => r.id.toString() === value);
@@ -119,6 +145,14 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (errors.depositAmount || errors.monthlyRent || errors.date) {
+      showToast("Vui lòng sửa các thông tin chưa hợp lệ", "error");
+      return;
+    }
+    if (Number(formData.depositAmount) < 0 || Number(formData.monthlyRent) < 0) {
+      showToast("Số tiền không hợp lệ", "error");
+      return;
+    }
     try {
       setLoading(true);
       const payload = {
@@ -145,6 +179,37 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
     }
   };
 
+  const roomOptions = [
+    { value: "", label: "Chọn phòng trống", isDisabled: true },
+    ...rooms.map(r => ({ value: String(r.id), label: `Phòng ${r.roomNumber} - ${r.price?.toLocaleString()}đ` }))
+  ];
+
+  const residentOptions = [
+    { value: "", label: "Người đại diện", isDisabled: true },
+    ...residents.map(r => ({ value: String(r.id), label: `${r.fullName} - ${r.phone}` }))
+  ];
+
+  const selectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: '40px',
+      borderRadius: '7px',
+      borderColor: state.isFocused ? '#263238' : '#b0bec5',
+      boxShadow: 'none',
+      '&:hover': { borderColor: '#263238' },
+      fontSize: '14px',
+      backgroundColor: 'transparent'
+    }),
+    menu: (base) => ({
+      ...base,
+      zIndex: 9999
+    }),
+    menuList: (base) => ({
+      ...base,
+      maxHeight: '220px' // Hiển thị khoảng 6 items
+    })
+  };
+
   return (
     <Dialog open={open} handler={onClose} size="lg">
       <DialogHeader>
@@ -162,73 +227,84 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col gap-1">
                 <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Chọn Phòng *</Typography>
-                <Select
-                  value={formData.roomId}
-                  onChange={(val) => handleChange({ target: { name: "roomId", value: val } })}
-                  disabled={loading || isEdit}
-                  label="Chọn phòng trống"
-                >
-                  {rooms.map(r => (
-                    <Option key={r.id} value={r.id.toString()}>
-                      Phòng {r.roomNumber} - {r.price?.toLocaleString()}đ
-                    </Option>
-                  ))}
-                </Select>
+                <ReactSelect
+                  options={roomOptions}
+                  styles={selectStyles}
+                  value={roomOptions.find(o => o.value === String(formData.roomId)) || null}
+                  onChange={(option) => handleChange({ target: { name: "roomId", value: option.value } })}
+                  isDisabled={loading || isEdit}
+                  placeholder="Chọn phòng trống..."
+                  isSearchable={true}
+                  noOptionsMessage={() => "Không tìm thấy phòng"}
+                />
               </div>
 
               <div className="flex flex-col gap-1">
                 <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Chọn Cư dân *</Typography>
-                <Select
-                  value={formData.residentId}
-                  onChange={(val) => handleChange({ target: { name: "residentId", value: val } })}
-                  disabled={loading || isEdit}
-                  label="Người đại diện"
-                >
-                  {residents.map(r => (
-                    <Option key={r.id} value={r.id.toString()}>
-                      {r.fullName} - {r.phone}
-                    </Option>
-                  ))}
-                </Select>
+                <ReactSelect
+                  options={residentOptions}
+                  styles={selectStyles}
+                  value={residentOptions.find(o => o.value === String(formData.residentId)) || null}
+                  onChange={(option) => handleChange({ target: { name: "residentId", value: option.value } })}
+                  isDisabled={loading || isEdit}
+                  placeholder="Người đại diện..."
+                  isSearchable={true}
+                  noOptionsMessage={() => "Không tìm thấy cư dân"}
+                />
               </div>
 
-              <Input
-                label="Ngày bắt đầu *"
-                type="date"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
-              <Input
-                label="Ngày kết thúc *"
-                type="date"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Ngày bắt đầu *"
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  error={!!errors.date}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Ngày kết thúc *"
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  error={!!errors.date}
+                  required
+                  disabled={loading}
+                />
+                {errors.date && <Typography variant="small" color="red" className="mt-1 text-[11px] font-medium">{errors.date}</Typography>}
+              </div>
 
-              <Input
-                label="Giá thuê hàng tháng (VNĐ) *"
-                type="number"
-                name="monthlyRent"
-                value={formData.monthlyRent}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
-              <Input
-                label="Tiền cọc (VNĐ) *"
-                type="number"
-                name="depositAmount"
-                value={formData.depositAmount}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Giá thuê hàng tháng (VNĐ) *"
+                  type="number"
+                  name="monthlyRent"
+                  value={formData.monthlyRent}
+                  onChange={handleChange}
+                  error={!!errors.monthlyRent}
+                  required
+                  disabled={loading}
+                />
+                {errors.monthlyRent && <Typography variant="small" color="red" className="mt-1 text-[11px] font-medium">{errors.monthlyRent}</Typography>}
+              </div>
+              <div className="flex flex-col gap-1">
+                <Input
+                  label="Tiền cọc (VNĐ) *"
+                  type="number"
+                  name="depositAmount"
+                  value={formData.depositAmount}
+                  onChange={handleChange}
+                  error={!!errors.depositAmount}
+                  required
+                  disabled={loading}
+                />
+                {errors.depositAmount && <Typography variant="small" color="red" className="mt-1 text-[11px] font-medium">{errors.depositAmount}</Typography>}
+              </div>
 
               {isEdit && (
                 <div className="flex flex-col gap-1">

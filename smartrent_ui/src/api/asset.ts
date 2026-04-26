@@ -25,14 +25,14 @@ export interface RoomAssetRequest {
 
 export const getAssetsByRoom = async (roomId: number) => {
   const tenantId = getTenantId();
-  const response = await apiFetch(`/api/assets?roomId=${roomId}&tenantId=${tenantId}`);
+  const response = await apiFetch<ApiResponse<any>>(`/api/assets?roomId=${roomId}&tenantId=${tenantId}`);
   if (!response.success) throw new Error(response.message);
   return response.data;
 };
 
 export const createAsset = async (asset: RoomAssetRequest) => {
   const tenantId = getTenantId();
-  const response = await apiFetch(`/api/assets?tenantId=${tenantId}`, {
+  const response = await apiFetch<ApiResponse<any>>(`/api/assets?tenantId=${tenantId}`, {
     method: "POST",
     body: asset,
   });
@@ -42,7 +42,7 @@ export const createAsset = async (asset: RoomAssetRequest) => {
 
 export const updateAsset = async (id: number, asset: RoomAssetRequest) => {
   const tenantId = getTenantId();
-  const response = await apiFetch(`/api/assets/${id}?tenantId=${tenantId}`, {
+  const response = await apiFetch<ApiResponse<any>>(`/api/assets/${id}?tenantId=${tenantId}`, {
     method: "PUT",
     body: asset,
   });
@@ -52,7 +52,7 @@ export const updateAsset = async (id: number, asset: RoomAssetRequest) => {
 
 export const deleteAsset = async (id: number) => {
   const tenantId = getTenantId();
-  const response = await apiFetch(`/api/assets/${id}?tenantId=${tenantId}`, {
+  const response = await apiFetch<ApiResponse<any>>(`/api/assets/${id}?tenantId=${tenantId}`, {
     method: "DELETE",
   });
   if (!response.success) throw new Error(response.message);

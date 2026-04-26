@@ -17,7 +17,7 @@ export function DashboardNavbar() {
 
   return (
     <div
-      className={`shrink-0 h-[72px] flex items-center px-4 rounded-xl transition-all ${
+      className={`shrink-0 min-h-[72px] py-2 flex items-center px-4 rounded-xl transition-all ${
         fixedNavbar
           ? "sticky top-2 z-40 shadow-md shadow-blue-gray-500/5"
           : ""

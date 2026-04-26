@@ -64,8 +64,20 @@ public class ContractServiceImpl implements ContractService {
         Resident resident = residentRepository.findByIdAndTenantId(request.getResidentId(), tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cư dân không tồn tại"));
 
+        // Validation nghiệp vụ
+        if (request.getEndDate() != null && request.getStartDate() != null && 
+            request.getEndDate().isBefore(request.getStartDate().plusMonths(1))) {
+            throw new BusinessException("Ngày kết thúc phải sau ngày bắt đầu tối thiểu 1 tháng");
+        }
+        if (request.getDepositAmount() != null && request.getDepositAmount().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Tiền cọc không được là số âm");
+        }
+        if (request.getMonthlyRent() != null && request.getMonthlyRent().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Giá thuê không được là số âm");
+        }
+
         // Generate contract number
-        String contractNumber = generateContractNumber(room.getRoomNumber());
+        String contractNumber = generateContractNumber(room.getRoomNumber(), resident.getIdCard());
 
         Contract contract = Contract.builder()
                 .tenant(tenant)
@@ -99,6 +111,18 @@ public class ContractServiceImpl implements ContractService {
         Contract contract = contractRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hợp đồng không tồn tại"));
 
+        // Validation nghiệp vụ
+        if (request.getEndDate() != null && request.getStartDate() != null && 
+            request.getEndDate().isBefore(request.getStartDate().plusMonths(1))) {
+            throw new BusinessException("Ngày kết thúc phải sau ngày bắt đầu tối thiểu 1 tháng");
+        }
+        if (request.getDepositAmount() != null && request.getDepositAmount().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Tiền cọc không được là số âm");
+        }
+        if (request.getMonthlyRent() != null && request.getMonthlyRent().compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("Giá thuê không được là số âm");
+        }
+
         // Only allow updating basic fields in this phase
         contract.setStartDate(request.getStartDate());
         contract.setEndDate(request.getEndDate());
@@ -127,7 +151,17 @@ public class ContractServiceImpl implements ContractService {
         Contract contract = contractRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hợp đồng không tồn tại"));
         
-        contractRepository.delete(contract);
+        if (contract.getStatus() == ContractStatus.ACTIVE) {
+            throw new BusinessException("Không thể xóa hợp đồng đang HIỆU LỰC. Vui lòng sử dụng chức năng THANH LÝ.");
+        }
+        
+        try {
+            contractRepository.delete(contract);
+            contractRepository.flush();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new BusinessException("Không thể xóa hợp đồng này vì đã có hóa đơn hoặc lịch sử giao dịch liên kết.");
+        }
+        
         log.info("Deleted contract {}", id);
         return ApiResponse.success(null, "Xóa hợp đồng thành công");
     }
@@ -212,10 +246,9 @@ public class ContractServiceImpl implements ContractService {
         return ApiResponse.success(null, "Thanh lý hợp đồng và trả phòng thành công");
     }
 
-    private String generateContractNumber(String roomNumber) {
-        String datePart = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomPart = String.format("%04d", new Random().nextInt(10000));
-        return "HD-" + roomNumber + "-" + datePart + "-" + randomPart;
+    private String generateContractNumber(String roomNumber, String idCard) {
+        String idCardStr = (idCard != null && !idCard.trim().isEmpty()) ? idCard.trim() : "NOCCCD";
+        return "HĐ-" + roomNumber + "-" + idCardStr;
     }
 
     private ContractResponseDTO toResponseDTO(Contract contract) {
