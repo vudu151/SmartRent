@@ -1,4 +1,5 @@
 import { apiFetch } from '@/lib/http';
+import { getTenantId } from '@/api/auth';
 import type { ApiResponse } from './auth';
 
 
@@ -13,6 +14,8 @@ export interface Tenant {
   bankName?: string;
   bankAccount?: string;
   bankOwner?: string;
+  bankQrUrl?: string;
+  autoBillingDay?: number;
 }
 
 export interface TenantPageResponse {
@@ -70,18 +73,38 @@ export const deleteTenant = async (id: number) => {
 };
 
 export const getTenantProfile = async () => {
-  
-  const res = await apiFetch<ApiResponse<Tenant>>(`/api/tenant-profile`);
+  const tenantId = getTenantId();
+  const res = await apiFetch<ApiResponse<Tenant>>(`/api/tenant-profile?tenantId=${tenantId}`);
   if (!res.success) throw new Error(res.message || 'Lỗi khi lấy hồ sơ tenant');
   return res.data;
 };
 
 export const updateTenantProfile = async (data: Partial<Tenant>) => {
-  
-  const res = await apiFetch<ApiResponse<Tenant>>(`/api/tenant-profile`, {
+  const tenantId = getTenantId();
+  const res = await apiFetch<ApiResponse<Tenant>>(`/api/tenant-profile?tenantId=${tenantId}`, {
     method: 'PUT',
     body: data,
   });
   if (!res.success) throw new Error(res.message || 'Lỗi khi cập nhật hồ sơ tenant');
+  return res.data;
+};
+
+export const updateAutoBillingDay = async (day: number) => {
+  const tenantId = getTenantId();
+  const res = await apiFetch<ApiResponse<void>>(`/api/tenants/${tenantId}/auto-billing-day?day=${day}`, {
+    method: 'PATCH',
+  });
+  if (!res.success) throw new Error(res.message || 'Lỗi khi cập nhật ngày chốt hóa đơn');
+  return res.data;
+};
+
+export const uploadBankQr = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await apiFetch<ApiResponse<{ qrUrl: string }>>(`/api/tenant-profile/qr-upload`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.success) throw new Error(res.message || 'Upload QR thất bại');
   return res.data;
 };

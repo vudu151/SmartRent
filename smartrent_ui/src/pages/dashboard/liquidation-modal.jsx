@@ -214,7 +214,7 @@ export function LiquidationModal({ open, onClose, contract, onSuccess }) {
       
       <DialogFooter className="gap-2">
         <Button variant="text" color="red" onClick={onClose} disabled={executing}>Đóng</Button>
-        <Button color="black" className="flex items-center gap-2 shadow-none" onClick={handleLiquidate} loading={executing}>
+        <Button variant="gradient" color="indigo" className="flex items-center gap-2 shadow-none" onClick={handleLiquidate} loading={executing}>
             <CheckBadgeIcon className="w-5 h-5" /> Hoàn Tất Quyết Toán
         </Button>
       </DialogFooter>

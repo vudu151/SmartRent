@@ -95,7 +95,9 @@
       "Material Tailwind MenuList có default min-width → cần override bằng inline style (minWidth, maxWidth, width)",
       "Dashboard layout dùng overflow-hidden → content dài bị cắt, đã fix sang overflow-y-auto",
       "Flyway migration: phải restart BE để chạy migration mới",
-      "Lỗi precedence Hibernate @Filter: Cẩn thận khi viết condition 'A OR B', nếu Hibernate tự động chèn thêm 'AND id=?' thì nó sẽ thành 'A OR B AND id=?' -> gây lỗi logic trả về sai dữ liệu. Bắt buộc bọc ngoặc tròn: '(A OR B)'"
+      "Lỗi precedence Hibernate @Filter: Cẩn thận khi viết condition 'A OR B', nếu Hibernate tự động chèn thêm 'AND id=?' thì nó sẽ thành 'A OR B AND id=?' -> gây lỗi logic trả về sai dữ liệu. Bắt buộc bọc ngoặc tròn: '(A OR B)'",
+      "Lỗi MissingServletRequestParameterException (500): Các API Profile trên backend yêu cầu bắt buộc tenantId, FE nếu quên truyền `tenantId=getTenantId()` trong param sẽ dính lỗi này.",
+      "Lỗi React Prop Type: Component Button của @material-tailwind/react không hỗ trợ color='black'. Gây warning console. Cần dùng màu khác như 'blue-gray' hoặc 'indigo'."
     ],
     "conventions": [
       "Button chính: variant='gradient' color='indigo' (đồng bộ với sidebar active)",

@@ -141,7 +141,7 @@ export function AssetModal({ open, onClose, room }) {
             />
           </div>
           <div className="md:col-span-2">
-            <Button color="black" className="w-full flex items-center justify-center gap-2 shadow-none" onClick={handleAddAsset}>
+            <Button variant="gradient" color="indigo" className="w-full flex items-center justify-center gap-2 shadow-none" onClick={handleAddAsset}>
               <PlusIcon strokeWidth={3} className="w-4 h-4" /> Thêm
             </Button>
           </div>

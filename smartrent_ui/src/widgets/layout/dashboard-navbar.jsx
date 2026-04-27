@@ -9,7 +9,6 @@ import {
   setOpenSidenav,
 } from "@/context";
 import { useNavbarHeaderContent } from "@/context/navbar-header";
-
 export function DashboardNavbar() {
   const [controller, dispatch] = useMaterialTailwindController();
   const { fixedNavbar, openSidenav, darkMode } = controller;

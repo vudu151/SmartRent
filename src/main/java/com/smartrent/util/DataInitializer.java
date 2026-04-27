@@ -55,6 +55,11 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        if (tenantRepository.count() > 0) {
+            System.out.println("✅ Database already contains data. Skipping Bulk Data Seeding.");
+            return;
+        }
+
         System.out.println("🚀 Starting Bulk Data Seeding Process...");
 
         // Xóa dữ liệu các bảng (Bao gồm users)

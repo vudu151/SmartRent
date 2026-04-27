@@ -147,7 +147,7 @@ export function Home() {
   return (
     <div className="mt-4 pb-8">
 
-      <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-3 grid gap-y-5 gap-x-3 md:grid-cols-2 xl:grid-cols-4">
         <StatisticsCard
           title="Tỷ lệ Lấp đầy"
           icon={<BuildingOfficeIcon className="w-6 h-6 text-white" />}
@@ -178,7 +178,7 @@ export function Home() {
         />
       </div>
 
-      <div className="mb-6 grid grid-cols-1 gap-y-12 gap-x-6 md:grid-cols-2">
+      <div className="mb-3 grid grid-cols-1 gap-y-6 gap-x-3 md:grid-cols-2">
         <StatisticsChart
           color="blue"
           chart={revenueChartConfig}
@@ -193,7 +193,7 @@ export function Home() {
         />
       </div>
 
-      <div className="mb-4 grid grid-cols-1 gap-6">
+      <div className="mb-2 grid grid-cols-1 gap-3">
         <Card className="overflow-hidden border border-blue-gray-100 shadow-sm">
           <CardHeader floated={false} shadow={false} color="transparent" className="m-0 p-6 flex justify-between items-center">
             <div>

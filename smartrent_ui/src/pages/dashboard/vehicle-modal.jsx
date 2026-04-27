@@ -10,6 +10,7 @@ import {
   Textarea,
   Select,
   Option,
+  IconButton,
 } from "@material-tailwind/react";
 import { getVehicleById, createVehicle, updateVehicle } from "@/api/vehicle";
 import { getResidents } from "@/api/resident";
@@ -201,10 +202,15 @@ export function VehicleModal({ open, onClose, vehicleId, onSuccess }) {
 
   return (
     <Dialog open={open} handler={onClose} size="sm" className="bg-white m-4 max-h-[90vh] flex flex-col rounded-xl shadow-2xl">
-      <DialogHeader className="border-b border-blue-gray-50 px-6 py-4">
+      <DialogHeader className="border-b border-blue-gray-50 px-6 py-4 flex justify-between items-center">
         <Typography variant="h5" color="blue-gray">
           {isEdit ? "Cập nhật Xe" : "Thêm Xe Mới"}
         </Typography>
+        <IconButton variant="text" color="blue-gray" onClick={onClose} className="rounded-full flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </IconButton>
       </DialogHeader>
 
       <DialogBody divider className="p-6 overflow-y-auto border-none">
@@ -248,8 +254,19 @@ export function VehicleModal({ open, onClose, vehicleId, onSuccess }) {
                 isDisabled={isGuard}
                 noOptionsMessage={() => "Không tìm thấy cư dân"}
                 styles={{
-                  control: (base, state) => ({ ...base, minHeight: '44px', borderRadius: '0.5rem', borderColor: state.isFocused ? '#212121' : '#b0bec5', boxShadow: 'none', '&:hover': { borderColor: state.isFocused ? '#212121' : '#b0bec5' } }),
-                  menu: (base) => ({ ...base, zIndex: 9999 })
+                  control: (base, state) => ({ ...base, minHeight: '44px', borderRadius: '7px', borderColor: state.isFocused ? '#263238' : '#b0bec5', boxShadow: 'none', '&:hover': { borderColor: state.isFocused ? '#263238' : '#b0bec5' }, fontSize: '14px', backgroundColor: 'transparent' }),
+                  menu: (base) => ({ ...base, zIndex: 9999, borderRadius: '7px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', padding: '4px' }),
+                  menuList: (base) => ({ ...base, padding: 0 }),
+                  option: (base, state) => ({
+                    ...base,
+                    backgroundColor: state.isSelected ? '#eceff1' : state.isFocused ? '#f1f5f9' : 'transparent',
+                    color: state.isSelected ? '#263238' : '#455a64',
+                    fontWeight: state.isSelected ? 500 : 400,
+                    cursor: 'pointer', padding: '8px 12px', borderRadius: '5px', margin: '2px 0',
+                    '&:active': { backgroundColor: '#eceff1' }
+                  }),
+                  placeholder: (base) => ({ ...base, color: '#607d8b' }),
+                  singleValue: (base) => ({ ...base, color: '#455a64' })
                 }}
               />
             </div>

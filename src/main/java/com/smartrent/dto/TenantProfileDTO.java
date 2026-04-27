@@ -16,4 +16,5 @@ public class TenantProfileDTO {
     private String bankName;
     private String bankAccount;
     private String bankOwner;
+    private String bankQrUrl;
 }

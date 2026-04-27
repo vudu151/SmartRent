@@ -32,6 +32,7 @@ public class TenantProfileController {
                 .bankName(tenant.getBankName())
                 .bankAccount(tenant.getBankAccount())
                 .bankOwner(tenant.getBankOwner())
+                .bankQrUrl(tenant.getBankQrUrl())
                 .build();
         
         return ResponseEntity.ok(ApiResponse.success(dto, "Lấy hồ sơ thành công"));
@@ -49,6 +50,7 @@ public class TenantProfileController {
         if (request.getBankName() != null) tenant.setBankName(request.getBankName());
         if (request.getBankAccount() != null) tenant.setBankAccount(request.getBankAccount());
         if (request.getBankOwner() != null) tenant.setBankOwner(request.getBankOwner());
+        if (request.getBankQrUrl() != null) tenant.setBankQrUrl(request.getBankQrUrl());
         if (request.getPhone() != null) tenant.setPhone(request.getPhone());
         if (request.getName() != null) tenant.setName(request.getName());
         if (request.getAddress() != null) tenant.setAddress(request.getAddress());
@@ -56,5 +58,25 @@ public class TenantProfileController {
         tenantRepository.save(tenant);
         
         return ResponseEntity.ok(ApiResponse.success(null, "Cập nhật hồ sơ thành công"));
+    }
+
+    @PostMapping("/qr-upload")
+    @Operation(summary = "Upload Bank QR Code")
+    public ResponseEntity<ApiResponse<java.util.Map<String, String>>> uploadBankQr(
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @org.springframework.beans.factory.annotation.Value("${app.upload.dir:uploads}") String uploadDir) {
+        try {
+            if (file.isEmpty()) return ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION", "File trống"));
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir, "qr");
+            java.nio.file.Files.createDirectories(uploadPath);
+            String ext = file.getOriginalFilename().contains(".") ? file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".")) : ".jpg";
+            String newFilename = "qr_" + java.util.UUID.randomUUID().toString() + ext;
+            java.nio.file.Path filePath = uploadPath.resolve(newFilename);
+            java.nio.file.Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            String qrUrl = "/uploads/qr/" + newFilename;
+            return ResponseEntity.ok(ApiResponse.success(java.util.Map.of("qrUrl", qrUrl), "Upload QR thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(ApiResponse.error("UPLOAD_ERROR", "Lỗi: " + e.getMessage()));
+        }
     }
 }

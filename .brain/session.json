@@ -1,52 +1,56 @@
-{
-  "updated_at": "2026-04-27T21:09:00+07:00",
+﻿{
+  "updated_at": "2026-04-28T01:16:00+07:00",
   "working_on": {
-    "feature": "Image Gallery & Filter Bugfix",
-    "task": "Hoàn thiện thư viện ảnh đa module (Cư dân, Xe, Phòng, Hợp đồng, Sự cố) và sửa lỗi 500 filter",
+    "feature": "UI/UX Enhancements & Bugfixes",
+    "task": "Đồng bộ UI các nút bấm, tối ưu hóa bộ lọc và sửa lỗi API MissingServletRequestParameterException",
     "status": "completed",
     "files": [
-      "smartrent_ui/src/pages/dashboard/residents.jsx",
-      "smartrent_ui/src/pages/dashboard/vehicles.jsx",
-      "smartrent_ui/src/pages/dashboard/rooms.jsx",
-      "smartrent_ui/src/pages/dashboard/contracts.jsx",
-      "smartrent_ui/src/pages/dashboard/tickets.jsx",
-      "src/main/java/com/smartrent/domain/Resident.java"
+      "smartrent_ui/src/pages/dashboard/meter-reading.jsx",
+      "smartrent_ui/src/api/tenant.ts",
+      "src/main/java/com/smartrent/controller/TenantProfileController.java",
+      "smartrent_ui/src/pages/dashboard/*-form.jsx",
+      "smartrent_ui/src/pages/dashboard/*-modal.jsx"
     ],
     "blockers": [],
-    "notes": "Đã tạo ImageLightbox và ImageThumbnail components để quản lý hiển thị ảnh với hiệu ứng nổi bật (Lightbox)"
+    "notes": "Đã hoàn thành toàn bộ yêu cầu về đồng bộ màu sắc và tính năng"
   },
   "pending_tasks": [
-    { "task": "Test toàn bộ các flow thao tác với hình ảnh", "priority": "low", "notes": "Người dùng đã xác nhận đẹp và ổn định, có thể chờ phản hồi thêm." }
+    { "task": "Kiểm tra lại toàn bộ ứng dụng trước khi release", "priority": "medium", "notes": "Hệ thống đã ổn định." }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-27T21:05:00+07:00",
-      "type": "feature",
-      "description": "Thêm hiển thị ảnh thumbnail và lightbox vào màn hình Quản lý Sự cố (tickets.jsx)",
-      "files": ["tickets.jsx"]
+      "timestamp": "2026-04-28T01:13:00+07:00",
+      "type": "enhancement",
+      "description": "Đồng bộ màu sắc nút submit thành xanh indigo và thêm nút X (đóng modal) cho toàn bộ màn hình Form/Modal",
+      "files": ["room-form.jsx", "resident-form.jsx", "contract-form.jsx", "bill-form.jsx", "tenant-form.jsx", "vehicle-modal.jsx", "ticket-modal.jsx"]
     },
     {
-      "timestamp": "2026-04-27T20:57:00+07:00",
+      "timestamp": "2026-04-28T00:50:00+07:00",
       "type": "bugfix",
-      "description": "Fix lỗi 500 khi sửa cư dân do Hibernate Filter (thiếu dấu ngoặc ưu tiên phép AND/OR)",
-      "files": ["Resident.java"]
+      "description": "Thêm tenantId vào query parameter trong api/tenant.ts để sửa lỗi 500 khi lấy/cập nhật hồ sơ",
+      "files": ["tenant.ts", "TenantProfileController.java"]
     },
     {
-      "timestamp": "2026-04-27T20:45:00+07:00",
-      "type": "feature",
-      "description": "Áp dụng ImageThumbnail & ImageLightbox vào Cư dân, Hợp đồng, Phòng trọ, Xe",
-      "files": ["residents.jsx", "vehicles.jsx", "rooms.jsx", "contracts.jsx"]
+      "timestamp": "2026-04-27T23:45:00+07:00",
+      "type": "enhancement",
+      "description": "Chuyển Select thành react-select cho tính năng tìm kiếm phòng trong Điện Nước",
+      "files": ["meter-reading.jsx"]
     }
   ],
   "errors_encountered": [
     {
-      "error": "Lỗi 500 khi lấy chi tiết Cư dân (findByIdAndTenantId throws NonUniqueResultException/MethodArgumentTypeMismatchException)",
-      "solution": "Thêm ngoặc () bao quanh điều kiện 'id IN (...) OR NOT EXISTS (...)' trong @Filter('buildingFilter') ở entity Resident.java để tránh lỗi precedence toán tử SQL (A OR B AND C).",
+      "error": "Invalid prop 'color' of value 'black' supplied to 'MaterialTailwind.Button'",
+      "solution": "Sửa tất cả các Button có color='black' thành color='indigo'",
+      "resolved": true
+    },
+    {
+      "error": "MissingServletRequestParameterException: Required request parameter 'tenantId' for method parameter type Long is not present",
+      "solution": "Sửa hàm getTenantProfile() và updateTenantProfile() trong tenant.ts để truyền tenantId=getTenantId() vào params",
       "resolved": true
     }
   ],
   "decisions_made": [
-    { "decision": "Dùng Component ImageLightbox & ImageThumbnail chung", "reason": "Tái sử dụng cho tất cả module cần hiển thị nhiều hình ảnh, tránh trùng lặp code và tạo UX đồng nhất." },
-    { "decision": "Fix điều kiện SQL tại entity Resident", "reason": "Lỗi do Hibernate @Filter kết hợp với Spring Data JPA findById gây ra khi nối thêm 'AND id=?'" }
+    { "decision": "Dùng react-select cho bộ lọc", "reason": "Tăng trải nghiệm người dùng với tính năng tìm kiếm" },
+    { "decision": "Chuẩn hóa UI Button (indigo gradient)", "reason": "Tạo tính đồng nhất, loại bỏ lỗi màu black không hợp lệ của Material Tailwind." }
   ]
 }

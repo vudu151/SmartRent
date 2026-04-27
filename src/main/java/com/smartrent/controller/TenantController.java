@@ -80,4 +80,13 @@ public class TenantController {
         ApiResponse<TenantResponse> response = tenantService.updateTenantStatus(id, status);
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{id}/auto-billing-day")
+    @Operation(summary = "Update auto billing day for tenant")
+    public ResponseEntity<ApiResponse<Void>> updateAutoBillingDay(
+            @PathVariable Long id,
+            @RequestParam Integer day) {
+        tenantService.updateAutoBillingDay(id, day);
+        return ResponseEntity.ok(ApiResponse.success(null, "Cập nhật ngày chốt hóa đơn thành công"));
+    }
 }

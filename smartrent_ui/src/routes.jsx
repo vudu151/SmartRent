@@ -30,7 +30,7 @@ export const routes = [
       // ===== SmartRent Core Features (hiển thị trên sidebar) =====
       {
         icon: <HomeIcon {...icon} />,
-        name: "Tổng quan",
+        name: "Dashboard",
         path: "/home",
         element: <Home />,
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
@@ -40,27 +40,6 @@ export const routes = [
         name: "Phòng trọ",
         path: "/rooms",
         element: <Rooms />,
-        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
-      },
-      {
-        icon: <UserCircleIcon {...icon} />,
-        name: "Cư dân",
-        path: "/residents",
-        element: <Residents />,
-        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
-      },
-      {
-        icon: <TruckIcon {...icon} />,
-        name: "Quản lý Xe",
-        path: "/vehicles",
-        element: <Vehicles />,
-        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
-      },
-      {
-        icon: <DocumentTextIcon {...icon} />,
-        name: "Hợp đồng",
-        path: "/contracts",
-        element: <Contracts />,
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
       {
@@ -78,11 +57,25 @@ export const routes = [
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
       {
-        icon: <BoltIcon {...icon} />,
-        name: "Dịch vụ",
-        path: "/services",
-        element: <Services />,
-        hidden: true, // Ẩn vì trùng lặp với Điện nước - gộp vào trang Điện nước
+        icon: <TruckIcon {...icon} />,
+        name: "Quản lý Xe",
+        path: "/vehicles",
+        element: <Vehicles />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
+      },
+      {
+        icon: <DocumentTextIcon {...icon} />,
+        name: "Hợp đồng",
+        path: "/contracts",
+        element: <Contracts />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
+      },
+      {
+        icon: <UserCircleIcon {...icon} />,
+        name: "Cư dân",
+        path: "/residents",
+        element: <Residents />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
       },
       {
         icon: <WrenchScrewdriverIcon {...icon} />,
@@ -90,6 +83,13 @@ export const routes = [
         path: "/tickets",
         element: <Tickets />,
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
+      },
+      {
+        icon: <BoltIcon {...icon} />,
+        name: "Dịch vụ",
+        path: "/services",
+        element: <Services />,
+        hidden: true, // Ẩn vì trùng lặp với Điện nước - gộp vào trang Điện nước
       },
 
       // ===== Quản trị hệ thống (hiển thị nhưng nhóm riêng) =====

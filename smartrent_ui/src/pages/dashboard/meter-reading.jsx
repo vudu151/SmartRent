@@ -5,6 +5,8 @@ import {
   Typography,
   Input,
   Button,
+  Select,
+  Option,
 } from "@material-tailwind/react";
 import { CalculatorIcon, BoltIcon, BeakerIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { useMaterialTailwindController } from "@/context";
@@ -14,6 +16,7 @@ import { generateMeterBills } from "@/api/bill";
 import { showToast } from "@/lib/swal";
 import { FeeSettingsModal } from "@/pages/dashboard/fee-settings";
 import { Cog6ToothIcon } from "@heroicons/react/24/solid";
+import ReactSelect from "react-select";
 
 export function MeterReading() {
   const [controller] = useMaterialTailwindController();
@@ -32,14 +35,86 @@ export function MeterReading() {
   const [readings, setReadings] = useState({});
   const [editModes, setEditModes] = useState({});
 
+  const [filterRoomId, setFilterRoomId] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
   useEffect(() => {
+    const roomOptions = [
+      { value: "", label: "Tất cả phòng" },
+      ...rooms.map(r => ({ value: r.id.toString(), label: `P.${r.roomNumber}` }))
+    ];
+
     setNavbarHeader(
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full">
         <div className="min-w-0">
           <Typography variant="h6" color="blue-gray" className="font-bold truncate">Cửa sổ Chốt Điện Nước</Typography>
           <Typography color="gray" className="font-normal text-xs">Nhập số đầu - số cuối nhanh chóng. Hệ thống sẽ tự động tính hóa đơn.</Typography>
         </div>
-        <div className="flex shrink-0 gap-2 items-center">
+        <div className="flex flex-wrap shrink-0 gap-2 items-center justify-end">
+          <div className="w-40 z-[999]">
+            <ReactSelect
+              options={roomOptions}
+              value={filterRoomId ? roomOptions.find(o => o.value === filterRoomId) : null}
+              onChange={(selected) => setFilterRoomId(selected ? selected.value : "")}
+              placeholder="Tất cả phòng"
+              isSearchable
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: '40px',
+                  height: '40px',
+                  borderRadius: '7px',
+                  borderColor: state.isFocused ? '#263238' : '#b0bec5',
+                  boxShadow: 'none',
+                  '&:hover': { borderColor: state.isFocused ? '#263238' : '#b0bec5' },
+                  fontSize: '14px',
+                  backgroundColor: 'transparent'
+                }),
+                valueContainer: (base) => ({ ...base, padding: '0 8px' }),
+                input: (base) => ({ ...base, margin: 0, padding: 0 }),
+                dropdownIndicator: (base) => ({ ...base, padding: '4px' }),
+                clearIndicator: (base) => ({ ...base, padding: '4px' }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 9999,
+                  borderRadius: '7px',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                  padding: '4px'
+                }),
+                menuList: (base) => ({
+                  ...base,
+                  padding: 0
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isSelected ? '#eceff1' : state.isFocused ? '#f1f5f9' : 'transparent',
+                  color: state.isSelected ? '#263238' : '#455a64',
+                  fontWeight: state.isSelected ? 500 : 400,
+                  cursor: 'pointer',
+                  padding: '8px 12px',
+                  borderRadius: '5px',
+                  margin: '2px 0',
+                  '&:active': { backgroundColor: '#eceff1' }
+                }),
+                placeholder: (base) => ({ ...base, color: '#607d8b' }),
+                singleValue: (base) => ({ ...base, color: '#455a64' })
+              }}
+            />
+          </div>
+          <div className="w-32 bg-white rounded-lg">
+            <Select 
+              label="Trạng thái" 
+              className="!min-w-0"
+              value={filterStatus} 
+              onChange={(val) => setFilterStatus(val || "")}
+              containerProps={{ className: "!min-w-0" }}
+            >
+              <Option value="">Tất cả</Option>
+              <Option value="pending">Chưa chốt</Option>
+              <Option value="done">Đã chốt</Option>
+            </Select>
+          </div>
+          
           <Button variant="outlined" color="blue-gray" size="sm" className="flex items-center gap-1.5 whitespace-nowrap" onClick={() => document.getElementById('btn-open-settings')?.click()}>
             <Cog6ToothIcon className="w-4 h-4" /> CẤU HÌNH GIÁ
           </Button>
@@ -49,7 +124,7 @@ export function MeterReading() {
         </div>
       </div>
     );
-  }, [setNavbarHeader]);
+  }, [setNavbarHeader, filterRoomId, filterStatus, rooms]);
 
   useEffect(() => {
     loadRooms();
@@ -192,6 +267,17 @@ export function MeterReading() {
 
   const hasGlobalError = false; // Bỏ validate eNew < eOld vì eOld là tự động
 
+  const filteredRooms = rooms.filter(r => {
+    if (filterRoomId && r.id.toString() !== filterRoomId) return false;
+    if (filterStatus) {
+      const data = readings[r.id];
+      const hasInput = data && (data.eNew !== "" || data.wNew !== "");
+      if (filterStatus === "pending" && hasInput) return false;
+      if (filterStatus === "done" && !hasInput) return false;
+    }
+    return true;
+  });
+
   return (
     <div className="h-full flex flex-col">
       {/* Hidden buttons for navbar trigger */}
@@ -200,22 +286,23 @@ export function MeterReading() {
       
       <FeeSettingsModal open={feeSettingsOpen} onClose={() => setFeeSettingsOpen(false)} />
 
-      <Card className="h-full flex flex-col overflow-hidden">
-        {recordingDayInfo && (
-          <div className="bg-orange-50 border-b border-orange-100 p-3 text-orange-800 text-sm text-center font-medium">
-            ⚠️ {recordingDayInfo} Hiện tại chỉ xem được dữ liệu, không thể sửa hay chốt mới!
-          </div>
-        )}
-        <CardBody className="p-4 md:p-6 dark:bg-blue-gray-900/50 overflow-auto flex-1">
+      <Card className="h-full flex flex-col overflow-hidden bg-white dark:bg-blue-gray-900/50">
+        <CardBody className="flex flex-col flex-1 p-4 md:p-6 overflow-hidden">
+          {recordingDayInfo && (
+            <div className="bg-orange-50 border border-orange-100 p-3 text-orange-800 text-sm text-center font-medium rounded-lg mb-4 shrink-0">
+              ⚠️ {recordingDayInfo} Hiện tại chỉ xem được dữ liệu, không thể sửa hay chốt mới!
+            </div>
+          )}
+          <div className="flex-1 overflow-y-auto pr-2 pb-2">
           {loading ? (
             <div className="text-center p-12 text-gray-500 dark:text-blue-gray-300">Đang tải danh sách phòng...</div>
-          ) : rooms.length === 0 ? (
+          ) : filteredRooms.length === 0 ? (
             <div className="text-center p-12 text-gray-500 border-2 border-dashed rounded-xl dark:border-blue-gray-800 dark:text-blue-gray-300">
-                Khu trọ hiện đang Trống hoặc chưa cho thuê phòng nào.
+                Không tìm thấy phòng nào phù hợp với bộ lọc, hoặc khu trọ chưa cho thuê.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                {rooms.map((room) => {
+                {filteredRooms.map((room) => {
                   const data = readings[room.id] || {};
                   return (
                     <Card key={room.id} className="border border-blue-gray-50 dark:border-blue-gray-800 shadow-sm hover:shadow-md transition-shadow dark:bg-blue-gray-900">
@@ -322,6 +409,7 @@ export function MeterReading() {
                 })}
             </div>
           )}
+          </div>
         </CardBody>
       </Card>
     </div>

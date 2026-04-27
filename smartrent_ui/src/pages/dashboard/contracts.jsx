@@ -40,7 +40,7 @@ export function Contracts() {
   const [contractToLiquidate, setContractToLiquidate] = React.useState(null);
 
   const [page, setPage] = React.useState(1);
-  const [size, setSize] = React.useState(10);
+  const [size, setSize] = React.useState(8);
   const [totalPages, setTotalPages] = React.useState(1);
   const [totalElements, setTotalElements] = React.useState(0);
 

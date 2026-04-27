@@ -8,6 +8,7 @@ import {
   Input,
   Textarea,
   Alert,
+  IconButton,
 } from "@material-tailwind/react";
 import {
   getTenantById,
@@ -152,7 +153,7 @@ export function TenantModal({ open, onClose, tenantId, onSuccess }) {
 
   return (
     <Dialog open={open} handler={onClose} size="lg">
-      <DialogHeader>
+      <DialogHeader className="flex justify-between items-start">
         <div>
           <Typography variant="h5" color="blue-gray">
             {isEdit ? "Cập nhật Tenant" : "Tạo Tenant mới"}
@@ -163,6 +164,11 @@ export function TenantModal({ open, onClose, tenantId, onSuccess }) {
               : "Nhập các thông tin cần thiết để đăng ký tenant mới"}
           </Typography>
         </div>
+        <IconButton variant="text" color="blue-gray" onClick={onClose} className="rounded-full flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </IconButton>
       </DialogHeader>
       <DialogBody divider>
         {error && (
@@ -238,7 +244,7 @@ export function TenantModal({ open, onClose, tenantId, onSuccess }) {
               >
                 Hủy
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" variant="gradient" color="indigo" disabled={loading}>
                 {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo mới"}
               </Button>
             </div>

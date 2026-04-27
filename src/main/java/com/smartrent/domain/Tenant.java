@@ -66,6 +66,13 @@ public class Tenant {
     @Column(name = "bank_owner", length = 100)
     private String bankOwner;
 
+    @Column(name = "bank_qr_url", length = 500)
+    private String bankQrUrl;
+
+    @Column(name = "auto_billing_day")
+    @Builder.Default
+    private Integer autoBillingDay = 1; // Mặc định là ngày 1 hàng tháng
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

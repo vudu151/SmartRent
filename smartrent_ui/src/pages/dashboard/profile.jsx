@@ -8,14 +8,15 @@ import {
   Button,
   Avatar,
 } from "@material-tailwind/react";
-import { CameraIcon } from "@heroicons/react/24/solid";
-import { getTenantProfile, updateTenantProfile } from "@/api/tenant";
+import { CameraIcon, QrCodeIcon, ArrowUpTrayIcon } from "@heroicons/react/24/solid";
+import { getTenantProfile, updateTenantProfile, uploadBankQr } from "@/api/tenant";
 import { uploadAvatar } from "@/api/user";
 import { showToast } from "@/lib/swal";
 import { useAuth } from "@/smartrent/auth";
 import { getUserInfo, saveTokens } from "@/lib/token";
 import { getAccessToken, getRefreshToken } from "@/lib/token";
 import { env } from "@/config/env";
+import { useNavbarHeader } from "@/context/navbar-header";
 
 // Helper to resolve avatar URL
 function getAvatarSrc(avatarUrl) {
@@ -27,6 +28,7 @@ function getAvatarSrc(avatarUrl) {
 
 export function Profile() {
   const { user } = useAuth();
+  const { setNavbarHeader } = useNavbarHeader();
   const [loading, setLoading] = React.useState(true);
   const [avatarUrl, setAvatarUrl] = React.useState(user?.avatarUrl || null);
   const [uploading, setUploading] = React.useState(false);
@@ -38,11 +40,29 @@ export function Profile() {
     bankName: "",
     bankAccount: "",
     bankOwner: "",
+    bankQrUrl: "",
   });
+  const [bankNameFocused, setBankNameFocused] = React.useState(false);
+  const qrInputRef = React.useRef(null);
+  const [uploadingQr, setUploadingQr] = React.useState(false);
 
   React.useEffect(() => {
     loadProfile();
   }, []);
+
+  React.useEffect(() => {
+    setNavbarHeader(
+      <div className="flex flex-col">
+        <Typography variant="h5" color="blue-gray" className="font-bold">
+          Hồ Sơ & Thanh Toán
+        </Typography>
+        <Typography color="gray" className="mt-0.5 font-normal text-sm">
+          Cấu hình thông tin liên hệ và tài khoản ngân hàng (QR Code) của chủ trọ
+        </Typography>
+      </div>
+    );
+    return () => setNavbarHeader(null);
+  }, [setNavbarHeader]);
 
   React.useEffect(() => {
     if (user?.avatarUrl) {
@@ -61,6 +81,7 @@ export function Profile() {
         bankName: data.bankName || "",
         bankAccount: data.bankAccount || "",
         bankOwner: data.bankOwner || "",
+        bankQrUrl: data.bankQrUrl || "",
       });
     } catch (err) {
       showToast("Không tải được hồ sơ", "error");
@@ -133,30 +154,50 @@ export function Profile() {
     }
   };
 
+  const handleQrClick = () => {
+    qrInputRef.current?.click();
+  };
+
+  const handleQrChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Chỉ chấp nhận file ảnh", "error");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("File ảnh tối đa 5MB", "error");
+      return;
+    }
+
+    try {
+      setUploadingQr(true);
+      const result = await uploadBankQr(file);
+      setFormData(prev => ({ ...prev, bankQrUrl: result.qrUrl }));
+      showToast("Đã tải lên mã QR. Vui lòng bấm Lưu Thay Đổi để áp dụng.", "success");
+    } catch (err) {
+      showToast(err.message || "Upload QR thất bại", "error");
+    } finally {
+      setUploadingQr(false);
+      if (qrInputRef.current) qrInputRef.current.value = "";
+    }
+  };
+
   const avatarSrc = getAvatarSrc(avatarUrl);
+  const qrSrc = getAvatarSrc(formData.bankQrUrl); // reusing getAvatarSrc for resolving URL
 
   if (loading) return <div className="p-8">Đang tải...</div>;
 
   return (
     <Card className="h-full flex flex-col bg-white">
-      <CardHeader floated={false} shadow={false} className="rounded-none border-b border-blue-gray-100 shrink-0 px-6 py-4 m-0">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <Typography variant="h5" color="blue-gray" className="font-bold">Hồ Sơ & Thanh Toán</Typography>
-            <Typography color="gray" className="mt-0.5 font-normal text-sm">
-              Cấu hình thông tin liên hệ và tài khoản ngân hàng (VietQR) của chủ trọ
-            </Typography>
-          </div>
-        </div>
-      </CardHeader>
-
       <CardBody className="overflow-auto p-6 md:p-8 flex-1 flex flex-col">
         <form onSubmit={handleSave} className="flex flex-col h-full justify-between">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
             {/* Cột trái: Avatar + Thông tin Cá nhân */}
             <div className="flex flex-col gap-5 border-b lg:border-b-0 lg:border-r border-blue-gray-100 pb-6 lg:pb-0 lg:pr-12">
-              
+
               {/* Avatar Upload Section */}
               <div className="flex items-center gap-5 mb-4">
                 <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
@@ -225,16 +266,63 @@ export function Profile() {
             <div className="flex flex-col gap-5">
               <div className="mb-2">
                 <Typography variant="h6" color="blue-gray" className="font-bold">
-                  Tài khoản Ngân hàng (VietQR)
+                  Tài khoản Ngân hàng (QR Code)
                 </Typography>
                 <Typography variant="small" className="text-gray-600 mt-1">
-                  Dùng để sinh mã VietQR thanh toán tự động cho Khách. Vui lòng nhập <span className="font-semibold text-blue-gray-800">Tên viết tắt</span> của Ngân hàng (VD: MB, VCB, TCB, VPB...).
+                  Dùng để sinh mã QR Code thanh toán tự động cho Khách.
                 </Typography>
               </div>
-
-              <Input size="lg" label="Mã/Tên viết tắt ngân hàng *" name="bankName" value={formData.bankName} onChange={handleChange} required />
-              <Input size="lg" label="Số tài khoản *" name="bankAccount" value={formData.bankAccount} onChange={handleChange} required />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <Input
+                  size="lg"
+                  label="Tên ngân hàng *"
+                  placeholder={bankNameFocused ? "VD: MB Bank, Techcombank..." : ""}
+                  onFocus={() => setBankNameFocused(true)}
+                  onBlur={() => setBankNameFocused(false)}
+                  name="bankName"
+                  value={formData.bankName}
+                  onChange={handleChange}
+                  required
+                />
+                <Input size="lg" label="Số tài khoản *" name="bankAccount" value={formData.bankAccount} onChange={handleChange} required />
+              </div>
               <Input size="lg" label="Tên chủ tài khoản *" name="bankOwner" value={formData.bankOwner} onChange={handleChange} required />
+
+              <div className="mt-4">
+                <Typography variant="small" color="blue-gray" className="font-semibold mb-2">
+                  Mã QR Thanh Toán
+                </Typography>
+                <div
+                  className={`relative border-2 border-dashed ${qrSrc ? 'border-indigo-100' : 'border-blue-gray-200'} rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-gray-50 transition-colors ${qrSrc ? 'bg-white' : 'bg-gray-50 min-h-[200px]'}`}
+                  onClick={handleQrClick}
+                >
+                  {uploadingQr ? (
+                    <div className="flex flex-col items-center gap-2 text-indigo-500">
+                      <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm font-medium">Đang tải...</span>
+                    </div>
+                  ) : qrSrc ? (
+                    <>
+                      <img src={qrSrc} alt="Bank QR" className="max-h-48 object-contain rounded-lg shadow-sm mb-3" />
+                      <div className="flex items-center gap-2 text-indigo-500 text-sm font-medium bg-indigo-50 px-3 py-1.5 rounded-full">
+                        <ArrowUpTrayIcon className="w-4 h-4" /> Đổi ảnh QR khác
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-blue-gray-400">
+                      <QrCodeIcon className="w-12 h-12 text-blue-gray-200" />
+                      <span className="text-sm font-medium text-center">Bấm vào đây để tải ảnh QR lên<br /><span className="font-normal text-xs">(JPG, PNG max 5MB)</span></span>
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={qrInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleQrChange}
+                />
+              </div>
             </div>
 
           </div>

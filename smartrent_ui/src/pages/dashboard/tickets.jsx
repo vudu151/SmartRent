@@ -23,7 +23,7 @@ export function Tickets() {
   const [openModal, setOpenModal] = React.useState(false);
   const [editingTicket, setEditingTicket] = React.useState(null);
   const [page, setPage] = React.useState(1);
-  const [size] = React.useState(10);
+  const [size] = React.useState(8);
   const [totalElements, setTotalElements] = React.useState(0);
   const [totalPages, setTotalPages] = React.useState(0);
 
@@ -91,8 +91,8 @@ export function Tickets() {
             <table className="w-full min-w-max table-auto text-left">
               <thead>
                 <tr>
-                  {["Ảnh", "Phòng", "Khách Báo", "Độ Ưu Tiên", "Tóm Tắt Sự Cố", "Trạng Thái", "Thao tác Nhanh"].map((h) => (
-                    <th key={h} className="border-b border-blue-gray-50 py-3 px-5">
+                  {["Ảnh", "Phòng", "Khách Báo", "Độ Ưu Tiên", "Tóm Tắt Sự Cố", "Thời gian Tạo", "Hoàn thành", "Trạng Thái", "Thao tác"].map((h) => (
+                    <th key={h} className="border-b border-blue-gray-50 py-2 px-2">
                       <Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{h}</Typography>
                     </th>
                   ))}
@@ -101,29 +101,47 @@ export function Tickets() {
               <tbody>
                 {tickets.map((t) => (
                   <tr key={t.id} className="even:bg-blue-gray-50/50">
-                    <td className="p-4">
+                    <td className="px-2 py-3">
                       <ImageThumbnail images={t.imageUrls} alt={t.title || "Sự cố"} />
                     </td>
-                    <td className="p-4"><Typography variant="small" className="font-bold text-blue-600">{t.roomNumber}</Typography></td>
-                    <td className="p-4 flex flex-col">
-                      <Typography variant="small" className="font-medium text-gray-800">{t.residentName}</Typography>
-                      <Typography variant="small" className="text-gray-500 text-xs">{t.residentPhone}</Typography>
+                    <td className="px-2 py-3"><Typography variant="small" className="font-bold text-blue-600">{t.roomNumber}</Typography></td>
+                    <td className="px-2 py-3">
+                      <div className="flex flex-col">
+                        <Typography variant="small" className="font-medium text-gray-800">{t.residentName}</Typography>
+                        <Typography variant="small" className="text-gray-500 text-[11px]">{t.residentPhone}</Typography>
+                      </div>
                     </td>
-                    <td className="p-4">
+                    <td className="px-2 py-3">
                       <div className="w-24">
-                        <Chip size="sm" variant="ghost" color={getPriorityColor(t.priority)} value={priorityLabels[t.priority] || t.priority} className="text-center justify-center" />
+                        <Chip size="sm" variant="ghost" color={getPriorityColor(t.priority)} value={priorityLabels[t.priority] || t.priority} className="text-center justify-center px-1" />
                       </div>
                     </td>
-                    <td className="p-4 max-w-md">
-                      <Typography variant="small" className="font-bold text-gray-800">{t.title}</Typography>
-                      <Typography variant="small" className="text-gray-600 text-xs truncate max-w-[350px]" title={t.description}>{t.description}</Typography>
+                    <td className="px-2 py-3 max-w-[180px]">
+                      <Typography variant="small" className="font-bold text-gray-800 truncate" title={t.title}>{t.title}</Typography>
+                      <Typography variant="small" className="text-gray-600 text-[11px] truncate" title={t.description}>{t.description}</Typography>
                     </td>
-                    <td className="p-4">
-                      <div className="w-28">
-                        <Chip size="sm" variant="filled" color={getStatusColor(t.status)} value={statusLabels[t.status] || t.status} className="text-center justify-center" />
+                    <td className="px-2 py-3">
+                      {t.createdAt ? (
+                        <div className="flex flex-col">
+                          <Typography variant="small" className="text-blue-gray-800 font-medium">{new Date(t.createdAt).toLocaleDateString("vi-VN")}</Typography>
+                          <Typography variant="small" className="text-gray-500 text-[11px]">{new Date(t.createdAt).toLocaleTimeString("vi-VN")}</Typography>
+                        </div>
+                      ) : "-"}
+                    </td>
+                    <td className="px-2 py-3">
+                      {t.resolvedAt ? (
+                        <div className="flex flex-col">
+                          <Typography variant="small" className="text-blue-gray-800 font-medium">{new Date(t.resolvedAt).toLocaleDateString("vi-VN")}</Typography>
+                          <Typography variant="small" className="text-gray-500 text-[11px]">{new Date(t.resolvedAt).toLocaleTimeString("vi-VN")}</Typography>
+                        </div>
+                      ) : "-"}
+                    </td>
+                    <td className="px-2 py-3">
+                      <div className="w-24">
+                        <Chip size="sm" variant="filled" color={getStatusColor(t.status)} value={statusLabels[t.status] || t.status} className="text-center justify-center px-1" />
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="px-2 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-28 flex items-center">
                           {t.status === "PENDING" && (<Button size="sm" variant="outlined" color="blue" className="flex items-center justify-center gap-1 w-full px-3 py-1.5" onClick={() => handleStatusChange(t.id, 'IN_PROGRESS')}><PlayIcon className="h-3 w-3" /> Gọi Thợ</Button>)}

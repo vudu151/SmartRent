@@ -27,7 +27,7 @@ export function Users() {
   const [loading, setLoading] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [page, setPage] = React.useState(0);
-  const [size, setSize] = React.useState(10);
+  const [size, setSize] = React.useState(8);
   const [totalPages, setTotalPages] = React.useState(0);
   const [totalElements, setTotalElements] = React.useState(0);
 

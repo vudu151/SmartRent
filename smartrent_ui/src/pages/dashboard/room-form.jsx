@@ -9,6 +9,7 @@ import {
   Textarea,
   Select,
   Option,
+  IconButton,
 } from "@material-tailwind/react";
 import { getRoomById, createRoom, updateRoom } from "@/api/room";
 import { showToast } from "@/lib/swal";
@@ -301,10 +302,15 @@ export function RoomModal({ open, onClose, roomId, onSuccess }) {
 
   return (
     <Dialog open={open} handler={onClose} size="lg">
-      <DialogHeader>
+      <DialogHeader className="flex justify-between items-center">
         <Typography variant="h5" color="blue-gray">
           {isEdit ? "Cập nhật Phòng" : "Thêm Phòng Mới"}
         </Typography>
+        <IconButton variant="text" color="blue-gray" onClick={onClose} className="rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </IconButton>
       </DialogHeader>
       <DialogBody divider className="max-h-[80vh] overflow-y-auto pt-4">
         {loadingData ? (
@@ -421,7 +427,7 @@ export function RoomModal({ open, onClose, roomId, onSuccess }) {
               <Button variant="text" color="red" onClick={onClose} disabled={loading}>
                 Hủy
               </Button>
-              <Button type="submit" color="black" disabled={loading}>
+              <Button type="submit" variant="gradient" color="indigo" disabled={loading}>
                 {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo Mới"}
               </Button>
             </div>

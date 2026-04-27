@@ -155,6 +155,22 @@ public class TenantService {
     }
 
     /**
+     * Update tenant auto billing day
+     */
+    @Transactional
+    public void updateAutoBillingDay(Long tenantId, Integer day) {
+        if (day == null || day < 1 || day > 28) {
+            throw new BusinessException("Ngày chốt hóa đơn phải từ ngày 1 đến 28");
+        }
+        Tenant tenant = tenantRepository.findById(tenantId)
+            .orElseThrow(() -> new ResourceNotFoundException("Tenant không tồn tại với ID: " + tenantId));
+
+        tenant.setAutoBillingDay(day);
+        tenantRepository.save(tenant);
+        log.info("Updated auto billing day to {} for tenant ID: {}", day, tenantId);
+    }
+
+    /**
      * Convert Tenant entity to TenantResponse DTO
      */
     private TenantResponse toResponse(Tenant tenant) {

@@ -1,0 +1,1 @@
+ALTER TABLE tenants ADD COLUMN bank_qr_url VARCHAR(500);

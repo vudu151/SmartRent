@@ -9,6 +9,7 @@ import {
   Textarea,
   Select,
   Option,
+  IconButton,
 } from "@material-tailwind/react";
 import { getResidentById, createResident, updateResident } from "@/api/resident";
 import { getRooms } from "@/api/room";
@@ -296,10 +297,15 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
 
   return (
     <Dialog open={open} handler={onClose} size="lg">
-      <DialogHeader>
+      <DialogHeader className="flex justify-between items-center">
         <Typography variant="h5" color="blue-gray">
           {isEdit ? "Cập nhật Cư dân" : "Thêm Cư dân Mới"}
         </Typography>
+        <IconButton variant="text" color="blue-gray" onClick={onClose} className="rounded-full flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </IconButton>
       </DialogHeader>
       <DialogBody divider className="max-h-[80vh] overflow-y-auto">
         {loadingData ? (
@@ -468,7 +474,7 @@ export function ResidentModal({ open, onClose, residentId, onSuccess }) {
                 {isGuard ? "Đóng" : "Hủy"}
               </Button>
               {!isGuard && (
-                <Button type="submit" color="black" disabled={loading}>
+                <Button type="submit" variant="gradient" color="indigo" disabled={loading}>
                   {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo Mới"}
                 </Button>
               )}

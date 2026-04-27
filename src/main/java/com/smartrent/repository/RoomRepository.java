@@ -20,6 +20,8 @@ public interface RoomRepository extends JpaRepository<Room, Long>, JpaSpecificat
 
     List<Room> findByTenantId(Long tenantId);
 
+    List<Room> findByTenantIdAndStatus(Long tenantId, Room.RoomStatus status);
+
     Optional<Room> findByIdAndTenantId(Long id, Long tenantId);
 
     boolean existsByTenantIdAndRoomNumber(Long tenantId, String roomNumber);

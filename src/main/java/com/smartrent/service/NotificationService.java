@@ -79,6 +79,45 @@ public class NotificationService {
         return ApiResponse.success(toDTO(notification), "Gửi thông báo thành công");
     }
 
+    @Transactional
+    public void createSystemNotification(Tenant tenant, String title, String content, Notification.NotificationType type) {
+        Notification notification = Notification.builder()
+            .tenant(tenant)
+            .title(title)
+            .content(content)
+            .type(type)
+            .targetType(Notification.TargetType.SYSTEM)
+            .isRead(false)
+            .build();
+        notificationRepository.save(notification);
+        log.info("System notification '{}' created for tenant {}", title, tenant.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public ApiResponse<Long> getSystemUnreadCount(Long tenantId) {
+        long count = notificationRepository.countByTenantIdAndTargetTypeAndIsReadFalse(tenantId, Notification.TargetType.SYSTEM);
+        return ApiResponse.success(count, "Lấy số lượng thông báo thành công");
+    }
+
+    @Transactional(readOnly = true)
+    public ApiResponse<Page<NotificationDTO>> getSystemNotifications(Long tenantId, Pageable pageable) {
+        Page<Notification> notifications = notificationRepository.findByTenantIdAndTargetTypeOrderByCreatedAtDesc(tenantId, Notification.TargetType.SYSTEM, pageable);
+        Page<NotificationDTO> response = notifications.map(this::toDTO);
+        return ApiResponse.success(response, "Lấy danh sách thông báo hệ thống thành công");
+    }
+
+    @Transactional
+    public ApiResponse<Void> markAllSystemAsRead(Long tenantId) {
+        Page<Notification> unreadNotifications = notificationRepository.findByTenantIdAndTargetTypeOrderByCreatedAtDesc(tenantId, Notification.TargetType.SYSTEM, Pageable.unpaged());
+        for (Notification notification : unreadNotifications.getContent()) {
+            if (!notification.getIsRead()) {
+                notification.setIsRead(true);
+                notificationRepository.save(notification);
+            }
+        }
+        return ApiResponse.success(null, "Đã đánh dấu tất cả là đã đọc");
+    }
+
     private NotificationDTO toDTO(Notification n) {
         return NotificationDTO.builder()
             .id(n.getId())

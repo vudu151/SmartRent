@@ -74,11 +74,16 @@ public class Notification {
         GENERAL,       // Thông báo chung
         BILL,          // Thông báo hóa đơn
         MAINTENANCE,   // Thông báo bảo trì
-        URGENT         // Thông báo khẩn
+        URGENT,        // Thông báo khẩn
+        SYSTEM_INFO,   // Hệ thống: Thông tin
+        SYSTEM_SUCCESS,// Hệ thống: Thành công
+        SYSTEM_WARNING,// Hệ thống: Cảnh báo
+        SYSTEM_ERROR   // Hệ thống: Lỗi
     }
 
     public enum TargetType {
         ALL,           // Tất cả cư dân
-        SPECIFIC       // Cư dân cụ thể
+        SPECIFIC,      // Cư dân cụ thể
+        SYSTEM         // Gửi cho Chủ trọ (Tenant)
     }
 }

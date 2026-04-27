@@ -41,7 +41,7 @@ export function Bills() {
   const [selectedBillId, setSelectedBillId] = React.useState(null);
 
   const [page, setPage] = React.useState(1);
-  const [size, setSize] = React.useState(10);
+  const [size, setSize] = React.useState(8);
   const [totalPages, setTotalPages] = React.useState(1);
   const [totalElements, setTotalElements] = React.useState(0);
 
@@ -99,9 +99,6 @@ export function Bills() {
 
           <Button variant="outlined" color="blue-gray" size="sm" className="flex items-center gap-1 whitespace-nowrap" onClick={handleRemind} disabled={loading}>
             <BellIcon className="h-3 w-3" /> Nhắc Nợ
-          </Button>
-          <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleAdd}>
-            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm
           </Button>
         </div>
       </div>

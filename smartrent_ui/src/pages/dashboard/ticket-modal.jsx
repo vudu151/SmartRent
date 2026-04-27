@@ -9,6 +9,7 @@ import {
   Textarea,
   Select,
   Option,
+  IconButton,
 } from "@material-tailwind/react";
 import { getRooms } from "@/api/room";
 import { getResidents } from "@/api/resident";
@@ -252,24 +253,46 @@ export function TicketModal({ open, onClose, onSuccess, ticket }) {
       borderRadius: '7px',
       borderColor: state.isFocused ? '#263238' : '#b0bec5',
       boxShadow: 'none',
-      '&:hover': { borderColor: '#263238' },
+      '&:hover': { borderColor: state.isFocused ? '#263238' : '#b0bec5' },
       fontSize: '14px',
       backgroundColor: 'transparent'
     }),
     menu: (base) => ({
       ...base,
-      zIndex: 9999
+      zIndex: 9999,
+      borderRadius: '7px',
+      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+      padding: '4px'
     }),
     menuList: (base) => ({
       ...base,
-      maxHeight: '220px' // Hiển thị khoảng 6 items
-    })
+      padding: 0,
+      maxHeight: '220px'
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected ? '#eceff1' : state.isFocused ? '#f1f5f9' : 'transparent',
+      color: state.isSelected ? '#263238' : '#455a64',
+      fontWeight: state.isSelected ? 500 : 400,
+      cursor: 'pointer',
+      padding: '8px 12px',
+      borderRadius: '5px',
+      margin: '2px 0',
+      '&:active': { backgroundColor: '#eceff1' }
+    }),
+    placeholder: (base) => ({ ...base, color: '#607d8b' }),
+    singleValue: (base) => ({ ...base, color: '#455a64' })
   };
 
   return (
     <Dialog open={open} handler={onClose} size="md" className="z-[9999] overflow-hidden" overlayProps={{ className: "z-[9998]" }}>
-      <DialogHeader className="pb-2">
+      <DialogHeader className="pb-2 flex justify-between items-center">
         <Typography variant="h5" color="blue-gray">{ticket ? "Cập Nhật Sự Cố" : "Báo Cáo Sự Cố Mới"}</Typography>
+        <IconButton variant="text" color="blue-gray" onClick={onClose} className="rounded-full flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </IconButton>
       </DialogHeader>
       <DialogBody divider className="max-h-[80vh] overflow-y-auto overflow-x-hidden pt-4 px-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">

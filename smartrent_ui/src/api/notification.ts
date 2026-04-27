@@ -29,3 +29,28 @@ export const remindUnpaidBills = async () => {
   });
   return res.data;
 };
+
+export const getSystemUnreadCount = async () => {
+  const tenantId = getTenantId();
+  const res = await apiFetch<ApiResponse<number>>(`/api/notifications/system/unread-count?tenantId=${tenantId}`);
+  return res.data;
+};
+
+export const getSystemNotifications = async (params?: { page?: number; size?: number }) => {
+  const tenantId = getTenantId();
+  const searchParams = new URLSearchParams();
+  searchParams.append('tenantId', tenantId.toString());
+  if (params?.page !== undefined) searchParams.append('page', params.page.toString());
+  if (params?.size !== undefined) searchParams.append('size', params.size.toString());
+
+  const res = await apiFetch<ApiResponse<any>>(`/api/notifications/system?${searchParams.toString()}`);
+  return res.data;
+};
+
+export const markAllSystemAsRead = async () => {
+  const tenantId = getTenantId();
+  const res = await apiFetch<ApiResponse<void>>(`/api/notifications/system/mark-all-read?tenantId=${tenantId}`, {
+    method: "POST"
+  });
+  return res.data;
+};

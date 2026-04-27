@@ -40,7 +40,7 @@ export function Vehicles() {
   const [selectedVehicleId, setSelectedVehicleId] = React.useState(null);
 
   const [page, setPage] = React.useState(1);
-  const [size, setSize] = React.useState(10);
+  const [size, setSize] = React.useState(8);
   const [totalPages, setTotalPages] = React.useState(1);
   const [totalElements, setTotalElements] = React.useState(0);
 
@@ -106,21 +106,44 @@ export function Vehicles() {
               placeholder="Tất cả phòng"
               isSearchable
               styles={{
-                control: (base) => ({
+                control: (base, state) => ({
                   ...base,
                   minHeight: '40px',
                   height: '40px',
-                  borderRadius: '0.5rem',
-                  borderColor: '#b0bec5',
+                  borderRadius: '7px',
+                  borderColor: state.isFocused ? '#263238' : '#b0bec5',
                   boxShadow: 'none',
-                  fontSize: '0.875rem',
-                  '&:hover': { borderColor: '#2196f3' }
+                  '&:hover': { borderColor: state.isFocused ? '#263238' : '#b0bec5' },
+                  fontSize: '14px',
+                  backgroundColor: 'transparent'
                 }),
                 valueContainer: (base) => ({ ...base, padding: '0 8px' }),
                 input: (base) => ({ ...base, margin: 0, padding: 0 }),
                 dropdownIndicator: (base) => ({ ...base, padding: '4px' }),
-                menu: (base) => ({ ...base, zIndex: 9999, fontSize: '0.875rem' }),
-                placeholder: (base) => ({ ...base, color: '#9e9e9e', fontWeight: 400 }),
+                clearIndicator: (base) => ({ ...base, padding: '4px' }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 9999,
+                  borderRadius: '7px',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                  padding: '4px'
+                }),
+                menuList: (base) => ({
+                  ...base,
+                  padding: 0
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isSelected ? '#eceff1' : state.isFocused ? '#f1f5f9' : 'transparent',
+                  color: state.isSelected ? '#263238' : '#455a64',
+                  fontWeight: state.isSelected ? 500 : 400,
+                  cursor: 'pointer',
+                  padding: '8px 12px',
+                  borderRadius: '5px',
+                  margin: '2px 0',
+                  '&:active': { backgroundColor: '#eceff1' }
+                }),
+                placeholder: (base) => ({ ...base, color: '#607d8b' }),
                 singleValue: (base) => ({ ...base, color: '#455a64' })
               }}
             />
