@@ -59,7 +59,7 @@ export function Vehicles() {
     } finally {
       setLoading(false);
     }
-  }, [page, size, searchTerm]);
+  }, [page, size, searchTerm, selectedRoomId]);
 
   React.useEffect(() => { loadVehicles(); }, [loadVehicles]);
   React.useEffect(() => { setPage(1); }, [size, searchTerm, selectedRoomId]);

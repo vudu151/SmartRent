@@ -60,7 +60,7 @@ export function Residents() {
     } finally {
       setLoading(false);
     }
-  }, [page, size, searchTerm]);
+  }, [page, size, searchTerm, selectedRoomId]);
 
   React.useEffect(() => { loadResidents(); }, [loadResidents]);
   React.useEffect(() => { setPage(1); }, [size, searchTerm, selectedRoomId]);
