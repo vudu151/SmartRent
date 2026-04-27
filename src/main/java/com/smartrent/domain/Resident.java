@@ -19,14 +19,16 @@ import java.util.Set;
  * Entity representing a Resident (Cư dân / Người thuê trọ)
  */
 @Entity
+@org.hibernate.annotations.FilterDef(name = "buildingFilter", parameters = @org.hibernate.annotations.ParamDef(name = "buildingId", type = Long.class))
+@org.hibernate.annotations.Filter(name = "buildingFilter", condition = "(id IN (SELECT rr.resident_id FROM resident_rooms rr JOIN rooms r ON r.id = rr.room_id WHERE r.building_id = :buildingId) OR NOT EXISTS (SELECT 1 FROM resident_rooms rr2 WHERE rr2.resident_id = id))")
 @Table(name = "residents", indexes = {
     @Index(name = "idx_residents_tenant_id", columnList = "tenant_id"),
     @Index(name = "idx_residents_user_id", columnList = "user_id"),
     @Index(name = "idx_residents_status", columnList = "status")
 })
 @Data
-@EqualsAndHashCode(exclude = {"rooms"})
-@ToString(exclude = {"rooms"})
+@EqualsAndHashCode(exclude = {"rooms", "vehicles"})
+@ToString(exclude = {"rooms", "vehicles"})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -62,6 +64,17 @@ public class Resident {
     @Column(length = 10)
     private String gender;
 
+    @Column(name = "id_card_image_url", columnDefinition = "TEXT")
+    private String idCardImageUrl;
+
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
+    private String avatarUrl;
+
+    @Column(name = "image_urls", columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter.class)
+    @Builder.Default
+    private java.util.List<String> imageUrls = new java.util.ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     @Builder.Default
@@ -73,6 +86,10 @@ public class Resident {
     @ManyToMany(mappedBy = "residents", fetch = FetchType.LAZY)
     @Builder.Default
     private Set<Room> rooms = new HashSet<>();
+
+    @OneToMany(mappedBy = "resident", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<Vehicle> vehicles = new HashSet<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -77,6 +77,11 @@ public class Room {
     @Column(precision = 15, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "image_urls", columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter.class)
+    @Builder.Default
+    private java.util.List<String> imageUrls = new java.util.ArrayList<>();
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "resident_rooms",

@@ -90,6 +90,7 @@ public class ContractServiceImpl implements ContractService {
                 .depositAmount(request.getDepositAmount())
                 .status(request.getStatus() != null ? request.getStatus() : ContractStatus.ACTIVE)
                 .notes(request.getNotes())
+                .imageUrls(request.getImageUrls() != null ? request.getImageUrls() : new java.util.ArrayList<>())
                 .build();
 
         // Business Logic: Auto-update room status and link resident
@@ -137,6 +138,10 @@ public class ContractServiceImpl implements ContractService {
                 // For now, just update status
             }
             contract.setStatus(request.getStatus());
+        }
+        
+        if (request.getImageUrls() != null) {
+            contract.setImageUrls(request.getImageUrls());
         }
 
         contract = contractRepository.save(contract);
@@ -270,6 +275,7 @@ public class ContractServiceImpl implements ContractService {
                 .portalToken(contract.getPortalToken())
                 .createdAt(contract.getCreatedAt())
                 .updatedAt(contract.getUpdatedAt())
+                .imageUrls(contract.getImageUrls() != null ? contract.getImageUrls() : new java.util.ArrayList<>())
                 .build();
     }
 }

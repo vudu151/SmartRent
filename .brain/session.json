@@ -1,96 +1,52 @@
 {
-  "updated_at": "2026-04-27T01:53:00+07:00",
+  "updated_at": "2026-04-27T21:09:00+07:00",
   "working_on": {
-    "feature": "UI Standardization & API tenantId Fix",
-    "task": "Đồng bộ giao diện dashboard + Fix thiếu tenantId toàn bộ API frontend",
+    "feature": "Image Gallery & Filter Bugfix",
+    "task": "Hoàn thiện thư viện ảnh đa module (Cư dân, Xe, Phòng, Hợp đồng, Sự cố) và sửa lỗi 500 filter",
     "status": "completed",
     "files": [
-      "smartrent_ui/src/api/dashboard.ts",
-      "smartrent_ui/src/api/contract.ts",
-      "smartrent_ui/src/api/bill.ts",
-      "smartrent_ui/src/api/room.ts",
-      "smartrent_ui/src/api/resident.ts",
-      "smartrent_ui/src/api/service.ts",
-      "smartrent_ui/src/api/notification.ts",
-      "smartrent_ui/src/api/liquidation.ts",
-      "smartrent_ui/src/api/asset.ts",
-      "smartrent_ui/src/widgets/layout/building-selector.jsx",
-      "smartrent_ui/src/layouts/dashboard.jsx",
-      "smartrent_ui/src/pages/dashboard/home.jsx",
-      "smartrent_ui/src/pages/dashboard/meter-reading.jsx",
-      "smartrent_ui/src/pages/dashboard/users.jsx",
-      "src/main/java/com/smartrent/controller/UserController.java",
-      "src/main/java/com/smartrent/domain/User.java",
-      "src/main/java/com/smartrent/repository/UserRepository.java",
-      "src/main/java/com/smartrent/dto/user/CreateUserRequest.java",
-      "src/main/resources/db/migration/V23__Add_building_id_to_users.sql"
+      "smartrent_ui/src/pages/dashboard/residents.jsx",
+      "smartrent_ui/src/pages/dashboard/vehicles.jsx",
+      "smartrent_ui/src/pages/dashboard/rooms.jsx",
+      "smartrent_ui/src/pages/dashboard/contracts.jsx",
+      "smartrent_ui/src/pages/dashboard/tickets.jsx",
+      "src/main/java/com/smartrent/domain/Resident.java"
     ],
     "blockers": [],
-    "notes": "Building selector dropdown width vẫn chưa khớp 100% với container viền xám - cần kiểm tra lại"
+    "notes": "Đã tạo ImageLightbox và ImageThumbnail components để quản lý hiển thị ảnh với hiệu ứng nổi bật (Lightbox)"
   },
   "pending_tasks": [
-    { "task": "Kiểm tra dropdown building-selector width đã khớp chưa", "priority": "low", "notes": "Đã đo width bằng ref + getBoundingClientRect, ép cả min/max/width. Cần test lại sau restart." },
-    { "task": "Kiểm tra tất cả màn hình hoạt động bình thường sau fix tenantId", "priority": "high", "notes": "Đã fix 8 file API, cần test thủ công từng màn." },
-    { "task": "Mở rộng lọc theo buildingId cho các module khác (hợp đồng, cư dân...)", "priority": "medium", "notes": "Hiện chỉ màn Người Dùng lọc theo buildingId" }
+    { "task": "Test toàn bộ các flow thao tác với hình ảnh", "priority": "low", "notes": "Người dùng đã xác nhận đẹp và ổn định, có thể chờ phản hồi thêm." }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-27T01:00:00+07:00",
-      "type": "bugfix",
-      "description": "Fix toàn bộ 8 file API frontend thiếu tenantId - gây lỗi 400 MissingServletRequestParameterException",
-      "files": ["dashboard.ts", "contract.ts", "bill.ts", "room.ts", "resident.ts", "service.ts", "notification.ts", "liquidation.ts", "asset.ts"]
-    },
-    {
-      "timestamp": "2026-04-27T00:50:00+07:00",
-      "type": "bugfix",
-      "description": "Fix contract.ts dùng params object nhưng apiFetch không hỗ trợ - phải build URLSearchParams thủ công",
-      "files": ["contract.ts", "notification.ts"]
-    },
-    {
-      "timestamp": "2026-04-27T00:30:00+07:00",
+      "timestamp": "2026-04-27T21:05:00+07:00",
       "type": "feature",
-      "description": "Thêm building_id vào bảng users (V23 migration), lọc user theo khu trọ, đồng bộ màu nút với sidebar",
-      "files": ["V23__Add_building_id_to_users.sql", "User.java", "UserController.java", "users.jsx"]
+      "description": "Thêm hiển thị ảnh thumbnail và lightbox vào màn hình Quản lý Sự cố (tickets.jsx)",
+      "files": ["tickets.jsx"]
     },
     {
-      "timestamp": "2026-04-27T00:20:00+07:00",
-      "type": "ui",
-      "description": "Fix dashboard layout không scroll được (overflow-hidden → overflow-y-auto), đổi nút Chốt Đồng Loạt sang gradient indigo",
-      "files": ["dashboard.jsx", "home.jsx", "meter-reading.jsx"]
+      "timestamp": "2026-04-27T20:57:00+07:00",
+      "type": "bugfix",
+      "description": "Fix lỗi 500 khi sửa cư dân do Hibernate Filter (thiếu dấu ngoặc ưu tiên phép AND/OR)",
+      "files": ["Resident.java"]
     },
     {
-      "timestamp": "2026-04-27T00:45:00+07:00",
-      "type": "ui",
-      "description": "Building selector dropdown width khớp container viền xám - dùng ref + getBoundingClientRect",
-      "files": ["building-selector.jsx"]
+      "timestamp": "2026-04-27T20:45:00+07:00",
+      "type": "feature",
+      "description": "Áp dụng ImageThumbnail & ImageLightbox vào Cư dân, Hợp đồng, Phòng trọ, Xe",
+      "files": ["residents.jsx", "vehicles.jsx", "rooms.jsx", "contracts.jsx"]
     }
   ],
   "errors_encountered": [
     {
-      "error": "MissingServletRequestParameterException: Required request parameter 'tenantId' not present",
-      "solution": "Thêm getTenantId() import từ auth.ts và truyền tenantId vào URL query string cho mọi API call",
-      "resolved": true
-    },
-    {
-      "error": "apiFetch không hỗ trợ params object (contract.ts, notification.ts)",
-      "solution": "Build URLSearchParams thủ công và ghép vào URL string thay vì truyền qua { params: {...} }",
-      "resolved": true
-    },
-    {
-      "error": "room.ts và resident.ts dùng biến tenantId mà không khai báo",
-      "solution": "Import getTenantId() từ auth.ts và gọi để lấy giá trị",
-      "resolved": true
-    },
-    {
-      "error": "mvn command not found trên Windows",
-      "solution": "Dùng .\\mvnw.cmd thay vì mvn",
+      "error": "Lỗi 500 khi lấy chi tiết Cư dân (findByIdAndTenantId throws NonUniqueResultException/MethodArgumentTypeMismatchException)",
+      "solution": "Thêm ngoặc () bao quanh điều kiện 'id IN (...) OR NOT EXISTS (...)' trong @Filter('buildingFilter') ở entity Resident.java để tránh lỗi precedence toán tử SQL (A OR B AND C).",
       "resolved": true
     }
   ],
   "decisions_made": [
-    { "decision": "Tất cả API frontend phải truyền tenantId qua URL query string", "reason": "Backend yêu cầu @RequestParam Long tenantId bắt buộc" },
-    { "decision": "Dùng getTenantId() từ api/auth.ts", "reason": "Centralized - lấy tenantId từ user profile trong localStorage" },
-    { "decision": "Sidebar active color: variant='gradient' color='indigo'", "reason": "Đồng bộ style toàn bộ hệ thống" },
-    { "decision": "Dashboard layout overflow-y-auto", "reason": "Cho phép scroll nội dung dài như trang Tổng Quan" }
+    { "decision": "Dùng Component ImageLightbox & ImageThumbnail chung", "reason": "Tái sử dụng cho tất cả module cần hiển thị nhiều hình ảnh, tránh trùng lặp code và tạo UX đồng nhất." },
+    { "decision": "Fix điều kiện SQL tại entity Resident", "reason": "Lỗi do Hibernate @Filter kết hợp với Spring Data JPA findById gây ra khi nối thêm 'AND id=?'" }
   ]
 }

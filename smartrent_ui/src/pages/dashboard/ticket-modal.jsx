@@ -12,11 +12,65 @@ import {
 } from "@material-tailwind/react";
 import { getRooms } from "@/api/room";
 import { getResidents } from "@/api/resident";
-import { createTicket } from "@/api/ticket";
+import { createTicket, updateTicket } from "@/api/ticket";
 import { showToast } from "@/lib/swal";
+import { apiFetch } from "@/lib/http";
+import { env } from "@/config/env";
 import ReactSelect from "react-select";
 
-export function TicketModal({ open, onClose, onSuccess }) {
+const MultiImageUploadArea = ({ label, images, onUpload, onRemove, uploading, disabled, maxImages = 3 }) => (
+  <div className="flex flex-col gap-2 col-span-full">
+    <Typography variant="small" color="blue-gray" className="font-medium">{label} ({images.length}/{maxImages})</Typography>
+    <div className="flex flex-wrap items-center gap-4">
+      {images.map((url, idx) => (
+        <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden border group">
+          <img src={(env?.apiBaseUrl || "") + url} alt="Incident" className="w-full h-full object-cover" />
+          {!disabled && (
+            <button 
+              type="button"
+              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => onRemove(idx)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
+      ))}
+      
+      {images.length < maxImages && (
+        <div 
+          className={`w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center relative bg-gray-50/50 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-indigo-500'} transition-colors`}
+          onClick={() => !disabled && document.getElementById('upload-ticket-img').click()}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400 mb-1">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span className="text-[10px] text-gray-500 font-medium leading-tight">Thêm ảnh</span>
+          
+          {uploading && (
+            <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+              <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      <input 
+        id="upload-ticket-img"
+        type="file" 
+        accept="image/*" 
+        multiple
+        className="hidden" 
+        onChange={onUpload}
+        disabled={disabled || uploading}
+      />
+    </div>
+  </div>
+);
+
+export function TicketModal({ open, onClose, onSuccess, ticket }) {
   const [loading, setLoading] = useState(false);
   const [rooms, setRooms] = useState([]);
   const [formData, setFormData] = useState({
@@ -27,14 +81,42 @@ export function TicketModal({ open, onClose, onSuccess }) {
     description: "",
     priority: "MEDIUM",
     category: "REPAIR",
-    status: "PENDING"
+    status: "PENDING",
+    imageUrls: []
   });
+
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   useEffect(() => {
     if (open) {
       loadRooms();
+      if (ticket) {
+        setFormData({
+          roomId: String(ticket.roomId || ""),
+          residentId: ticket.residentId || "",
+          residentName: ticket.residentName || "",
+          title: ticket.title || "",
+          description: ticket.description || "",
+          priority: ticket.priority || "MEDIUM",
+          category: ticket.category || "REPAIR",
+          status: ticket.status || "PENDING",
+          imageUrls: ticket.imageUrls || []
+        });
+      } else {
+        setFormData({
+          roomId: "",
+          residentId: "",
+          residentName: "",
+          title: "",
+          description: "",
+          priority: "MEDIUM",
+          category: "REPAIR",
+          status: "PENDING",
+          imageUrls: []
+        });
+      }
     }
-  }, [open]);
+  }, [open, ticket]);
 
   const loadRooms = async () => {
     try {
@@ -67,6 +149,51 @@ export function TicketModal({ open, onClose, onSuccess }) {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    if (formData.imageUrls.length + files.length > 3) {
+      showToast("Chỉ được tải tối đa 3 ảnh", "warning");
+      return;
+    }
+
+    try {
+      setUploadingImages(true);
+      const newUrls = [...formData.imageUrls];
+      
+      for (const file of files) {
+        const uploadData = new FormData();
+        uploadData.append('file', file);
+        
+        const res = await apiFetch('/api/files/upload', {
+          method: 'POST',
+          body: uploadData
+        });
+
+        if (res.success) {
+          newUrls.push(res.data);
+        }
+      }
+      
+      setFormData(prev => ({ ...prev, imageUrls: newUrls }));
+      showToast("Tải ảnh lên thành công", "success");
+    } catch (err) {
+      showToast(err.message || "Lỗi tải ảnh", "error");
+    } finally {
+      setUploadingImages(false);
+      e.target.value = null;
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    setFormData(prev => {
+      const newUrls = [...prev.imageUrls];
+      newUrls.splice(index, 1);
+      return { ...prev, imageUrls: newUrls };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.roomId) {
@@ -78,19 +205,36 @@ export function TicketModal({ open, onClose, onSuccess }) {
       showToast("Vui lòng nhập tiêu đề sự cố!", "warning");
       return;
     }
+
+    if (!formData.residentId) {
+      showToast("Phòng chưa có cư dân, không thể báo sự cố!", "warning");
+      return;
+    }
     
     try {
       setLoading(true);
-      await createTicket({
-        ...formData,
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        category: formData.category,
+        status: formData.status,
         roomId: Number(formData.roomId),
-        residentId: Number(formData.residentId)
-      });
-      showToast("Gửi báo cáo sự cố thành công!", "success");
+        residentId: Number(formData.residentId),
+        imageUrls: formData.imageUrls
+      };
+
+      if (ticket) {
+        await updateTicket(ticket.id, payload);
+        showToast("Cập nhật sự cố thành công!", "success");
+      } else {
+        await createTicket(payload);
+        showToast("Gửi báo cáo sự cố thành công!", "success");
+      }
       onSuccess();
       onClose();
     } catch (err) {
-      showToast(err.message || "Có lỗi xảy ra", "error");
+      showToast(err.message || "Lỗi xử lý sự cố", "error");
     } finally {
       setLoading(false);
     }
@@ -123,15 +267,16 @@ export function TicketModal({ open, onClose, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} handler={onClose} size="md" className="z-[9999]" overlayProps={{ className: "z-[9998]" }}>
-      <DialogHeader>
-        <Typography variant="h5" color="blue-gray">Báo Cáo Sự Cố Mới</Typography>
+    <Dialog open={open} handler={onClose} size="md" className="z-[9999] overflow-hidden" overlayProps={{ className: "z-[9998]" }}>
+      <DialogHeader className="pb-2">
+        <Typography variant="h5" color="blue-gray">{ticket ? "Cập Nhật Sự Cố" : "Báo Cáo Sự Cố Mới"}</Typography>
       </DialogHeader>
-      <DialogBody divider className="max-h-[80vh] overflow-y-auto pt-4">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <DialogBody divider className="max-h-[80vh] overflow-y-auto overflow-x-hidden pt-4 px-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          {/* Phòng + Cư dân */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
             <div className="flex flex-col gap-1">
-              <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Chọn Phòng *</Typography>
+              <Typography variant="small" color="blue-gray" className="font-medium">Chọn Phòng <span className="text-red-500">*</span></Typography>
               <ReactSelect
                 options={roomOptions}
                 styles={selectStyles}
@@ -142,7 +287,6 @@ export function TicketModal({ open, onClose, onSuccess }) {
                 noOptionsMessage={() => "Không tìm thấy phòng"}
               />
             </div>
-
             <Input 
               label="Cư dân (Gán tự động)" 
               value={formData.residentName} 
@@ -151,6 +295,7 @@ export function TicketModal({ open, onClose, onSuccess }) {
             />
           </div>
 
+          {/* Tiêu đề */}
           <Input 
             label="Tiêu đề sự cố *" 
             required 
@@ -158,11 +303,13 @@ export function TicketModal({ open, onClose, onSuccess }) {
             onChange={(e) => setFormData(p => ({...p, title: e.target.value}))}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Độ ưu tiên + Trạng thái + Loại sự cố */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Select 
                 label="Độ ưu tiên" 
                 value={formData.priority}
                 onChange={(val) => setFormData(p => ({...p, priority: val}))}
+                containerProps={{ className: "!min-w-0" }}
             >
               <Option value="URGENT">Khẩn cấp</Option>
               <Option value="HIGH">Cao</Option>
@@ -174,8 +321,9 @@ export function TicketModal({ open, onClose, onSuccess }) {
                 label="Trạng thái" 
                 value={formData.status}
                 onChange={(val) => setFormData(p => ({...p, status: val}))}
+                containerProps={{ className: "!min-w-0" }}
             >
-              <Option value="PENDING">Mới báo (Đang chờ)</Option>
+              <Option value="PENDING">Đang chờ</Option>
               <Option value="IN_PROGRESS">Đang sửa</Option>
               <Option value="RESOLVED">Hoàn thành</Option>
             </Select>
@@ -184,14 +332,27 @@ export function TicketModal({ open, onClose, onSuccess }) {
                 label="Loại sự cố" 
                 value={formData.category}
                 onChange={(val) => setFormData(p => ({...p, category: val}))}
+                containerProps={{ className: "!min-w-0" }}
             >
-              <Option value="REPAIR">Sửa chữa</Option>
-              <Option value="CLEANING">Vệ sinh</Option>
+              <Option value="PLUMBING">Ống nước</Option>
+              <Option value="ELECTRICAL">Điện</Option>
+              <Option value="APPLIANCE">Thiết bị gia dụng</Option>
               <Option value="SECURITY">An ninh</Option>
               <Option value="OTHER">Khác</Option>
             </Select>
           </div>
 
+          <MultiImageUploadArea 
+            label="Hình ảnh hiện trường"
+            images={formData.imageUrls}
+            onUpload={handleImageUpload}
+            onRemove={handleRemoveImage}
+            uploading={uploadingImages}
+            disabled={loading}
+            maxImages={3}
+          />
+
+          {/* Chi tiết */}
           <Textarea 
             label="Chi tiết sự cố" 
             rows={4}
@@ -199,10 +360,11 @@ export function TicketModal({ open, onClose, onSuccess }) {
             onChange={(e) => setFormData(p => ({...p, description: e.target.value}))}
           />
 
-          <div className="flex gap-4 justify-end mt-4">
+          {/* Buttons */}
+          <div className="flex gap-3 justify-end mt-2">
             <Button variant="text" color="red" onClick={onClose} disabled={loading}>Hủy</Button>
-            <Button type="submit" color="black" disabled={loading}>
-              {loading ? "Đang gửi..." : "Gửi Báo Cáo"}
+            <Button type="submit" variant="gradient" color="indigo" disabled={loading}>
+              {loading ? "Đang xử lý..." : (ticket ? "Cập Nhật" : "Gửi Báo Cáo")}
             </Button>
           </div>
         </form>

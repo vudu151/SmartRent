@@ -35,16 +35,20 @@ export interface ApiResponse<T> {
 export async function getResidents(params?: {
   page?: number
   size?: number
-  status?: string
   search?: string
+  status?: string
+  roomId?: number | string
 }): Promise<PaginatedResponse<ResidentResponse>> {
   const tenantId = getTenantId()
+  if (!tenantId) throw new Error("Tenant ID not found")
+
   const searchParams = new URLSearchParams()
   searchParams.append('tenantId', tenantId.toString())
   if (params?.page !== undefined) searchParams.append('page', params.page.toString())
   if (params?.size !== undefined) searchParams.append('size', params.size.toString())
-  if (params?.status) searchParams.append('status', params.status)
   if (params?.search) searchParams.append('search', params.search)
+  if (params?.status) searchParams.append('status', params.status)
+  if (params?.roomId) searchParams.append('roomId', params.roomId.toString())
 
   const response = await apiFetch<ApiResponse<PaginatedResponse<ResidentResponse>>>(
     `/api/residents?${searchParams.toString()}`,

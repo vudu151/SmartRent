@@ -24,6 +24,9 @@ public class CreateResidentRequest {
     private String idCard;
     private LocalDate dateOfBirth;
     private String gender;
+    private String idCardImageUrl;
+    private String avatarUrl;
+    private java.util.List<String> imageUrls;
     private String notes;
     private Set<Long> roomIds;
 

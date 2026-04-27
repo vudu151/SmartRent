@@ -36,6 +36,7 @@ export function Tenants() {
   const [totalElements, setTotalElements] = React.useState(0);
 
   const loadTenants = React.useCallback(async () => {
+    if (searchTerm.trim().length === 1) return;
     try {
       setLoading(true); setError("");
       const response = await getTenants({ page: currentPage - 1, size: pageSize, sortBy: "id", sortDir: "DESC", search: searchTerm });
@@ -63,9 +64,13 @@ export function Tenants() {
           <Typography color="gray" className="font-normal text-xs">Thông tin các chủ trọ hệ thống</Typography>
         </div>
         <div className="flex shrink-0 gap-2 items-center">
-          <div className="w-48">
-            <Input label="Tìm kiếm..." size="md" icon={<MagnifyingGlassIcon className="h-4 w-4" />} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} containerProps={{ className: "!min-w-0" }} />
-          </div>
+          <input
+            type="text"
+            placeholder="Tìm kiếm (>=2 ký tự)..."
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-64 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+          />
           <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleAdd}>
             <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm
           </Button>
@@ -140,7 +145,7 @@ export function Tenants() {
         {!loading && tenants.length > 0 && (
           <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
             <div className="flex items-center gap-4">
-              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {tenants.length} trong {totalElements} tenant</Typography>
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {tenants.length} / {totalElements} tenant</Typography>
               <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Trang {currentPage} / {totalPages || 1}</Typography>
             </div>
             <div className="flex gap-2">

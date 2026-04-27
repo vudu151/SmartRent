@@ -14,7 +14,61 @@ import { getContractById, createContract, updateContract } from "@/api/contract"
 import { getRooms } from "@/api/room";
 import { getResidents } from "@/api/resident";
 import { showToast } from "@/lib/swal";
+import { apiFetch } from "@/lib/http";
+import { env } from "@/config/env";
 import ReactSelect from "react-select";
+
+const MultiImageUploadArea = ({ label, images, onUpload, onRemove, uploading, disabled, maxImages = 5 }) => (
+  <div className="flex flex-col gap-2 col-span-full">
+    <Typography variant="small" color="blue-gray" className="font-medium">{label} ({images.length}/{maxImages})</Typography>
+    <div className="flex flex-wrap items-center gap-4">
+      {images.map((url, idx) => (
+        <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden border group">
+          <img src={(env?.apiBaseUrl || "") + url} alt="Contract" className="w-full h-full object-cover" />
+          {!disabled && (
+            <button 
+              type="button"
+              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => onRemove(idx)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
+      ))}
+      
+      {images.length < maxImages && (
+        <div 
+          className={`w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center relative bg-gray-50/50 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-indigo-500'} transition-colors`}
+          onClick={() => !disabled && document.getElementById('upload-contract-img').click()}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-gray-400 mb-1">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span className="text-[10px] text-gray-500 font-medium leading-tight">Thêm ảnh</span>
+          
+          {uploading && (
+            <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+              <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      <input 
+        id="upload-contract-img"
+        type="file" 
+        accept="image/*" 
+        multiple
+        className="hidden" 
+        onChange={onUpload}
+        disabled={disabled || uploading}
+      />
+    </div>
+  </div>
+);
 
 export function ContractModal({ open, onClose, contractId, onSuccess }) {
   const isEdit = Boolean(contractId);
@@ -32,9 +86,11 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
     monthlyRent: "",
     depositAmount: "",
     status: "ACTIVE",
-    notes: ""
+    notes: "",
+    imageUrls: []
   });
   const [errors, setErrors] = React.useState({});
+  const [uploadingImages, setUploadingImages] = React.useState(false);
 
   // Load complementary data (Rooms & Residents)
   React.useEffect(() => {
@@ -74,7 +130,8 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
           monthlyRent: "",
           depositAmount: "",
           status: "ACTIVE",
-          notes: ""
+          notes: "",
+          imageUrls: []
         });
         setErrors({});
       }
@@ -93,7 +150,8 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
         monthlyRent: data.monthlyRent?.toString() || "",
         depositAmount: data.depositAmount?.toString() || "",
         status: data.status || "ACTIVE",
-        notes: data.notes || ""
+        notes: data.notes || "",
+        imageUrls: data.imageUrls || []
       });
     } catch (err) {
       showToast(err.message, "error");
@@ -143,6 +201,51 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    if (formData.imageUrls.length + files.length > 5) {
+      showToast("Chỉ được tải tối đa 5 ảnh", "warning");
+      return;
+    }
+
+    try {
+      setUploadingImages(true);
+      const newUrls = [...formData.imageUrls];
+      
+      for (const file of files) {
+        const uploadData = new FormData();
+        uploadData.append('file', file);
+        
+        const res = await apiFetch('/api/files/upload', {
+          method: 'POST',
+          body: uploadData
+        });
+
+        if (res.success) {
+          newUrls.push(res.data);
+        }
+      }
+      
+      setFormData(prev => ({ ...prev, imageUrls: newUrls }));
+      showToast("Tải ảnh lên thành công", "success");
+    } catch (err) {
+      showToast(err.message || "Lỗi tải ảnh", "error");
+    } finally {
+      setUploadingImages(false);
+      e.target.value = null;
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    setFormData(prev => {
+      const newUrls = [...prev.imageUrls];
+      newUrls.splice(index, 1);
+      return { ...prev, imageUrls: newUrls };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (errors.depositAmount || errors.monthlyRent || errors.date) {
@@ -161,6 +264,7 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
         residentId: Number(formData.residentId),
         monthlyRent: Number(formData.monthlyRent),
         depositAmount: Number(formData.depositAmount),
+        imageUrls: formData.imageUrls,
       };
 
       if (isEdit && contractId) {
@@ -320,6 +424,16 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
                 </div>
               )}
             </div>
+
+            <MultiImageUploadArea 
+              label="Ảnh chụp hợp đồng"
+              images={formData.imageUrls}
+              onUpload={handleImageUpload}
+              onRemove={handleRemoveImage}
+              uploading={uploadingImages}
+              disabled={loading}
+              maxImages={5}
+            />
 
             <Textarea
               label="Ghi chú điều khoản"

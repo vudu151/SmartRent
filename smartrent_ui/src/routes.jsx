@@ -14,8 +14,9 @@ import {
   CurrencyDollarIcon,
   UsersIcon,
   ClipboardDocumentListIcon,
+  TruckIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Tables, Notifications, Health, Tenants, Rooms, Residents, Bills, Users, Contracts, Services, Tickets, MeterReading } from "@/pages/dashboard";
+import { Home, Profile, Tables, Notifications, Health, Tenants, Rooms, Residents, Bills, Users, Contracts, Services, Tickets, MeterReading, Vehicles } from "@/pages/dashboard";
 import { SignIn, SignUp, ForgotPassword } from "@/pages/auth";
 
 const icon = {
@@ -46,6 +47,13 @@ export const routes = [
         name: "Cư dân",
         path: "/residents",
         element: <Residents />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
+      },
+      {
+        icon: <TruckIcon {...icon} />,
+        name: "Quản lý Xe",
+        path: "/vehicles",
+        element: <Vehicles />,
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
       },
       {

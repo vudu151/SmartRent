@@ -22,6 +22,8 @@ import { RoomModal } from "./room-form";
 import { AssetModal } from "./asset-modal";
 import { LiquidationModal } from "./liquidation-modal";
 import { showToast } from "@/lib/swal";
+import { env } from "@/config/env";
+import { ImageThumbnail } from "@/components/image-lightbox";
 
 export function Rooms() {
   const [controller] = useMaterialTailwindController();
@@ -53,6 +55,7 @@ export function Rooms() {
   const searchRef = React.useRef(null);
 
   const loadRooms = React.useCallback(async () => {
+    if (searchTerm.trim().length === 1) return;
     try {
       setLoading(true);
       setError("");
@@ -99,16 +102,13 @@ export function Rooms() {
           </Typography>
         </div>
         <div className="flex shrink-0 gap-2 items-center">
-          <div className="w-48">
-            <Input
-              label="Tìm số phòng..."
-              size="md"
-              icon={<MagnifyingGlassIcon className="h-4 w-4" />}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              containerProps={{ className: "!min-w-0" }}
-            />
-          </div>
+          <input
+            type="text"
+            placeholder="Tìm số phòng (>=2 ký tự)..."
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-64 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
           <Button
             variant="gradient"
             color="indigo"
@@ -213,6 +213,7 @@ export function Rooms() {
                 <thead>
                   <tr>
                     {[
+                      { label: "Ảnh", align: "text-left" },
                       { label: "Số Phòng", align: "text-left" },
                       { label: "Tầng", align: "text-left" },
                       { label: "Loại", align: "text-left" },
@@ -242,6 +243,9 @@ export function Rooms() {
 
                     return (
                       <tr key={room.id}>
+                        <td className={className}>
+                          <ImageThumbnail images={room.imageUrls} alt={room.roomNumber} />
+                        </td>
                         <td className={className}>
                           <Typography variant="small" color="blue-gray" className="font-bold">
                             {room.roomNumber}
@@ -319,7 +323,7 @@ export function Rooms() {
           <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
             <div className="flex items-center gap-4">
               <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
-                Hiển thị {rooms.length} trong {totalElements} phòng
+                Hiển thị {rooms.length} / {totalElements} phòng
               </Typography>
               <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
                 Trang {page} / {totalPages || 1}

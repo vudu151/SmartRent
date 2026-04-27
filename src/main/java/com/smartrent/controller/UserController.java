@@ -118,11 +118,11 @@ public class UserController {
         newUser.setStatus(User.UserStatus.ACTIVE);
 
         if (currentUser.getRole() == User.UserRole.TENANT_MANAGER) {
-            // Manager can only create GUARD
-            if (request.getRole() != User.UserRole.GUARD) {
-                return ResponseEntity.status(403).body(ApiResponse.error("FORBIDDEN", "Quản lý chỉ có thể tạo tài khoản Bảo vệ"));
+            // Manager can only create GUARD and TENANT (Resident)
+            if (request.getRole() != User.UserRole.GUARD && request.getRole() != User.UserRole.TENANT) {
+                return ResponseEntity.status(403).body(ApiResponse.error("FORBIDDEN", "Quản lý chỉ có thể tạo tài khoản Bảo vệ hoặc Cư dân"));
             }
-            newUser.setRole(User.UserRole.GUARD);
+            newUser.setRole(request.getRole());
             newUser.setTenant(currentUser.getTenant());
             if (request.getBuildingId() != null) {
                 Building building = buildingRepository.findById(request.getBuildingId())

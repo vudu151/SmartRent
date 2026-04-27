@@ -28,6 +28,8 @@ public class CreateRoomRequest {
 
     private BigDecimal price;
 
+    private java.util.List<String> imageUrls;
+
     @NotNull(message = "Tenant ID không được để trống")
     private Long tenantId;
 }

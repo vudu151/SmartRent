@@ -1,4 +1,5 @@
 import { apiFetch } from '@/lib/http';
+import type { ApiResponse } from './auth';
 
 
 export interface Tenant {

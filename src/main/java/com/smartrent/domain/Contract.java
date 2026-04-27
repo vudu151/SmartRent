@@ -71,6 +71,11 @@ public class Contract {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "image_urls", columnDefinition = "TEXT")
+    @Convert(converter = StringListConverter.class)
+    @Builder.Default
+    private java.util.List<String> imageUrls = new java.util.ArrayList<>();
+
     @Column(name = "portal_token", nullable = false, unique = true, length = 255)
     @Builder.Default
     private String portalToken = java.util.UUID.randomUUID().toString();

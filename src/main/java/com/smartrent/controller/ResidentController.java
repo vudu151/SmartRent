@@ -33,12 +33,13 @@ public class ResidentController {
             @RequestParam Long tenantId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long roomId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "DESC") Sort.Direction sortDir) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir, sortBy));
-        return ResponseEntity.ok(residentService.getResidents(tenantId, status, search, pageable));
+        return ResponseEntity.ok(residentService.getResidents(tenantId, status, search, roomId, pageable));
     }
 
     @GetMapping("/{id}")

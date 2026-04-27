@@ -1,5 +1,6 @@
 import { apiFetch } from "@/lib/http";
 import { getTenantId } from "@/api/auth";
+import type { ApiResponse } from "@/api/auth";
 
 export const getNotifications = async (params?: { page?: number; size?: number }) => {
   const tenantId = getTenantId();

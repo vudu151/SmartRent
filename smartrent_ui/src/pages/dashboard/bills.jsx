@@ -46,6 +46,7 @@ export function Bills() {
   const [totalElements, setTotalElements] = React.useState(0);
 
   const loadBills = React.useCallback(async () => {
+    if (roomNumber.trim().length === 1) return;
     try {
       setLoading(true); setError("");
       const response = await getBills({ page: page - 1, size, roomNumber: roomNumber || undefined, status: statusFilter || undefined, billType: typeFilter || undefined });
@@ -76,32 +77,26 @@ export function Bills() {
         <div className="flex items-center gap-2 flex-1 justify-end">
           <input
             type="text"
-            placeholder="Tìm số phòng..."
-            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-32 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            placeholder="Tìm phòng (>=2 ký tự)..."
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-48 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             value={roomNumber}
             onChange={(e) => setRoomNumber(e.target.value)}
           />
-          <select
-            className="text-sm border border-blue-gray-200 rounded-lg px-2 py-1.5 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500 cursor-pointer"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Trạng thái</option>
-            <option value="UNPAID">Chưa Thu</option>
-            <option value="PAID">Đã Thu</option>
-            <option value="OVERDUE">Quá Hạn</option>
-          </select>
-          <select
-            className="text-sm border border-blue-gray-200 rounded-lg px-2 py-1.5 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500 cursor-pointer"
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
-            <option value="">Loại phí</option>
-            <option value="RENT">Tiền Phòng</option>
-            <option value="ELECTRICITY">Tiền Điện</option>
-            <option value="WATER">Tiền Nước</option>
-            <option value="SERVICE">Dịch Vụ</option>
-          </select>
+          <div className="w-32 shrink-0 bg-white rounded-lg">
+            <Select 
+              label="Trạng thái" 
+              className="!min-w-0"
+              value={statusFilter} 
+              onChange={(val) => setStatusFilter(val || "")}
+              containerProps={{ className: "!min-w-0" }}
+            >
+              <Option value="">Tất cả</Option>
+              <Option value="UNPAID">Chưa Thu</Option>
+              <Option value="PAID">Đã Thu</Option>
+              <Option value="OVERDUE">Quá Hạn</Option>
+            </Select>
+          </div>
+
           <Button variant="outlined" color="blue-gray" size="sm" className="flex items-center gap-1 whitespace-nowrap" onClick={handleRemind} disabled={loading}>
             <BellIcon className="h-3 w-3" /> Nhắc Nợ
           </Button>
@@ -187,7 +182,7 @@ export function Bills() {
         {!loading && bills.length > 0 && (
           <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
             <div className="flex items-center gap-4">
-              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {bills.length} trong {totalElements} phiếu thu</Typography>
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {bills.length} / {totalElements} phiếu thu</Typography>
               <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Trang {page} / {totalPages || 1}</Typography>
             </div>
             <div className="flex gap-2">

@@ -30,6 +30,7 @@ export function MeterReading() {
   // State to hold dynamic grid inputs
   // Format: { [roomId]: { eOld, eNew, wOld, wNew } }
   const [readings, setReadings] = useState({});
+  const [editModes, setEditModes] = useState({});
 
   useEffect(() => {
     setNavbarHeader(
@@ -82,10 +83,13 @@ export function MeterReading() {
       
       // Init empty state
       const initialReadings = {};
+      const initialEditModes = {};
       activeRooms.forEach(r => {
         initialReadings[r.id] = { eOld: "Tự động", eNew: "", wOld: "Tự động", wNew: "" };
+        initialEditModes[r.id] = false; // Mặc định không cho sửa, phải bấm "Sửa" mới được nhập
       });
       setReadings(initialReadings);
+      setEditModes(initialEditModes);
     } catch (err) {
       showToast("Lỗi tải danh sách phòng", "error");
     } finally {
@@ -101,6 +105,46 @@ export function MeterReading() {
         [field]: value
       }
     }));
+  };
+
+  const handleToggleEdit = (roomId) => {
+    if (!isRecordingAllowed) {
+      showToast("Hiện không trong thời gian được phép chốt điện nước", "warning");
+      return;
+    }
+    setEditModes(prev => ({
+      ...prev,
+      [roomId]: !prev[roomId]
+    }));
+  };
+
+  const handleSingleSubmit = async (roomId) => {
+    const data = readings[roomId];
+    if (data.eNew === "" && data.wNew === "") {
+      showToast("Vui lòng nhập chỉ số mới!", "warning");
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      await generateMeterBills([{
+        roomId: Number(roomId),
+        oldElectricity: null,
+        newElectricity: data.eNew !== "" ? Number(data.eNew) : null,
+        oldWater: null,
+        newWater: data.wNew !== "" ? Number(data.wNew) : null,
+      }]);
+      showToast(`Đã chốt xong Điện Nước cho phòng ${rooms.find(r => r.id === roomId)?.roomNumber}!`, "success");
+      
+      // Khóa lại input sau khi chốt
+      setEditModes(prev => ({ ...prev, [roomId]: false }));
+      
+      // Load lại để có số mới nhất nếu cần, tạm thời để nguyên state mới
+    } catch (err) {
+      showToast(err.message || "Lỗi tự động chốt hóa đơn", "error");
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -178,12 +222,31 @@ export function MeterReading() {
                       <CardBody className="p-4">
                         <div className="flex justify-between items-center mb-4 border-b dark:border-blue-gray-800 pb-2">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-bold">
+                                <div className="px-3 py-1.5 rounded-md bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold text-sm border border-indigo-100 dark:border-indigo-800">
                                     {room.roomNumber}
                                 </div>
-                                <Typography variant="h6" className="dark:text-white">Phòng {room.roomNumber}</Typography>
                             </div>
-                            <Typography variant="small" className="text-[10px] text-blue-gray-400 font-mono">ID: {room.id}</Typography>
+                            <div className="flex gap-2">
+                                <Button 
+                                    variant={editModes[room.id] ? "text" : "outlined"} 
+                                    color={editModes[room.id] ? "red" : "blue"} 
+                                    size="sm" 
+                                    className="px-3 py-1 text-xs h-7 min-w-[60px]"
+                                    onClick={() => handleToggleEdit(room.id)}
+                                >
+                                    {editModes[room.id] ? "Hủy" : "Sửa"}
+                                </Button>
+                                <Button 
+                                    variant="gradient" 
+                                    color="indigo" 
+                                    size="sm" 
+                                    className="px-3 py-1 text-xs h-7 min-w-[60px]"
+                                    disabled={processing || !editModes[room.id] || (data.eNew === "" && data.wNew === "")}
+                                    onClick={() => handleSingleSubmit(room.id)}
+                                >
+                                    Chốt
+                                </Button>
+                            </div>
                         </div>
                         
                         <div className="space-y-6">
@@ -213,7 +276,7 @@ export function MeterReading() {
                                           className="dark:text-white"
                                           containerProps={{ className: "min-w-[0]" }}
                                           value={data.eNew} 
-                                          disabled={!isRecordingAllowed}
+                                          disabled={!isRecordingAllowed || !editModes[room.id]}
                                           onChange={(e) => handleInputChange(room.id, "eNew", e.target.value)} 
                                       />
                                     </div>
@@ -246,7 +309,7 @@ export function MeterReading() {
                                           className="dark:text-white"
                                           containerProps={{ className: "min-w-[0]" }}
                                           value={data.wNew} 
-                                          disabled={!isRecordingAllowed}
+                                          disabled={!isRecordingAllowed || !editModes[room.id]}
                                           onChange={(e) => handleInputChange(room.id, "wNew", e.target.value)} 
                                       />
                                     </div>

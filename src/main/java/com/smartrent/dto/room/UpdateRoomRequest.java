@@ -19,4 +19,5 @@ public class UpdateRoomRequest {
     private String status;
     private String description;
     private BigDecimal price;
+    private java.util.List<String> imageUrls;
 }

@@ -11,5 +11,6 @@ public interface TicketService {
     ApiResponse<TicketDTO.Response> getTicketById(Long id, Long tenantId);
     ApiResponse<TicketDTO.Response> updateTicketStatus(Long id, Long tenantId, TicketStatus newStatus);
     ApiResponse<TicketDTO.Response> createTicketAdmin(Long tenantId, TicketDTO.Request request);
+    ApiResponse<TicketDTO.Response> updateTicketAdmin(Long id, Long tenantId, TicketDTO.Request request);
     ApiResponse<Void> deleteTicket(Long id, Long tenantId);
 }

@@ -48,6 +48,15 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.createTicketAdmin(tenantId, request));
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "Update ticket details by Admin")
+    public ResponseEntity<ApiResponse<TicketDTO.Response>> updateTicket(
+            @PathVariable Long id,
+            @RequestParam Long tenantId,
+            @Valid @RequestBody TicketDTO.Request request) {
+        return ResponseEntity.ok(ticketService.updateTicketAdmin(id, tenantId, request));
+    }
+
     @PutMapping("/{id}/status")
     @Operation(summary = "Update ticket status (e.g. from PENDING to IN_PROGRESS)")
     public ResponseEntity<ApiResponse<TicketDTO.Response>> updateTicketStatus(

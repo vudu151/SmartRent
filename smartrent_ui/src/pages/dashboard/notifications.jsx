@@ -131,7 +131,7 @@ export function Notifications() {
           <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
             <div className="flex items-center gap-4">
               <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
-                Hiển thị {notifications.length} trong {totalElements} thông báo
+                Hiển thị {notifications.length} / {totalElements} thông báo
               </Typography>
               <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
                 Trang {page} / {totalPages || 1}

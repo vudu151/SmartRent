@@ -23,6 +23,7 @@ public class RoomResponse {
     private String type;
     private String description;
     private BigDecimal price;
+    private java.util.List<String> imageUrls;
     private int residentCount;
     private Set<ResidentSummary> residents;
     private LocalDateTime createdAt;

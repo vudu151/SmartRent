@@ -81,11 +81,46 @@ public class TicketServiceImpl implements TicketService {
                 .priority(request.getPriority() != null ? request.getPriority() : Ticket.TicketPriority.MEDIUM)
                 .category(request.getCategory() != null ? request.getCategory() : Ticket.TicketCategory.OTHER)
                 .status(request.getStatus() != null ? request.getStatus() : Ticket.TicketStatus.PENDING)
+                .imageUrls(request.getImageUrls() != null ? String.join(",", request.getImageUrls()) : null)
                 .build();
 
         ticket = ticketRepository.save(ticket);
         
         return ApiResponse.success(toResponseDTO(ticket), "Trình báo sự cố mới thành công");
+    }
+
+    @Override
+    @Transactional
+    public ApiResponse<TicketDTO.Response> updateTicketAdmin(Long id, Long tenantId, TicketDTO.Request request) {
+        Ticket ticket = ticketRepository.findByIdAndTenantId(id, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Yêu cầu sự cố không tồn tại"));
+
+        Room room = roomRepository.findByIdAndTenantId(request.getRoomId(), tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Phòng không tồn tại"));
+
+        Resident resident = residentRepository.findByIdAndTenantId(request.getResidentId(), tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cư dân không tồn tại"));
+
+        ticket.setRoom(room);
+        ticket.setResident(resident);
+        ticket.setTitle(request.getTitle());
+        ticket.setDescription(request.getDescription());
+        if (request.getPriority() != null) ticket.setPriority(request.getPriority());
+        if (request.getCategory() != null) ticket.setCategory(request.getCategory());
+        
+        if (request.getStatus() != null) {
+            if (request.getStatus() == Ticket.TicketStatus.RESOLVED && ticket.getStatus() != Ticket.TicketStatus.RESOLVED) {
+                ticket.setResolvedAt(LocalDateTime.now());
+            }
+            ticket.setStatus(request.getStatus());
+        }
+        if (request.getImageUrls() != null) {
+            ticket.setImageUrls(String.join(",", request.getImageUrls()));
+        }
+
+        ticket = ticketRepository.save(ticket);
+        
+        return ApiResponse.success(toResponseDTO(ticket), "Cập nhật sự cố thành công");
     }
 
     @Override
@@ -113,6 +148,8 @@ public class TicketServiceImpl implements TicketService {
                 .resolvedAt(ticket.getResolvedAt())
                 .createdAt(ticket.getCreatedAt())
                 .updatedAt(ticket.getUpdatedAt())
+                .imageUrls(ticket.getImageUrls() != null && !ticket.getImageUrls().isEmpty() ? 
+                    java.util.Arrays.asList(ticket.getImageUrls().split(",")) : new java.util.ArrayList<>())
                 .build();
     }
 }

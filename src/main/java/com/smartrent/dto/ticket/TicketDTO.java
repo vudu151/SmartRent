@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class TicketDTO {
 
@@ -24,6 +25,7 @@ public class TicketDTO {
         private TicketCategory category;
         private Long roomId;     // Required when Admin creates it
         private Long residentId; // Required when Admin creates it
+        private List<String> imageUrls;
     }
 
     @Data
@@ -48,5 +50,6 @@ public class TicketDTO {
         private LocalDateTime resolvedAt;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        private List<String> imageUrls;
     }
 }

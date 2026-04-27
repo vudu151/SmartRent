@@ -8,11 +8,12 @@ import {
   Option,
   Button
 } from "@material-tailwind/react";
-import { WrenchScrewdriverIcon, CheckCircleIcon, ExclamationTriangleIcon, PlayIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { WrenchScrewdriverIcon, CheckCircleIcon, ExclamationTriangleIcon, PlayIcon, PlusIcon, PencilIcon } from "@heroicons/react/24/solid";
 import { useNavbarHeader } from "@/context/navbar-header";
 import { getTickets, updateTicketStatus } from "@/api/ticket";
 import { TicketModal } from "./ticket-modal";
 import { showToast } from "@/lib/swal";
+import { ImageThumbnail } from "@/components/image-lightbox";
 
 export function Tickets() {
   const { setNavbarHeader } = useNavbarHeader();
@@ -20,14 +21,26 @@ export function Tickets() {
   const [loading, setLoading] = React.useState(true);
   const [filterStr, setFilterStr] = React.useState("");
   const [openModal, setOpenModal] = React.useState(false);
+  const [editingTicket, setEditingTicket] = React.useState(null);
+  const [page, setPage] = React.useState(1);
+  const [size] = React.useState(10);
+  const [totalElements, setTotalElements] = React.useState(0);
+  const [totalPages, setTotalPages] = React.useState(0);
 
-  React.useEffect(() => { loadTickets(); }, [filterStr]);
+  // Khi filter thay đổi, reset về trang 1
+  React.useEffect(() => {
+    setPage(1);
+  }, [filterStr]);
+
+  React.useEffect(() => { loadTickets(); }, [filterStr, page]);
 
   const loadTickets = async () => {
     try {
       setLoading(true);
-      const res = await getTickets({ page: 0, size: 50, status: filterStr });
+      const res = await getTickets({ page: page - 1, size: size, status: filterStr });
       setTickets(res.content || []);
+      setTotalElements(res.totalElements || 0);
+      setTotalPages(res.totalPages || 0);
     } catch (err) { showToast("Lỗi tải danh sách sự cố", "error"); }
     finally { setLoading(false); }
   };
@@ -64,6 +77,7 @@ export function Tickets() {
   const getPriorityColor = (p) => { switch(p) { case "URGENT": return "red"; case "HIGH": return "orange"; case "MEDIUM": return "blue"; case "LOW": return "blue-gray"; default: return "gray"; } };
   const getStatusColor = (s) => { switch(s) { case "PENDING": return "orange"; case "IN_PROGRESS": return "blue"; case "RESOLVED": return "green"; default: return "gray"; } };
   const statusLabels = { "PENDING": "MỚI NHẬN", "IN_PROGRESS": "ĐANG SỬA", "RESOLVED": "HOÀN THÀNH" };
+  const priorityLabels = { "URGENT": "KHẨN CẤP", "HIGH": "CAO", "MEDIUM": "TRUNG BÌNH", "LOW": "THẤP" };
 
   return (
     <div className="h-full flex flex-col">
@@ -77,7 +91,7 @@ export function Tickets() {
             <table className="w-full min-w-max table-auto text-left">
               <thead>
                 <tr>
-                  {["Phòng", "Khách Báo", "Độ Ưu Tiên", "Tóm Tắt Sự Cố", "Trạng Thái", "Thao tác Nhanh"].map((h) => (
+                  {["Ảnh", "Phòng", "Khách Báo", "Độ Ưu Tiên", "Tóm Tắt Sự Cố", "Trạng Thái", "Thao tác Nhanh"].map((h) => (
                     <th key={h} className="border-b border-blue-gray-50 py-3 px-5">
                       <Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{h}</Typography>
                     </th>
@@ -87,21 +101,39 @@ export function Tickets() {
               <tbody>
                 {tickets.map((t) => (
                   <tr key={t.id} className="even:bg-blue-gray-50/50">
+                    <td className="p-4">
+                      <ImageThumbnail images={t.imageUrls} alt={t.title || "Sự cố"} />
+                    </td>
                     <td className="p-4"><Typography variant="small" className="font-bold text-blue-600">{t.roomNumber}</Typography></td>
                     <td className="p-4 flex flex-col">
                       <Typography variant="small" className="font-medium text-gray-800">{t.residentName}</Typography>
                       <Typography variant="small" className="text-gray-500 text-xs">{t.residentPhone}</Typography>
                     </td>
-                    <td className="p-4"><Chip size="sm" variant="ghost" color={getPriorityColor(t.priority)} value={t.priority} /></td>
-                    <td className="p-4 max-w-xs">
-                      <Typography variant="small" className="font-bold text-gray-800">{t.title}</Typography>
-                      <Typography variant="small" className="text-gray-600 text-xs truncate max-w-[200px]" title={t.description}>{t.description}</Typography>
-                    </td>
-                    <td className="p-4"><Chip size="sm" variant="filled" color={getStatusColor(t.status)} value={statusLabels[t.status] || t.status} /></td>
                     <td className="p-4">
-                      {t.status === "PENDING" && (<Button size="sm" variant="outlined" color="blue" className="flex items-center gap-1 px-3 py-1.5" onClick={() => handleStatusChange(t.id, 'IN_PROGRESS')}><PlayIcon className="h-3 w-3" /> Gọi Thợ</Button>)}
-                      {t.status === "IN_PROGRESS" && (<Button size="sm" color="green" className="flex items-center gap-1 px-3 py-1.5" onClick={() => handleStatusChange(t.id, 'RESOLVED')}><CheckCircleIcon className="h-3 w-3" /> Chốt Xong</Button>)}
-                      {t.status === "RESOLVED" && (<div className="text-xs text-gray-400 flex items-center gap-1"><CheckCircleIcon className="h-4 w-4" /> Đã hoàn thành</div>)}
+                      <div className="w-24">
+                        <Chip size="sm" variant="ghost" color={getPriorityColor(t.priority)} value={priorityLabels[t.priority] || t.priority} className="text-center justify-center" />
+                      </div>
+                    </td>
+                    <td className="p-4 max-w-md">
+                      <Typography variant="small" className="font-bold text-gray-800">{t.title}</Typography>
+                      <Typography variant="small" className="text-gray-600 text-xs truncate max-w-[350px]" title={t.description}>{t.description}</Typography>
+                    </td>
+                    <td className="p-4">
+                      <div className="w-28">
+                        <Chip size="sm" variant="filled" color={getStatusColor(t.status)} value={statusLabels[t.status] || t.status} className="text-center justify-center" />
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-28 flex items-center">
+                          {t.status === "PENDING" && (<Button size="sm" variant="outlined" color="blue" className="flex items-center justify-center gap-1 w-full px-3 py-1.5" onClick={() => handleStatusChange(t.id, 'IN_PROGRESS')}><PlayIcon className="h-3 w-3" /> Gọi Thợ</Button>)}
+                          {t.status === "IN_PROGRESS" && (<Button size="sm" color="green" className="flex items-center justify-center gap-1 w-full px-3 py-1.5" onClick={() => handleStatusChange(t.id, 'RESOLVED')}><CheckCircleIcon className="h-3 w-3" /> Chốt Xong</Button>)}
+                          {t.status === "RESOLVED" && (<div className="text-sm text-gray-400 flex items-center justify-center gap-1 w-full"><CheckCircleIcon className="h-4 w-4" /> Hoàn thành</div>)}
+                        </div>
+                        <Button size="sm" variant="text" color="gray" className="px-2 py-1.5 shrink-0" onClick={() => { setEditingTicket(t); setOpenModal(true); }}>
+                          <PencilIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -109,8 +141,28 @@ export function Tickets() {
             </table>
           )}
         </CardBody>
+        {!loading && tickets.length > 0 && (
+          <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
+            <div className="flex items-center gap-4">
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+                Hiển thị {tickets.length} / {totalElements} sự cố
+              </Typography>
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+                Trang {page} / {totalPages || 1}
+              </Typography>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outlined" color="blue-gray" size="sm" disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)}>
+                Trước
+              </Button>
+              <Button variant="outlined" color="blue-gray" size="sm" disabled={page >= totalPages || loading} onClick={() => setPage(p => p + 1)}>
+                Sau
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
-      <TicketModal open={openModal} onClose={() => setOpenModal(false)} onSuccess={loadTickets} />
+      <TicketModal open={openModal} onClose={() => { setOpenModal(false); setEditingTicket(null); }} onSuccess={loadTickets} ticket={editingTicket} />
     </div>
   );
 }

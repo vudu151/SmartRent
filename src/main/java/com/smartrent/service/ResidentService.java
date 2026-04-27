@@ -41,7 +41,7 @@ public class ResidentService {
 
     @Transactional(readOnly = true)
     public ApiResponse<Page<ResidentResponse>> getResidents(Long tenantId, String status,
-                                                             String search, Pageable pageable) {
+                                                             String search, Long roomId, Pageable pageable) {
         Resident.ResidentStatus residentStatus = status != null ? Resident.ResidentStatus.valueOf(status) : null;
         
         Specification<Resident> spec = (root, query, cb) -> {
@@ -49,6 +49,11 @@ public class ResidentService {
             predicates.add(cb.equal(root.get("tenant").get("id"), tenantId));
             if (residentStatus != null) {
                 predicates.add(cb.equal(root.get("status"), residentStatus));
+            }
+            if (roomId != null) {
+                jakarta.persistence.criteria.Join<Resident, Room> roomsJoin = root.join("rooms", jakarta.persistence.criteria.JoinType.INNER);
+                predicates.add(cb.equal(roomsJoin.get("id"), roomId));
+                query.distinct(true);
             }
             if (search != null && !search.trim().isEmpty()) {
                 String searchLower = "%" + search.toLowerCase() + "%";
@@ -85,6 +90,9 @@ public class ResidentService {
             .idCard(request.getIdCard())
             .dateOfBirth(request.getDateOfBirth())
             .gender(request.getGender())
+            .idCardImageUrl(request.getIdCardImageUrl())
+            .avatarUrl(request.getAvatarUrl())
+            .imageUrls(request.getImageUrls() != null ? request.getImageUrls() : new java.util.ArrayList<>())
             .notes(request.getNotes())
             .status(Resident.ResidentStatus.ACTIVE)
             .build();
@@ -111,6 +119,9 @@ public class ResidentService {
         if (request.getIdCard() != null) resident.setIdCard(request.getIdCard());
         if (request.getDateOfBirth() != null) resident.setDateOfBirth(request.getDateOfBirth());
         if (request.getGender() != null) resident.setGender(request.getGender());
+        if (request.getIdCardImageUrl() != null) resident.setIdCardImageUrl(request.getIdCardImageUrl());
+        if (request.getAvatarUrl() != null) resident.setAvatarUrl(request.getAvatarUrl());
+        if (request.getImageUrls() != null) resident.setImageUrls(request.getImageUrls());
         if (request.getStatus() != null) resident.setStatus(Resident.ResidentStatus.valueOf(request.getStatus()));
         if (request.getNotes() != null) resident.setNotes(request.getNotes());
 
@@ -197,6 +208,9 @@ public class ResidentService {
             .idCard(resident.getIdCard())
             .dateOfBirth(resident.getDateOfBirth())
             .gender(resident.getGender())
+            .idCardImageUrl(resident.getIdCardImageUrl())
+            .avatarUrl(resident.getAvatarUrl())
+            .imageUrls(resident.getImageUrls() != null ? resident.getImageUrls() : new java.util.ArrayList<>())
             .status(resident.getStatus().name())
             .notes(resident.getNotes())
             .rooms(roomSummaries)

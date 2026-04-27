@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -32,4 +33,5 @@ public class ContractResponseDTO {
     private String portalToken;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<String> imageUrls;
 }

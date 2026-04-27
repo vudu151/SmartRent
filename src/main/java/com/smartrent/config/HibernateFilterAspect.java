@@ -24,7 +24,7 @@ public class HibernateFilterAspect {
     @Autowired
     private RoomRepository roomRepository;
 
-    @Before("execution(* com.smartrent.service.*.*(..))")
+    @Before("execution(* com.smartrent.service..*.*(..))")
     public void enableFilter() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes != null) {

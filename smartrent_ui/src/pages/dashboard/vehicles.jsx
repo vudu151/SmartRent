@@ -4,7 +4,6 @@ import {
   CardBody,
   Typography,
   Button,
-  Input,
   IconButton,
   Chip,
   Dialog,
@@ -13,56 +12,56 @@ import {
   DialogFooter,
   Alert,
 } from "@material-tailwind/react";
-import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import Select from "react-select";
 import { useNavbarHeader } from "@/context/navbar-header";
 import { useAuth } from "@/smartrent/auth";
-import { getResidents, deleteResident } from "@/api/resident";
+import { getVehicles, deleteVehicle } from "@/api/vehicle";
 import { getRooms } from "@/api/room";
-import { ResidentModal } from "./resident-form";
+import { VehicleModal } from "./vehicle-modal";
 import { showToast } from "@/lib/swal";
 import { env } from "@/config/env";
 import { ImageThumbnail } from "@/components/image-lightbox";
 
-export function Residents() {
+export function Vehicles() {
   const { setNavbarHeader } = useNavbarHeader();
   const { user } = useAuth();
   const isGuard = user?.role === "GUARD";
-  const [residents, setResidents] = React.useState([]);
+  const [vehicles, setVehicles] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedRoomId, setSelectedRoomId] = React.useState("");
   const [rooms, setRooms] = React.useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [residentToDelete, setResidentToDelete] = React.useState(null);
+  const [vehicleToDelete, setVehicleToDelete] = React.useState(null);
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedResidentId, setSelectedResidentId] = React.useState(null);
+  const [selectedVehicleId, setSelectedVehicleId] = React.useState(null);
 
   const [page, setPage] = React.useState(1);
   const [size, setSize] = React.useState(10);
   const [totalPages, setTotalPages] = React.useState(1);
   const [totalElements, setTotalElements] = React.useState(0);
 
-  const loadResidents = React.useCallback(async () => {
+  const loadVehicles = React.useCallback(async () => {
     if (searchTerm.trim().length === 1) return;
     try {
       setLoading(true);
       setError("");
-      const response = await getResidents({ page: page - 1, size, search: searchTerm, roomId: selectedRoomId || undefined });
-      setResidents(response.content || []);
+      const response = await getVehicles({ page: page - 1, size, search: searchTerm, roomId: selectedRoomId || undefined });
+      setVehicles(response.content || []);
       setTotalPages(response.totalPages || 1);
       setTotalElements(response.totalElements || 0);
     } catch (err) {
-      console.error("Error loading residents:", err);
-      setError(err.message || "Không thể tải danh sách cư dân.");
+      console.error("Error loading vehicles:", err);
+      setError(err.message || "Không thể tải danh sách xe.");
     } finally {
       setLoading(false);
     }
   }, [page, size, searchTerm]);
 
-  React.useEffect(() => { loadResidents(); }, [loadResidents]);
+  React.useEffect(() => { loadVehicles(); }, [loadVehicles]);
   React.useEffect(() => { setPage(1); }, [size, searchTerm, selectedRoomId]);
 
   React.useEffect(() => {
@@ -77,7 +76,7 @@ export function Residents() {
     fetchRooms();
   }, []);
 
-  const handleAdd = () => { setSelectedResidentId(null); setIsModalOpen(true); };
+  const handleAdd = () => { setSelectedVehicleId(null); setIsModalOpen(true); };
 
   React.useEffect(() => {
     const roomOptions = [
@@ -88,13 +87,13 @@ export function Residents() {
     setNavbarHeader(
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 w-full">
         <div className="min-w-0">
-          <Typography variant="h6" color="blue-gray" className="font-bold truncate">Quản lý Cư dân</Typography>
-          <Typography color="gray" className="font-normal text-xs">Danh sách người thuê trọ</Typography>
+          <Typography variant="h6" color="blue-gray" className="font-bold truncate">Quản lý Xe</Typography>
+          <Typography color="gray" className="font-normal text-xs">Danh sách phương tiện cư dân</Typography>
         </div>
         <div className="flex shrink-0 gap-2 items-center">
           <input
             type="text"
-            placeholder="Tìm kiếm tên, sdt (>=2 ký tự)..."
+            placeholder="Tìm biển số, tên (>=2 ký tự)..."
             className="text-sm border border-blue-gray-200 rounded-lg px-3 h-10 w-56 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -128,7 +127,7 @@ export function Residents() {
           </div>
           {!isGuard && (
             <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleAdd}>
-              <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Cư dân
+              <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Xe
             </Button>
           )}
         </div>
@@ -136,25 +135,36 @@ export function Residents() {
     );
   }, [searchTerm, selectedRoomId, rooms, setNavbarHeader, isGuard]);
 
-  const handleEdit = (id) => { setSelectedResidentId(id); setIsModalOpen(true); };
-  const handleModalClose = () => { setIsModalOpen(false); setSelectedResidentId(null); };
-  const handleModalSuccess = () => { setPage(1); loadResidents(); };
+  const handleEdit = (id) => { setSelectedVehicleId(id); setIsModalOpen(true); };
+  const handleModalClose = () => { setIsModalOpen(false); setSelectedVehicleId(null); };
+  const handleModalSuccess = () => { setPage(1); loadVehicles(); };
 
   const handleDelete = async () => {
-    if (!residentToDelete) return;
+    if (!vehicleToDelete) return;
     try {
-      await deleteResident(residentToDelete.id);
-      showToast(`Đã xóa cư dân "${residentToDelete.fullName}" thành công`, "success");
+      await deleteVehicle(vehicleToDelete.id);
+      showToast(`Đã xóa xe "${vehicleToDelete.licensePlate}" thành công`, "success");
       setDeleteDialogOpen(false);
-      setResidentToDelete(null);
-      loadResidents();
+      setVehicleToDelete(null);
+      loadVehicles();
     } catch (err) {
-      showToast(err.message || "Không thể xóa cư dân", "error");
+      showToast(err.message || "Không thể xóa xe", "error");
     }
   };
 
-  const getStatusColor = (s) => { switch(s) { case "ACTIVE": return "green"; case "INACTIVE": return "gray"; case "TEMPORARY": return "orange"; default: return "blue-gray"; } };
-  const getStatusLabel = (s) => { switch(s) { case "ACTIVE": return "Đang ở"; case "INACTIVE": return "Đã rời"; case "TEMPORARY": return "Tạm trú"; default: return s; } };
+  const getTypeColor = (type) => { 
+    switch(type) { 
+      case "MOTORBIKE": return "blue"; 
+      case "CAR": return "red"; 
+      case "BICYCLE": return "green"; 
+      case "ELECTRIC_BICYCLE": return "orange"; 
+      default: return "gray"; 
+    } 
+  };
+
+  const formatMoney = (amount) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -163,13 +173,13 @@ export function Residents() {
           {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
           {loading ? (
             <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
-          ) : residents.length === 0 ? (
-            <div className="flex justify-center py-8"><Typography>Không có dữ liệu cư dân</Typography></div>
+          ) : vehicles.length === 0 ? (
+            <div className="flex justify-center py-8"><Typography>Không có dữ liệu xe</Typography></div>
           ) : (
               <table className="w-full min-w-max table-auto text-left">
                 <thead>
                   <tr>
-                    {["Ảnh", "Họ tên", "Số điện thoại", "Phòng", "CMND/CCCD", "Trạng thái", "Thao tác"].map((head) => (
+                    {["Ảnh", "Biển số", "Loại xe", "Hãng / Màu", "Cư dân", "Phòng", "Phí/tháng", "Thao tác"].map((head) => (
                       <th key={head} className="border-b border-blue-gray-50 py-3 px-5">
                         <Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{head}</Typography>
                       </th>
@@ -177,55 +187,45 @@ export function Residents() {
                   </tr>
                 </thead>
                 <tbody>
-                  {residents.map((res, key) => {
-                    const isLast = key === residents.length - 1;
+                  {vehicles.map((vh, key) => {
+                    const isLast = key === vehicles.length - 1;
                     const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
                     return (
-                      <tr key={res.id}>
+                      <tr key={vh.id}>
                         <td className={className}>
-                          {(res.imageUrls && res.imageUrls.length > 0) || res.avatarUrl ? (
-                            <ImageThumbnail
-                              images={res.imageUrls && res.imageUrls.length > 0 ? res.imageUrls : (res.avatarUrl ? [res.avatarUrl] : [])}
-                              alt={res.fullName}
-                              shape="circle"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold text-sm border border-gray-200">
-                              {res.fullName?.charAt(0)?.toUpperCase() || "?"}
-                            </div>
-                          )}
+                          <ImageThumbnail images={vh.imageUrls} alt={vh.licensePlate} />
                         </td>
                         <td className={className}>
-                          <Typography variant="small" color="blue-gray" className="font-bold">{res.fullName}</Typography>
-                          <Typography className="text-xs font-normal text-blue-gray-500">{res.email}</Typography>
+                          <Typography variant="small" color="blue-gray" className="font-bold">{vh.licensePlate}</Typography>
                         </td>
-                        <td className={className}><Typography variant="small" color="blue-gray">{res.phone || "-"}</Typography></td>
                         <td className={className}>
-                          {res.rooms && res.rooms.length > 0 ? (
+                          <Chip variant="gradient" size="sm" value={vh.vehicleTypeName} color={getTypeColor(vh.vehicleType)} className="py-0.5 px-2 text-[11px] font-medium w-fit" />
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="font-medium">{vh.brand || "-"}</Typography>
+                          <Typography className="text-xs font-normal text-blue-gray-500">{vh.color || ""}</Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="font-medium">{vh.residentName}</Typography>
+                        </td>
+                        <td className={className}>
+                          {vh.roomNumbers && vh.roomNumbers.length > 0 ? (
                             <div className="flex gap-1 flex-wrap">
-                              {res.rooms.map((r) => (<Chip key={r.id} size="sm" variant="gradient" value={r.roomNumber} color="blue" className="py-0.5 px-2 text-[10px] font-medium w-fit" />))}
+                              {vh.roomNumbers.map((r, i) => (<Chip key={i} size="sm" variant="outlined" value={r} color="gray" className="py-0.5 px-2 text-[10px] font-medium w-fit border-gray-300" />))}
                             </div>
-                          ) : (<Typography variant="small" color="gray" className="text-xs italic">Chưa xếp phòng</Typography>)}
-                        </td>
-                        <td className={className}><Typography variant="small" color="blue-gray">{res.idCard || "-"}</Typography></td>
-                        <td className={className}>
-                          <Chip variant="gradient" size="sm" value={getStatusLabel(res.status)} color={getStatusColor(res.status)} className="py-0.5 px-2 text-[11px] font-medium w-fit" />
+                          ) : (<Typography variant="small" color="gray" className="text-xs italic">-</Typography>)}
                         </td>
                         <td className={className}>
-                          <div className="flex gap-2">
-                            <IconButton size="sm" variant="text" color="blue-gray" title="Chi tiết" onClick={() => handleEdit(res.id)}>
-                              <PencilIcon className="h-4 w-4 text-blue-gray-500" />
+                          <Typography variant="small" color="blue-gray" className="font-medium">{formatMoney(vh.monthlyFee)}</Typography>
+                        </td>
+                        <td className={className}>
+                          <div className="flex items-center gap-2">
+                            <IconButton variant="text" color="blue-gray" size="sm" onClick={() => handleEdit(vh.id)}>
+                              <PencilIcon className="h-4 w-4" />
                             </IconButton>
                             {!isGuard && (
-                              <IconButton 
-                                size="sm" 
-                                variant="text" 
-                                color="red" 
-                                title={res.status === "ACTIVE" ? "Không thể xóa cư dân đang ở" : "Xóa"}
-                                disabled={res.status === "ACTIVE"}
-                                onClick={() => { setResidentToDelete(res); setDeleteDialogOpen(true); }}
-                              >
-                                <TrashIcon className={`h-4 w-4 ${res.status === "ACTIVE" ? "text-gray-400" : "text-red-500"}`} />
+                              <IconButton variant="text" color="red" size="sm" onClick={() => { setVehicleToDelete(vh); setDeleteDialogOpen(true); }}>
+                                <TrashIcon className="h-4 w-4" />
                               </IconButton>
                             )}
                           </div>
@@ -237,10 +237,11 @@ export function Residents() {
               </table>
           )}
         </CardBody>
-        {!loading && residents.length > 0 && (
-          <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
+
+        {!loading && vehicles.length > 0 && (
+          <div className="flex items-center justify-between border-t border-blue-gray-50 p-4 shrink-0 bg-white">
             <div className="flex items-center gap-4">
-              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {residents.length} / {totalElements} cư dân</Typography>
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {vehicles.length} / {totalElements} xe</Typography>
               <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Trang {page} / {totalPages || 1}</Typography>
             </div>
             <div className="flex gap-2 items-center">
@@ -273,12 +274,20 @@ export function Residents() {
         )}
       </Card>
 
-      <ResidentModal open={isModalOpen} onClose={handleModalClose} residentId={selectedResidentId} onSuccess={handleModalSuccess} />
-      <Dialog open={deleteDialogOpen} handler={setDeleteDialogOpen}>
+      <VehicleModal 
+        open={isModalOpen} 
+        onClose={handleModalClose} 
+        vehicleId={selectedVehicleId} 
+        onSuccess={handleModalSuccess} 
+      />
+
+      <Dialog open={deleteDialogOpen} handler={() => setDeleteDialogOpen(false)} size="xs">
         <DialogHeader>Xác nhận xóa</DialogHeader>
-        <DialogBody>Bạn có chắc muốn xóa cư dân "{residentToDelete?.fullName}"?</DialogBody>
+        <DialogBody divider>
+          Bạn có chắc chắn muốn xóa xe biển số <span className="font-bold text-red-500">{vehicleToDelete?.licensePlate}</span> không? Hành động này không thể hoàn tác.
+        </DialogBody>
         <DialogFooter>
-          <Button variant="text" color="red" onClick={() => setDeleteDialogOpen(false)} className="mr-1">Hủy</Button>
+          <Button variant="text" color="blue-gray" onClick={() => setDeleteDialogOpen(false)} className="mr-1">Hủy</Button>
           <Button variant="gradient" color="red" onClick={handleDelete}>Xóa</Button>
         </DialogFooter>
       </Dialog>
@@ -286,4 +295,4 @@ export function Residents() {
   );
 }
 
-export default Residents;
+export default Vehicles;

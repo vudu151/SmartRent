@@ -1,5 +1,6 @@
 import { apiFetch } from '../lib/http';
 import { getTenantId } from './auth';
+import type { ApiResponse } from './auth';
 
 
 export const getDashboardSummary = async (months: number = 6) => {

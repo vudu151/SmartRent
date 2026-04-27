@@ -2,7 +2,7 @@
   "meta": {
     "schema_version": "1.1.0",
     "awf_version": "4.0.2",
-    "last_updated": "2026-04-27T01:53:00+07:00"
+    "last_updated": "2026-04-27T21:09:00+07:00"
   },
   "project": {
     "name": "SmartRent",
@@ -78,7 +78,8 @@
     { "name": "Dashboard with charts", "status": "implemented" },
     { "name": "Ticket/Issue management", "status": "implemented" },
     { "name": "User account management (filtered by building)", "status": "implemented" },
-    { "name": "Notification system", "status": "implemented" }
+    { "name": "Notification system", "status": "implemented" },
+    { "name": "Multi-image gallery with Lightbox popup (all modules)", "status": "implemented" }
   ],
   "knowledge_items": {
     "patterns": [
@@ -86,13 +87,15 @@
       "getTenantId() từ api/auth.ts là cách chuẩn lấy tenantId",
       "Building context được truyền qua localStorage key 'selectedBuildingId' + header X-Building-Id",
       "Material Tailwind Menu component render dropdown trong portal - cần inline style để control width",
-      "Dùng .\\mvnw.cmd thay vì mvn trên Windows (mvn không có trong PATH)"
+      "Dùng .\\mvnw.cmd thay vì mvn trên Windows (mvn không có trong PATH)",
+      "Sử dụng ImageLightbox & ImageThumbnail components để hiển thị ảnh nhất quán trên các module (Sự cố, Cư dân, Phòng, Hợp đồng, Xe)"
     ],
     "gotchas": [
       "apiFetch KHÔNG parse params object → phải dùng URLSearchParams hoặc template string",
       "Material Tailwind MenuList có default min-width → cần override bằng inline style (minWidth, maxWidth, width)",
       "Dashboard layout dùng overflow-hidden → content dài bị cắt, đã fix sang overflow-y-auto",
-      "Flyway migration: phải restart BE để chạy migration mới"
+      "Flyway migration: phải restart BE để chạy migration mới",
+      "Lỗi precedence Hibernate @Filter: Cẩn thận khi viết condition 'A OR B', nếu Hibernate tự động chèn thêm 'AND id=?' thì nó sẽ thành 'A OR B AND id=?' -> gây lỗi logic trả về sai dữ liệu. Bắt buộc bọc ngoặc tròn: '(A OR B)'"
     ],
     "conventions": [
       "Button chính: variant='gradient' color='indigo' (đồng bộ với sidebar active)",

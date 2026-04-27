@@ -89,6 +89,7 @@ public class RoomService {
             .status(Room.RoomStatus.VACANT)
             .description(request.getDescription())
             .price(request.getPrice())
+            .imageUrls(request.getImageUrls() != null ? request.getImageUrls() : new java.util.ArrayList<>())
             .build();
 
         room = roomRepository.save(room);
@@ -113,6 +114,9 @@ public class RoomService {
         if (request.getStatus() != null) room.setStatus(Room.RoomStatus.valueOf(request.getStatus()));
         if (request.getDescription() != null) room.setDescription(request.getDescription());
         if (request.getPrice() != null) room.setPrice(request.getPrice());
+        if (request.getImageUrls() != null) {
+            room.setImageUrls(request.getImageUrls());
+        }
 
         room = roomRepository.save(room);
         log.info("Updated room {}", id);
@@ -189,6 +193,7 @@ public class RoomService {
             .price(room.getPrice())
             .residentCount(residentCount)
             .residents(residentSummaries)
+            .imageUrls(room.getImageUrls() != null ? room.getImageUrls() : new java.util.ArrayList<>())
             .createdAt(room.getCreatedAt())
             .updatedAt(room.getUpdatedAt())
             .build();

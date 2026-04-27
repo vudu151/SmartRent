@@ -70,11 +70,11 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/me", "/api/users/me/portal").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER", "ROLE_GUARD", "ROLE_TENANT")
 
                 // GUARD has limited read-only permissions
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/residents/**", "/api/tickets/**", "/api/users/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER", "ROLE_GUARD")
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/residents/**", "/api/tickets/**", "/api/users/**", "/api/vehicles/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER", "ROLE_GUARD")
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/tickets/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER", "ROLE_GUARD")
                 
                 // Manager and Admin have full access to these financial / core modules
-                .requestMatchers("/api/bills/**", "/api/contracts/**", "/api/rooms/**", "/api/assets/**", "/api/services/**", "/api/tenants/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER")
+                .requestMatchers("/api/bills/**", "/api/contracts/**", "/api/rooms/**", "/api/assets/**", "/api/services/**", "/api/tenants/**", "/api/vehicles/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_TENANT_MANAGER")
 
                 // Admin exclusive (system settings, etc if any)
                 // .requestMatchers("/api/admin/**").hasAuthority("ROLE_SUPER_ADMIN")

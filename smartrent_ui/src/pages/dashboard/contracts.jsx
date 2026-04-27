@@ -20,6 +20,8 @@ import { getContracts, deleteContract } from "@/api/contract";
 import { ContractModal } from "./contract-form";
 import { LiquidationModal } from "./liquidation-modal";
 import { showToast } from "@/lib/swal";
+import { env } from "@/config/env";
+import { ImageThumbnail } from "@/components/image-lightbox";
 
 export function Contracts() {
   const [controller] = useMaterialTailwindController();
@@ -43,6 +45,7 @@ export function Contracts() {
   const [totalElements, setTotalElements] = React.useState(0);
 
   const loadContracts = React.useCallback(async () => {
+    if (searchTerm.trim().length === 1) return;
     try {
       setLoading(true); setError("");
       const response = await getContracts({ page: page - 1, size, search: searchTerm });
@@ -67,9 +70,13 @@ export function Contracts() {
           <Typography color="gray" className="font-normal text-xs">Danh sách hợp đồng thuê phòng</Typography>
         </div>
         <div className="flex shrink-0 gap-2 items-center">
-          <div className="w-56">
-            <Input label="Tìm số HĐ, Tên, Phòng..." size="md" icon={<MagnifyingGlassIcon className="h-4 w-4" />} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} containerProps={{ className: "!min-w-0" }} />
-          </div>
+          <input
+            type="text"
+            placeholder="Tìm HĐ, Tên, Phòng (>=2 ký tự)..."
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-72 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
           <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleAdd}>
             <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm HĐ
           </Button>
@@ -112,7 +119,7 @@ export function Contracts() {
           ) : (
               <table className="w-full min-w-max table-auto text-left">
                 <thead><tr>
-                  {["Mã HĐ", "Phòng", "Cư dân", "Bắt đầu", "Kết thúc", "Giá thuê", "Trạng thái", "Thao tác"].map((h) => (
+                  {["Ảnh", "Mã HĐ", "Phòng", "Cư dân", "Bắt đầu", "Kết thúc", "Giá thuê", "Trạng thái", "Thao tác"].map((h) => (
                     <th key={h} className="border-b border-blue-gray-50 py-3 px-5"><Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{h}</Typography></th>
                   ))}
                 </tr></thead>
@@ -122,6 +129,9 @@ export function Contracts() {
                     const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
                     return (
                       <tr key={contract.id}>
+                        <td className={className}>
+                          <ImageThumbnail images={contract.imageUrls} alt={contract.contractNumber} />
+                        </td>
                         <td className={className}><Typography variant="small" color="blue-gray" className="font-bold">{contract.contractNumber}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray">{contract.roomNumber}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray">{contract.residentName}</Typography></td>
@@ -158,7 +168,7 @@ export function Contracts() {
         {!loading && contracts.length > 0 && (
           <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
             <div className="flex items-center gap-4">
-              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {contracts.length} trong {totalElements} hợp đồng</Typography>
+              <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {contracts.length} / {totalElements} hợp đồng</Typography>
               <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Trang {page} / {totalPages || 1}</Typography>
             </div>
             <div className="flex gap-2">

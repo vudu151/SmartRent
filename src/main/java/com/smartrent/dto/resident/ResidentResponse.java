@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -22,6 +23,9 @@ public class ResidentResponse {
     private String idCard;
     private LocalDate dateOfBirth;
     private String gender;
+    private String idCardImageUrl;
+    private String avatarUrl;
+    private List<String> imageUrls;
     private String status;
     private String notes;
     private Set<RoomSummary> rooms;

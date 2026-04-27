@@ -48,7 +48,7 @@ export function Users() {
   const handleOpenModal = () => setOpenModal(!openModal);
 
   const loadUsers = React.useCallback(async () => {
-    if (!buildingId) return; // Wait until a building is selected
+    if (!buildingId || searchTerm.trim().length === 1) return; // Wait until a building is selected and search term is not 1 char
     try {
       setLoading(true);
       const response = await getUsers({ page, size, search: searchTerm, buildingId });
@@ -70,9 +70,13 @@ export function Users() {
           <Typography color="gray" className="font-normal text-xs">Danh sách người dùng và nhân viên hệ thống</Typography>
         </div>
         <div className="flex shrink-0 gap-2 items-center">
-          <div className="w-52">
-            <Input label="Tìm tên hoặc email..." size="md" icon={<MagnifyingGlassIcon className="h-4 w-4" />} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }} containerProps={{ className: "!min-w-0" }} />
-          </div>
+          <input
+            type="text"
+            placeholder="Tìm tên hoặc email (>=2 ký tự)..."
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-64 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
+          />
           <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 h-10 px-4 whitespace-nowrap" onClick={() => setOpenModal(true)}>
             <UserPlusIcon className="h-4 w-4" /> Thêm Tài Khoản
           </Button>
@@ -130,7 +134,12 @@ export function Users() {
                             <Typography className="text-xs font-normal text-blue-gray-500">{usr.email}</Typography>
                           </td>
                           <td className={className}><Typography variant="small" color="blue-gray">{usr.fullName || "-"}</Typography></td>
-                          <td className={className}><Typography variant="small" color="blue-gray" className="font-bold">{usr.role}</Typography></td>
+                          <td className={className}><Typography variant="small" color="blue-gray" className="font-bold">
+                            {usr.role === "SUPER_ADMIN" ? "Quản trị viên" : 
+                             usr.role === "TENANT_MANAGER" ? "Chủ trọ" : 
+                             usr.role === "GUARD" ? "Bảo vệ" : 
+                             usr.role === "TENANT" ? "Cư dân" : usr.role}
+                          </Typography></td>
                           <td className={className}><Chip variant="gradient" size="sm" value={usr.status === "ACTIVE" ? "Hoạt động" : "Bị khóa"} color={usr.status === "ACTIVE" ? "green" : "red"} className="py-0.5 px-2 text-[11px] font-medium w-fit" /></td>
                           <td className={className}><Typography variant="small" color="blue-gray">{new Date(usr.createdAt).toLocaleDateString("vi-VN")}</Typography></td>
                           <td className={className}>
@@ -153,7 +162,7 @@ export function Users() {
           {!loading && usersList.length > 0 && (
             <div className="shrink-0 px-4 py-2 flex items-center justify-between border-t border-blue-gray-50 bg-blue-gray-50/20">
               <div className="flex items-center gap-4">
-                <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {usersList.length} trong {totalElements}</Typography>
+                <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Hiển thị {usersList.length} / {totalElements} người dùng</Typography>
                 <Typography variant="small" color="blue-gray" className="font-normal opacity-70">Trang {page + 1} / {totalPages || 1}</Typography>
               </div>
               <div className="flex gap-2">
@@ -174,8 +183,11 @@ export function Users() {
           <Input label="Số điện thoại" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
           
           <Select label="Vai trò *" value={formData.role} onChange={(val) => setFormData({ ...formData, role: val })}>
-            {user?.role === "SUPER_ADMIN" && <Option value="TENANT_MANAGER">Chủ Trọ</Option>}
-            <Option value="GUARD">Bảo vệ</Option>
+            {[
+              user?.role === "SUPER_ADMIN" ? <Option key="tenant_mgr" value="TENANT_MANAGER">Chủ Trọ</Option> : null,
+              <Option key="guard" value="GUARD">Bảo vệ</Option>,
+              <Option key="resident" value="TENANT">Cư dân</Option>
+            ].filter(Boolean)}
           </Select>
         </DialogBody>
         <DialogFooter>

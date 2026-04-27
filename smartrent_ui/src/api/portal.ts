@@ -1,4 +1,5 @@
 import { apiFetch } from '../lib/http';
+import type { ApiResponse } from './auth';
 
 export const getPortalContractInfo = async (token: string) => {
   const res = await apiFetch<ApiResponse<any>>(`/api/portal/contract/${token}`);

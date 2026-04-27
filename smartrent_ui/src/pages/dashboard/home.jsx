@@ -5,6 +5,8 @@ import {
   CardHeader,
   CardBody,
   Chip,
+  Select,
+  Option,
 } from "@material-tailwind/react";
 import { 
   BuildingOfficeIcon, 
@@ -32,16 +34,20 @@ export function Home() {
           <Typography color="gray" className="font-normal text-xs">Báo cáo tổng hợp hoạt động kinh doanh</Typography>
         </div>
         <div className="flex shrink-0 gap-2 items-center">
-          <select
-            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500 cursor-pointer"
-            value={months.toString()}
-            onChange={(e) => setMonths(Number(e.target.value))}
-          >
-            <option value="3">3 tháng gần đây</option>
-            <option value="6">6 tháng gần đây</option>
-            <option value="12">1 năm</option>
-            <option value="24">2 năm</option>
-          </select>
+          <div className="w-48 shrink-0 bg-white rounded-lg">
+            <Select 
+              label="Thời gian" 
+              className="!min-w-0"
+              value={months.toString()} 
+              onChange={(val) => setMonths(Number(val))}
+              containerProps={{ className: "!min-w-0" }}
+            >
+              <Option value="3">3 tháng gần đây</Option>
+              <Option value="6">6 tháng gần đây</Option>
+              <Option value="12">1 năm</Option>
+              <Option value="24">2 năm</Option>
+            </Select>
+          </div>
         </div>
       </div>
     );
