@@ -17,3 +17,4 @@ export * from "@/pages/dashboard/fee-settings";
 export * from "@/pages/dashboard/tickets";
 export * from "@/pages/dashboard/meter-reading";
 export * from "@/pages/dashboard/vehicles";
+export * from "@/pages/dashboard/reports";

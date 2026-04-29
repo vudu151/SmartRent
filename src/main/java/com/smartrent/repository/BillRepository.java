@@ -41,4 +41,10 @@ public interface BillRepository extends JpaRepository<Bill, Long>, JpaSpecificat
     java.util.List<Bill> findByTenantIdAndStatusIn(Long tenantId, java.util.List<Bill.BillStatus> statuses);
 
     java.util.List<Bill> findByRoomIdOrderByCreatedAtDesc(Long roomId);
+
+    @Query("SELECT b.billType, SUM(b.amount) FROM Bill b WHERE b.tenant.id = :tenantId AND b.status = 'PAID' AND b.paymentDate >= :startDate AND b.paymentDate <= :endDate GROUP BY b.billType")
+    java.util.List<Object[]> sumRevenueByType(@Param("tenantId") Long tenantId, @Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate);
+
+    @Query("SELECT b.roomNumber, SUM(b.amount) FROM Bill b WHERE b.tenant.id = :tenantId AND b.status = 'PAID' AND b.paymentDate >= :startDate AND b.paymentDate <= :endDate GROUP BY b.roomNumber ORDER BY SUM(b.amount) DESC")
+    java.util.List<Object[]> sumRevenueByRoom(@Param("tenantId") Long tenantId, @Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate);
 }

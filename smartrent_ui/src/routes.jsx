@@ -12,8 +12,9 @@ import {
   CurrencyDollarIcon,
   UsersIcon,
   TruckIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Notifications, Health, Tenants, Rooms, Residents, Bills, Users, Contracts, Tickets, MeterReading, Vehicles } from "@/pages/dashboard";
+import { Home, Profile, Notifications, Health, Tenants, Rooms, Residents, Bills, Users, Contracts, Tickets, MeterReading, Vehicles, Reports } from "@/pages/dashboard";
 import { RoomDetail } from "@/pages/dashboard/room-detail";
 import { SignIn, SignUp, ForgotPassword } from "@/pages/auth";
 
@@ -81,6 +82,13 @@ export const routes = [
         path: "/tickets",
         element: <Tickets />,
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
+      },
+      {
+        icon: <ChartBarIcon {...icon} />,
+        name: "Báo cáo",
+        path: "/reports",
+        element: <Reports />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
 
       // ===== Quản trị hệ thống (hiển thị nhưng nhóm riêng) =====
