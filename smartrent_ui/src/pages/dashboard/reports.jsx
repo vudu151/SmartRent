@@ -220,7 +220,7 @@ export function Reports() {
         <div className="flex justify-center py-20">
           <Spinner className="h-10 w-10 text-indigo-500" />
         </div>
-      ) : reportData?.totalRevenue === 0 || reportData?.totalRevenue === "0.00" ? (
+      ) : !reportData?.totalRevenue || Number(reportData?.totalRevenue) === 0 ? (
         <Card className="shadow-sm border border-blue-gray-50 text-center py-20">
           <Typography color="blue-gray" className="text-xl font-bold opacity-50">
             Không có dữ liệu doanh thu trong thời gian này

@@ -89,6 +89,7 @@ export const routes = [
         path: "/reports",
         element: <Reports />,
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
+        hidden: true,
       },
 
       // ===== Quản trị hệ thống (hiển thị nhưng nhóm riêng) =====

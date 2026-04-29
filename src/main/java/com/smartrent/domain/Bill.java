@@ -71,6 +71,9 @@ public class Bill {
     @Column(name = "payment_reference", length = 255)
     private String paymentReference;
 
+    @Column(name = "last_reminder_date")
+    private LocalDateTime lastReminderDate;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

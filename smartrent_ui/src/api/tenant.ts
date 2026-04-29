@@ -16,6 +16,9 @@ export interface Tenant {
   bankOwner?: string;
   bankQrUrl?: string;
   autoBillingDay?: number;
+  paymentDeadlineDay?: number;
+  reminderDelayDays?: number;
+  reminderFrequencyDays?: number;
 }
 
 export interface TenantPageResponse {
@@ -89,12 +92,13 @@ export const updateTenantProfile = async (data: Partial<Tenant>) => {
   return res.data;
 };
 
-export const updateAutoBillingDay = async (day: number) => {
+export const updateAutomationSettings = async (data: { autoBillingDay: number; paymentDeadlineDay: number; reminderDelayDays: number; reminderFrequencyDays: number; }) => {
   const tenantId = getTenantId();
-  const res = await apiFetch<ApiResponse<void>>(`/api/tenants/${tenantId}/auto-billing-day?day=${day}`, {
-    method: 'PATCH',
+  const res = await apiFetch<ApiResponse<void>>(`/api/tenants/${tenantId}/automation-settings`, {
+    method: 'PUT',
+    body: data,
   });
-  if (!res.success) throw new Error(res.message || 'Lỗi khi cập nhật ngày chốt hóa đơn');
+  if (!res.success) throw new Error(res.message || 'Lỗi khi cập nhật cấu hình tự động hóa');
   return res.data;
 };
 

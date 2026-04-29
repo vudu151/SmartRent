@@ -81,6 +81,15 @@ export function Home() {
     return <div className="p-8 text-center"><Typography>Đang tải dữ liệu báo cáo...</Typography></div>;
   }
 
+  if (!data) {
+    return (
+      <div className="p-8 text-center">
+        <Typography color="red">Không thể tải dữ liệu báo cáo. Vui lòng kiểm tra lại kết nối máy chủ.</Typography>
+        <Button onClick={loadDashboard} className="mt-4" variant="outlined">Thử lại</Button>
+      </div>
+    );
+  }
+
   const { summary, chartData, recentTransactions } = data;
 
   // Chart configs

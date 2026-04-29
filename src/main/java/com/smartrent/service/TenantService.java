@@ -155,19 +155,20 @@ public class TenantService {
     }
 
     /**
-     * Update tenant auto billing day
+     * Update tenant automation settings
      */
     @Transactional
-    public void updateAutoBillingDay(Long tenantId, Integer day) {
-        if (day == null || day < 1 || day > 28) {
-            throw new BusinessException("Ngày chốt hóa đơn phải từ ngày 1 đến 28");
-        }
+    public void updateAutomationSettings(Long tenantId, com.smartrent.dto.tenant.UpdateAutomationSettingsRequest request) {
         Tenant tenant = tenantRepository.findById(tenantId)
             .orElseThrow(() -> new ResourceNotFoundException("Tenant không tồn tại với ID: " + tenantId));
 
-        tenant.setAutoBillingDay(day);
+        tenant.setAutoBillingDay(request.getAutoBillingDay());
+        tenant.setPaymentDeadlineDay(request.getPaymentDeadlineDay());
+        tenant.setReminderDelayDays(request.getReminderDelayDays());
+        tenant.setReminderFrequencyDays(request.getReminderFrequencyDays());
+        
         tenantRepository.save(tenant);
-        log.info("Updated auto billing day to {} for tenant ID: {}", day, tenantId);
+        log.info("Updated automation settings for tenant ID: {}", tenantId);
     }
 
     /**

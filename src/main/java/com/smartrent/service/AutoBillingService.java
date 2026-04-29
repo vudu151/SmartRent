@@ -107,6 +107,12 @@ public class AutoBillingService {
         BigDecimal consumed = reading.getNewIndex().subtract(reading.getOldIndex());
         if (consumed.compareTo(BigDecimal.ZERO) <= 0) return;
 
+        int deadlineDay = tenant.getPaymentDeadlineDay() != null ? tenant.getPaymentDeadlineDay() : 5;
+        LocalDate dueDate = LocalDate.now().withDayOfMonth(deadlineDay);
+        if (dueDate.isBefore(LocalDate.now())) {
+            dueDate = dueDate.plusMonths(1);
+        }
+
         BigDecimal amount = price.multiply(consumed);
         String unit = type == Bill.BillType.ELECTRICITY ? "kWh" : "khối";
         String description = String.format("Tiêu thụ %s: %s %s (Từ %s -> %s).", 
@@ -119,7 +125,7 @@ public class AutoBillingService {
             .roomNumber(room.getRoomNumber())
             .billType(type)
             .amount(amount)
-            .dueDate(LocalDate.now().plusDays(5))
+            .dueDate(dueDate)
             .status(Bill.BillStatus.UNPAID)
             .description(description)
             .build();
@@ -129,13 +135,19 @@ public class AutoBillingService {
     private void createRentBill(Tenant tenant, Room room) {
         if (room.getPrice() == null || room.getPrice().compareTo(BigDecimal.ZERO) <= 0) return;
 
+        int deadlineDay = tenant.getPaymentDeadlineDay() != null ? tenant.getPaymentDeadlineDay() : 5;
+        LocalDate dueDate = LocalDate.now().withDayOfMonth(deadlineDay);
+        if (dueDate.isBefore(LocalDate.now())) {
+            dueDate = dueDate.plusMonths(1);
+        }
+
         Bill bill = Bill.builder()
             .tenant(tenant)
             .room(room)
             .roomNumber(room.getRoomNumber())
             .billType(Bill.BillType.RENT)
             .amount(room.getPrice())
-            .dueDate(LocalDate.now().plusDays(5))
+            .dueDate(dueDate)
             .status(Bill.BillStatus.UNPAID)
             .description("Tiền thuê phòng tháng này.")
             .build();

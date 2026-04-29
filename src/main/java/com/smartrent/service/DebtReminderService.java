@@ -23,6 +23,8 @@ public class DebtReminderService {
     private final ContractRepository contractRepository;
     private final TenantRepository tenantRepository;
     private final NotificationService notificationService;
+    private final EmailService emailService;
+    private final InvoiceGeneratorService invoiceGeneratorService;
 
     /**
      * Cron job runs every day at 8:00 PM (20:00)
@@ -52,8 +54,37 @@ public class DebtReminderService {
             return;
         }
 
+        Tenant tenant = tenantRepository.findById(tenantId).orElse(null);
+        if (tenant == null) return;
+
+        int delayDays = tenant.getReminderDelayDays() != null ? tenant.getReminderDelayDays() : 2;
+        int freqDays = tenant.getReminderFrequencyDays() != null ? tenant.getReminderFrequencyDays() : 2;
+        java.time.LocalDate today = java.time.LocalDate.now();
+
         for (Bill bill : unpaidBills) {
-            sendReminderForBill(bill);
+            if (bill.getDueDate() == null) continue;
+
+            java.time.LocalDate eligibleReminderDate = bill.getDueDate().plusDays(delayDays);
+            
+            // Check if it's past the delay
+            if (!today.isBefore(eligibleReminderDate)) {
+                
+                boolean shouldRemind = false;
+                if (bill.getLastReminderDate() == null) {
+                    shouldRemind = true;
+                } else {
+                    java.time.LocalDate nextReminderDate = bill.getLastReminderDate().toLocalDate().plusDays(freqDays);
+                    if (!today.isBefore(nextReminderDate)) {
+                        shouldRemind = true;
+                    }
+                }
+
+                if (shouldRemind) {
+                    sendReminderForBill(bill);
+                    bill.setLastReminderDate(java.time.LocalDateTime.now());
+                    billRepository.save(bill);
+                }
+            }
         }
     }
 
@@ -96,6 +127,7 @@ public class DebtReminderService {
             bill.getDescription() != null ? bill.getDescription() : "Không có ghi chú"
         );
 
+        // 1. Send system notification (existing)
         notificationService.sendNotification(
             bill.getTenant().getId(),
             null, // System sender
@@ -104,6 +136,27 @@ public class DebtReminderService {
             Notification.NotificationType.BILL.name(),
             recipientIds
         );
+
+        // 2. Generate Excel & Send Email
+        try {
+            // Find resident to get email
+            for (Long residentId : recipientIds) {
+                Resident resident = room.getResidents().stream()
+                    .filter(r -> r.getId().equals(residentId))
+                    .findFirst()
+                    .orElse(null);
+                    
+                if (resident != null && resident.getEmail() != null && !resident.getEmail().isBlank()) {
+                    byte[] excelData = invoiceGeneratorService.generateInvoiceExcel(bill, resident.getFullName());
+                    String fileName = "Hoa_Don_Phong_" + room.getRoomNumber() + ".xlsx";
+                    
+                    String htmlBody = content.replace("\n", "<br>");
+                    emailService.sendEmailWithAttachment(resident.getEmail(), title, htmlBody, excelData, fileName);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to send email reminder for bill {}", bill.getId(), e);
+        }
     }
 
     private String getBillTypeLabel(Bill.BillType type) {

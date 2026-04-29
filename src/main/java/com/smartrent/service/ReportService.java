@@ -50,24 +50,22 @@ public class ReportService {
         List<ReportDTO.RevenueByRoom> revenueByRoom = new ArrayList<>();
 
         for (Object[] row : typeData) {
-            Bill.BillType type = (Bill.BillType) row[0];
-            BigDecimal amount = (BigDecimal) row[1];
-            if (amount == null) amount = BigDecimal.ZERO;
+            String typeStr = row[0] instanceof Bill.BillType ? ((Bill.BillType) row[0]).name() : String.valueOf(row[0]);
+            BigDecimal amount = getBigDecimal(row[1]);
             
             revenueByType.add(ReportDTO.RevenueByType.builder()
-                    .type(type.name())
+                    .type(typeStr)
                     .amount(amount)
                     .build());
             totalRevenue = totalRevenue.add(amount);
         }
 
         for (Object[] row : roomData) {
-            String roomNumber = (String) row[0];
-            BigDecimal amount = (BigDecimal) row[1];
-            if (amount == null) amount = BigDecimal.ZERO;
+            String roomNumber = row[0] != null ? String.valueOf(row[0]) : "Khác";
+            BigDecimal amount = getBigDecimal(row[1]);
             
             revenueByRoom.add(ReportDTO.RevenueByRoom.builder()
-                    .roomNumber(roomNumber != null ? roomNumber : "Khác")
+                    .roomNumber(roomNumber)
                     .amount(amount)
                     .build());
         }
@@ -79,5 +77,12 @@ public class ReportService {
                 .build();
 
         return ApiResponse.success(report, "Fetched report data successfully");
+    }
+
+    private BigDecimal getBigDecimal(Object value) {
+        if (value == null) return BigDecimal.ZERO;
+        if (value instanceof BigDecimal) return (BigDecimal) value;
+        if (value instanceof Number) return BigDecimal.valueOf(((Number) value).doubleValue());
+        return new BigDecimal(value.toString());
     }
 }

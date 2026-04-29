@@ -47,6 +47,32 @@ public class EmailService {
     }
 
     /**
+     * Send email with attachment
+     */
+    public void sendEmailWithAttachment(String toEmail, String subject, String body, byte[] attachment, String fileName) {
+        try {
+            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(body, true); // true indicates HTML format if needed, but plain text is fine too if we don't put HTML tags
+
+            // Add the attachment
+            org.springframework.core.io.ByteArrayResource byteArrayResource = new org.springframework.core.io.ByteArrayResource(attachment);
+            helper.addAttachment(fileName, byteArrayResource);
+
+            mailSender.send(message);
+            log.info("Email with attachment sent successfully to: {}", toEmail);
+
+        } catch (Exception e) {
+            log.error("Failed to send email with attachment to: {}", toEmail, e);
+            throw new RuntimeException("Không thể gửi email. Vui lòng kiểm tra lại.", e);
+        }
+    }
+
+    /**
      * Build password reset email content
      */
     private String buildPasswordResetEmailContent(String resetLink) {

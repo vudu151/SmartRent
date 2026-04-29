@@ -73,6 +73,18 @@ public class Tenant {
     @Builder.Default
     private Integer autoBillingDay = 1; // Mặc định là ngày 1 hàng tháng
 
+    @Column(name = "payment_deadline_day")
+    @Builder.Default
+    private Integer paymentDeadlineDay = 5; // Mặc định hạn là ngày 5
+
+    @Column(name = "reminder_delay_days")
+    @Builder.Default
+    private Integer reminderDelayDays = 2; // Mặc định trễ 2 ngày thì nhắc
+
+    @Column(name = "reminder_frequency_days")
+    @Builder.Default
+    private Integer reminderFrequencyDays = 2; // Mặc định nhắc lại mỗi 2 ngày
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -53,7 +53,7 @@ function formatTimeAgo(dateString) {
 }
 
 import { getSystemUnreadCount, getSystemNotifications, markAllSystemAsRead } from "@/api/notification";
-import { updateAutoBillingDay } from "@/api/tenant";
+import { getTenantProfile, updateAutomationSettings } from "@/api/tenant";
 import { showToast } from "@/lib/swal";
 
 export function Sidenav({ brandImg, brandName, routes }) {
@@ -68,8 +68,12 @@ export function Sidenav({ brandImg, brandName, routes }) {
   // Auto Billing Configuration State
   const [openBillingConfig, setOpenBillingConfig] = useState(false);
   const [billingDay, setBillingDay] = useState(1);
+  const [paymentDeadlineDay, setPaymentDeadlineDay] = useState(5);
+  const [reminderDelayDays, setReminderDelayDays] = useState(2);
+  const [reminderFrequencyDays, setReminderFrequencyDays] = useState(2);
   const [billingError, setBillingError] = useState("");
   const [isSavingDay, setIsSavingDay] = useState(false);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(false);
 
   useEffect(() => {
     if (user?.role === "TENANT_MANAGER" || user?.role === "TENANT_STAFF") {
@@ -117,25 +121,33 @@ export function Sidenav({ brandImg, brandName, routes }) {
     }
   };
 
-  const handleOpenBillingConfig = () => {
+  const handleOpenBillingConfig = async () => {
     setOpenBillingConfig(!openBillingConfig);
     setBillingError("");
+    if (!openBillingConfig) {
+      // Load current settings when opening modal
+      setIsLoadingConfig(true);
+      try {
+        const profile = await getTenantProfile();
+        setBillingDay(profile.autoBillingDay || 1);
+        setPaymentDeadlineDay(profile.paymentDeadlineDay || 5);
+        setReminderDelayDays(profile.reminderDelayDays || 2);
+        setReminderFrequencyDays(profile.reminderFrequencyDays || 2);
+      } catch (err) {
+        console.error("Failed to load settings", err);
+      } finally {
+        setIsLoadingConfig(false);
+      }
+    }
   };
 
   const handleBillingDayChange = (val) => {
     setBillingDay(val);
     const dayInt = parseInt(val);
     if (isNaN(dayInt) || dayInt < 1 || dayInt > 28) {
-      setBillingError("Vui lòng nhập ngày từ 1 đến 28.");
+      setBillingError("Ngày chốt HĐ từ 1-28.");
       return;
     }
-
-    const today = new Date().getDate();
-    if (dayInt === today) {
-      setBillingError("Job tự động của ngày hôm nay (00:00) đã trôi qua. Vui lòng chọn ngày khác (từ ngày mai).");
-      return;
-    }
-
     setBillingError("");
   };
 
@@ -143,10 +155,24 @@ export function Sidenav({ brandImg, brandName, routes }) {
     if (billingError) return;
     
     const dayInt = parseInt(billingDay);
+    const deadline = parseInt(paymentDeadlineDay);
+    const delay = parseInt(reminderDelayDays);
+    const freq = parseInt(reminderFrequencyDays);
+    
+    if (isNaN(dayInt) || dayInt < 1 || dayInt > 28) return setBillingError("Ngày chốt HĐ phải từ 1-28");
+    if (isNaN(deadline) || deadline < 1 || deadline > 28) return setBillingError("Hạn nộp phải từ 1-28");
+    if (isNaN(delay) || delay < 1) return setBillingError("Số ngày trễ phải >= 1");
+    if (isNaN(freq) || freq < 1) return setBillingError("Tần suất nhắc phải >= 1");
+
     setIsSavingDay(true);
     try {
-      await updateAutoBillingDay(dayInt);
-      showToast("Đã lưu ngày chốt Hóa đơn", "success");
+      await updateAutomationSettings({
+        autoBillingDay: dayInt,
+        paymentDeadlineDay: deadline,
+        reminderDelayDays: delay,
+        reminderFrequencyDays: freq
+      });
+      showToast("Đã lưu Cấu hình Tự động hóa", "success");
       setOpenBillingConfig(false);
     } catch (error) {
       showToast(error.message || "Lỗi khi lưu cấu hình", "error");
@@ -232,7 +258,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
               </MenuItem>
               <MenuItem onClick={handleOpenBillingConfig} className={`flex items-center gap-2 ${isDark ? "hover:bg-gray-700 focus:bg-gray-700" : ""}`}>
                 <CalendarDaysIcon className="h-4 w-4 text-indigo-400" />
-                <Typography variant="small">Cấu hình Ngày chốt HĐ</Typography>
+                <Typography variant="small">Cấu hình Tự động hóa</Typography>
               </MenuItem>
               <hr className={`my-1.5 ${isDark ? "border-gray-700" : "border-blue-gray-100"}`} />
               <MenuItem onClick={handleLogout} className={`flex items-center gap-2 ${isDark ? "hover:bg-gray-700 focus:bg-gray-700" : ""}`}>
@@ -380,34 +406,90 @@ export function Sidenav({ brandImg, brandName, routes }) {
 
       {/* ===== Billing Config Dialog ===== */}
       <Dialog open={openBillingConfig} handler={handleOpenBillingConfig} size="sm">
-        <DialogHeader className="border-b border-blue-gray-50">Cấu hình ngày tự động tạo Hóa Đơn</DialogHeader>
-        <DialogBody className="p-6">
-          <Typography variant="small" color="blue-gray" className="mb-4 font-normal text-gray-600">
-            Hệ thống sẽ tự động quét các phòng và gom tiền (Phòng + Điện + Nước) để tạo thành Hóa Đơn vào lúc <b>00:00</b> của ngày bạn chọn.
-          </Typography>
-          <div className="flex flex-col gap-4">
-            <Input 
-              type="number" 
-              label="Ngày (1-28)" 
-              min={1} 
-              max={28} 
-              value={billingDay} 
-              onChange={(e) => handleBillingDayChange(e.target.value)} 
-              containerProps={{ className: "w-full" }}
-              error={!!billingError}
-            />
-            <div className="flex flex-col gap-1">
-              {billingError ? (
-                <Typography variant="small" color="red" className="text-[13px] font-medium">
-                  * {billingError}
-                </Typography>
-              ) : (
-                <Typography variant="small" className="text-[12px] italic text-blue-gray-400">
-                  * Chỉ chọn từ ngày 1 đến 28 để tránh lỗi vào tháng 2.
-                </Typography>
-              )}
+        <DialogHeader className="border-b border-blue-gray-50">Cấu hình Tự động hóa (Hóa đơn & Nhắc nợ)</DialogHeader>
+        <DialogBody className="p-6 h-[400px] overflow-y-auto">
+          {isLoadingConfig ? (
+            <div className="flex justify-center py-10">
+              <Typography variant="small" color="blue-gray">Đang tải cấu hình...</Typography>
             </div>
-          </div>
+          ) : (
+            <>
+              <Typography variant="small" color="blue-gray" className="mb-4 font-normal text-gray-600">
+                Thiết lập hệ thống <b>Tự động tính tiền</b> và <b>Tự động gửi Gmail nhắc nợ</b> cho khách thuê.
+              </Typography>
+              <div className="flex flex-col gap-5">
+                <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                  <Typography variant="small" color="blue-gray" className="mb-3 font-bold text-indigo-900">
+                    1. Tự động sinh Hóa Đơn
+                  </Typography>
+                  <Input 
+                    type="number" 
+                    label="Ngày chốt sổ mỗi tháng (1-28)" 
+                    min={1} 
+                    max={28} 
+                    value={billingDay} 
+                    onChange={(e) => handleBillingDayChange(e.target.value)} 
+                    containerProps={{ className: "w-full bg-white" }}
+                    error={!!billingError}
+                  />
+                  <Typography variant="small" className="text-[12px] italic text-indigo-400 mt-2">
+                    * Lúc 00:00 ngày này, hệ thống tự gom tiền tạo Hóa Đơn.
+                  </Typography>
+                </div>
+
+                <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100">
+                  <Typography variant="small" color="blue-gray" className="mb-3 font-bold text-orange-900">
+                    2. Tự động Nhắc Nợ Email
+                  </Typography>
+                  <div className="flex flex-col gap-4">
+                    <Input 
+                      type="number" 
+                      label="Hạn thanh toán mỗi tháng (1-28)" 
+                      min={1} 
+                      max={28} 
+                      value={paymentDeadlineDay} 
+                      onChange={(e) => {
+                        setPaymentDeadlineDay(e.target.value);
+                        setBillingError("");
+                      }} 
+                      containerProps={{ className: "w-full bg-white" }}
+                    />
+                    <Input 
+                      type="number" 
+                      label="Trễ mấy ngày thì bắt đầu nhắc?" 
+                      min={1} 
+                      value={reminderDelayDays} 
+                      onChange={(e) => {
+                        setReminderDelayDays(e.target.value);
+                        setBillingError("");
+                      }} 
+                      containerProps={{ className: "w-full bg-white" }}
+                    />
+                    <Input 
+                      type="number" 
+                      label="Chu kỳ gửi lại (mấy ngày/lần)?" 
+                      min={1} 
+                      value={reminderFrequencyDays} 
+                      onChange={(e) => {
+                        setReminderFrequencyDays(e.target.value);
+                        setBillingError("");
+                      }} 
+                      containerProps={{ className: "w-full bg-white" }}
+                    />
+                  </div>
+                  <Typography variant="small" className="text-[12px] italic text-orange-400 mt-2">
+                    * VD: Hạn mùng 5. Trễ 2 ngày (mùng 7 bắt đầu nhắc). Cứ 2 ngày nhắc 1 lần (mùng 9, 11...).
+                  </Typography>
+                </div>
+
+                {billingError && (
+                  <Typography variant="small" color="red" className="text-[13px] font-medium text-center">
+                    * {billingError}
+                  </Typography>
+                )}
+              </div>
+            </>
+          )}
         </DialogBody>
         <DialogFooter className="border-t border-blue-gray-50">
           <Button variant="text" color="gray" onClick={handleOpenBillingConfig} className="mr-2">

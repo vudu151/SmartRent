@@ -17,4 +17,9 @@ public class TenantProfileDTO {
     private String bankAccount;
     private String bankOwner;
     private String bankQrUrl;
+    
+    private Integer autoBillingDay;
+    private Integer paymentDeadlineDay;
+    private Integer reminderDelayDays;
+    private Integer reminderFrequencyDays;
 }

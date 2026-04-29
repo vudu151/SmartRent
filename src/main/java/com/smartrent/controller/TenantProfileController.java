@@ -33,6 +33,10 @@ public class TenantProfileController {
                 .bankAccount(tenant.getBankAccount())
                 .bankOwner(tenant.getBankOwner())
                 .bankQrUrl(tenant.getBankQrUrl())
+                .autoBillingDay(tenant.getAutoBillingDay())
+                .paymentDeadlineDay(tenant.getPaymentDeadlineDay())
+                .reminderDelayDays(tenant.getReminderDelayDays())
+                .reminderFrequencyDays(tenant.getReminderFrequencyDays())
                 .build();
         
         return ResponseEntity.ok(ApiResponse.success(dto, "Lấy hồ sơ thành công"));

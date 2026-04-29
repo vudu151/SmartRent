@@ -81,12 +81,12 @@ public class TenantController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/{id}/auto-billing-day")
-    @Operation(summary = "Update auto billing day for tenant")
-    public ResponseEntity<ApiResponse<Void>> updateAutoBillingDay(
+    @PutMapping("/{id}/automation-settings")
+    @Operation(summary = "Update automation settings for tenant")
+    public ResponseEntity<ApiResponse<Void>> updateAutomationSettings(
             @PathVariable Long id,
-            @RequestParam Integer day) {
-        tenantService.updateAutoBillingDay(id, day);
-        return ResponseEntity.ok(ApiResponse.success(null, "Cập nhật ngày chốt hóa đơn thành công"));
+            @Valid @RequestBody com.smartrent.dto.tenant.UpdateAutomationSettingsRequest request) {
+        tenantService.updateAutomationSettings(id, request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Cập nhật cấu hình tự động hóa thành công"));
     }
 }

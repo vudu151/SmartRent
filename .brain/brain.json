@@ -2,7 +2,7 @@
   "meta": {
     "schema_version": "1.1.0",
     "awf_version": "4.0.2",
-    "last_updated": "2026-04-27T21:09:00+07:00"
+    "last_updated": "2026-04-29T17:40:00+07:00"
   },
   "project": {
     "name": "SmartRent",
@@ -43,6 +43,10 @@
       "1 room có nhiều contracts",
       "1 contract sinh ra nhiều bills",
       "1 user (guard/resident) thuộc 1 building (building_id)"
+    ],
+    "automation_updates": [
+      "Tenant có thêm các cột tự động hóa: paymentDeadlineDay, reminderDelayDays, reminderFrequencyDays",
+      "Bill có thêm: lastReminderDate (Lưu lịch sử gửi email tự động)"
     ]
   },
   "api_endpoints": [
@@ -57,7 +61,8 @@
     { "path": "GET /api/dashboard/summary?tenantId=X&months=6", "explained": "Lấy tổng quan dashboard (thống kê + biểu đồ)" },
     { "path": "GET /api/users?buildingId=X", "explained": "Lấy danh sách tài khoản lọc theo khu trọ" },
     { "path": "GET /api/tickets?tenantId=X", "explained": "Lấy danh sách sự cố" },
-    { "path": "GET /api/notifications?tenantId=X", "explained": "Lấy thông báo" }
+    { "path": "GET /api/notifications?tenantId=X", "explained": "Lấy thông báo" },
+    { "path": "PUT /api/tenants/{id}/automation-settings", "explained": "Cập nhật cấu hình tự động hóa của Chủ trọ" }
   ],
   "business_rules": [
     "Mỗi API backend yêu cầu tenantId bắt buộc (@RequestParam Long tenantId)",
@@ -65,7 +70,8 @@
     "Building selector lưu selectedBuildingId vào localStorage, các module lắng nghe thay đổi qua window storage event",
     "Khi chuyển khu trọ, page reload để reset toàn bộ dữ liệu",
     "User role TENANT_MANAGER quản lý guard/resident thuộc building cụ thể",
-    "Sidebar active style: variant='gradient' color='indigo'"
+    "Job AutoBillingService tự động gom điện/nước vào ngày 'autoBillingDay' tạo Hóa đơn.",
+    "Job DebtReminderService tự động gửi Email kèm Excel nhắc nợ sau 'reminderDelayDays' ngày, và nhắc lại sau 'reminderFrequencyDays'."
   ],
   "features": [
     { "name": "Multi-building management", "status": "implemented" },
@@ -79,7 +85,8 @@
     { "name": "Ticket/Issue management", "status": "implemented" },
     { "name": "User account management (filtered by building)", "status": "implemented" },
     { "name": "Notification system", "status": "implemented" },
-    { "name": "Multi-image gallery with Lightbox popup (all modules)", "status": "implemented" }
+    { "name": "Multi-image gallery with Lightbox popup (all modules)", "status": "implemented" },
+    { "name": "Automated Billing & Debt Reminders (Excel generation, Email dispatch)", "status": "implemented" }
   ],
   "knowledge_items": {
     "patterns": [
@@ -97,7 +104,8 @@
       "Flyway migration: phải restart BE để chạy migration mới",
       "Lỗi precedence Hibernate @Filter: Cẩn thận khi viết condition 'A OR B', nếu Hibernate tự động chèn thêm 'AND id=?' thì nó sẽ thành 'A OR B AND id=?' -> gây lỗi logic trả về sai dữ liệu. Bắt buộc bọc ngoặc tròn: '(A OR B)'",
       "Lỗi MissingServletRequestParameterException (500): Các API Profile trên backend yêu cầu bắt buộc tenantId, FE nếu quên truyền `tenantId=getTenantId()` trong param sẽ dính lỗi này.",
-      "Lỗi React Prop Type: Component Button của @material-tailwind/react không hỗ trợ color='black'. Gây warning console. Cần dùng màu khác như 'blue-gray' hoặc 'indigo'."
+      "Lỗi React Prop Type: Component Button của @material-tailwind/react không hỗ trợ color='black'. Gây warning console. Cần dùng màu khác như 'blue-gray' hoặc 'indigo'.",
+      "Lỗi 'Cannot destructure property summary of data as it is null': FE cần phải có Exception Handling / Error Boundaries thay vì chết trang trắng khi Server sập/mất kết nối."
     ],
     "conventions": [
       "Button chính: variant='gradient' color='indigo' (đồng bộ với sidebar active)",
