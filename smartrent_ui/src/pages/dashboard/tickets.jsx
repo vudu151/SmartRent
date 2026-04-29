@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -17,6 +18,7 @@ import { ImageThumbnail } from "@/components/image-lightbox";
 
 export function Tickets() {
   const { setNavbarHeader } = useNavbarHeader();
+  const navigate = useNavigate();
   const [tickets, setTickets] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [filterStr, setFilterStr] = React.useState("");
@@ -104,7 +106,7 @@ export function Tickets() {
                     <td className="px-2 py-3">
                       <ImageThumbnail images={t.imageUrls} alt={t.title || "Sự cố"} />
                     </td>
-                    <td className="px-2 py-3"><Typography variant="small" className="font-bold text-blue-600">{t.roomNumber}</Typography></td>
+                    <td className="px-2 py-3"><Typography variant="small" color="indigo" className="font-bold cursor-pointer hover:underline" onClick={() => t.roomId && navigate(`/dashboard/rooms/${t.roomId}`)}>{t.roomNumber}</Typography></td>
                     <td className="px-2 py-3">
                       <div className="flex flex-col">
                         <Typography variant="small" className="font-medium text-gray-800">{t.residentName}</Typography>

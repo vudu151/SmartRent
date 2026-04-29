@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -27,6 +28,7 @@ export function Contracts() {
   const [controller] = useMaterialTailwindController();
   const { darkMode } = controller;
   const { setNavbarHeader } = useNavbarHeader();
+  const navigate = useNavigate();
 
   const [contracts, setContracts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -133,7 +135,7 @@ export function Contracts() {
                           <ImageThumbnail images={contract.imageUrls} alt={contract.contractNumber} />
                         </td>
                         <td className={className}><Typography variant="small" color="blue-gray" className="font-bold">{contract.contractNumber}</Typography></td>
-                        <td className={className}><Typography variant="small" color="blue-gray">{contract.roomNumber}</Typography></td>
+                        <td className={className}><Typography variant="small" color="indigo" className="font-bold cursor-pointer hover:underline" onClick={() => contract.roomId && navigate(`/dashboard/rooms/${contract.roomId}`)}>{contract.roomNumber}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray">{contract.residentName}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray">{new Date(contract.startDate).toLocaleDateString("vi-VN")}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray">{new Date(contract.endDate).toLocaleDateString("vi-VN")}</Typography></td>

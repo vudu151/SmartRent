@@ -1,22 +1,21 @@
 import {
   HomeIcon,
   UserCircleIcon,
-  TableCellsIcon,
   InformationCircleIcon,
   ServerStackIcon,
   RectangleStackIcon,
   HeartIcon,
   BuildingOfficeIcon,
-  BoltIcon,
+  BellAlertIcon,
   WrenchScrewdriverIcon,
   CalculatorIcon,
   DocumentTextIcon,
   CurrencyDollarIcon,
   UsersIcon,
-  ClipboardDocumentListIcon,
   TruckIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Tables, Notifications, Health, Tenants, Rooms, Residents, Bills, Users, Contracts, Services, Tickets, MeterReading, Vehicles } from "@/pages/dashboard";
+import { Home, Profile, Notifications, Health, Tenants, Rooms, Residents, Bills, Users, Contracts, Tickets, MeterReading, Vehicles } from "@/pages/dashboard";
+import { RoomDetail } from "@/pages/dashboard/room-detail";
 import { SignIn, SignUp, ForgotPassword } from "@/pages/auth";
 
 const icon = {
@@ -85,11 +84,11 @@ export const routes = [
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
       },
       {
-        icon: <BoltIcon {...icon} />,
-        name: "Dịch vụ",
-        path: "/services",
-        element: <Services />,
-        hidden: true, // Ẩn vì trùng lặp với Điện nước - gộp vào trang Điện nước
+        icon: <BellAlertIcon {...icon} />,
+        name: "Thông báo",
+        path: "/notifications",
+        element: <Notifications />,
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
 
       // ===== Quản trị hệ thống (hiển thị nhưng nhóm riêng) =====
@@ -124,17 +123,9 @@ export const routes = [
         hidden: true,
       },
       {
-        icon: <TableCellsIcon {...icon} />,
-        name: "tables",
-        path: "/tables",
-        element: <Tables />,
-        hidden: true,
-      },
-      {
-        icon: <InformationCircleIcon {...icon} />,
-        name: "notifications",
-        path: "/notifications",
-        element: <Notifications />,
+        name: "room-detail",
+        path: "/rooms/:id",
+        element: <RoomDetail />,
         hidden: true,
       },
     ],

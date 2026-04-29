@@ -72,7 +72,7 @@ export async function createResident(data: any): Promise<ResidentResponse> {
   const tenantId = getTenantId()
   const response = await apiFetch<ApiResponse<ResidentResponse>>(`/api/residents?tenantId=${tenantId}`, {
     method: 'POST',
-    body: data,
+    body: { ...data, tenantId },
   })
   if (!response.success || !response.data) throw new Error(response.message)
   return response.data

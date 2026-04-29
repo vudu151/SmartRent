@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -26,6 +27,7 @@ import { ImageThumbnail } from "@/components/image-lightbox";
 
 export function Residents() {
   const { setNavbarHeader } = useNavbarHeader();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isGuard = user?.role === "GUARD";
   const [residents, setResidents] = React.useState([]);
@@ -226,7 +228,7 @@ export function Residents() {
                         <td className={className}>
                           {res.rooms && res.rooms.length > 0 ? (
                             <div className="flex gap-1 flex-wrap">
-                              {res.rooms.map((r) => (<Chip key={r.id} size="sm" variant="gradient" value={r.roomNumber} color="blue" className="py-0.5 px-2 text-[10px] font-medium w-fit" />))}
+                              {res.rooms.map((r) => (<Chip key={r.id} size="sm" variant="gradient" value={r.roomNumber} color="indigo" className="py-0.5 px-2 text-[10px] font-medium w-fit cursor-pointer" onClick={() => navigate(`/dashboard/rooms/${r.id}`)} />))}
                             </div>
                           ) : (<Typography variant="small" color="gray" className="text-xs italic">Chưa xếp phòng</Typography>)}
                         </td>

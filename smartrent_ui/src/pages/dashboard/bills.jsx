@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -24,6 +25,7 @@ import { showToast } from "@/lib/swal";
 
 export function Bills() {
   const { setNavbarHeader } = useNavbarHeader();
+  const navigate = useNavigate();
   const [bills, setBills] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
@@ -145,7 +147,7 @@ export function Bills() {
                     const className = `py-3 px-5 ${isLast ? "" : "border-b border-blue-gray-50"}`;
                     return (
                       <tr key={bill.id}>
-                        <td className={className}><Typography variant="small" color="blue-gray" className="font-bold">{bill.roomNumber || "-"}</Typography></td>
+                        <td className={className}><Typography variant="small" color="indigo" className="font-bold cursor-pointer hover:underline" onClick={() => bill.roomId && navigate(`/dashboard/rooms/${bill.roomId}`)}>{bill.roomNumber || "-"}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray">{getTypeLabel(bill.billType)}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray" className="font-bold text-blue-800">{bill.amount?.toLocaleString()}</Typography></td>
                         <td className={className}><Typography variant="small" color="blue-gray">{new Date(bill.dueDate).toLocaleDateString("vi-VN")}</Typography></td>

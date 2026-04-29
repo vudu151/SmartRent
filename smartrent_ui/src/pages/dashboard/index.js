@@ -1,7 +1,5 @@
 export * from "@/pages/dashboard/home";
-export * from "@/pages/dashboard/home";
 export * from "@/pages/dashboard/profile";
-export * from "@/pages/dashboard/tables";
 export * from "@/pages/dashboard/notifications";
 export * from "@/pages/dashboard/health";
 export * from "@/pages/dashboard/tenants";
@@ -15,7 +13,6 @@ export * from "@/pages/dashboard/bill-form";
 export * from "@/pages/dashboard/users";
 export * from "@/pages/dashboard/contracts";
 export * from "@/pages/dashboard/contract-form";
-export * from "@/pages/dashboard/services";
 export * from "@/pages/dashboard/fee-settings";
 export * from "@/pages/dashboard/tickets";
 export * from "@/pages/dashboard/meter-reading";

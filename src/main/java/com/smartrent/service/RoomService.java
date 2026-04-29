@@ -1,13 +1,15 @@
 package com.smartrent.service;
 
-import com.smartrent.domain.Room;
-import com.smartrent.domain.Tenant;
+import com.smartrent.domain.*;
 import com.smartrent.dto.ApiResponse;
 import com.smartrent.dto.room.CreateRoomRequest;
+import com.smartrent.dto.room.RoomInvoiceDTO;
 import com.smartrent.dto.room.RoomResponse;
 import com.smartrent.dto.room.UpdateRoomRequest;
 import com.smartrent.exception.BusinessException;
 import com.smartrent.exception.ResourceNotFoundException;
+import com.smartrent.repository.ContractRepository;
+import com.smartrent.repository.MeterReadingRepository;
 import com.smartrent.repository.RoomRepository;
 import com.smartrent.repository.TenantRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,8 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final TenantRepository tenantRepository;
+    private final ContractRepository contractRepository;
+    private final MeterReadingRepository meterReadingRepository;
 
     @Transactional(readOnly = true)
     public ApiResponse<Page<RoomResponse>> getRooms(Long tenantId, String status, String type,
@@ -197,5 +201,95 @@ public class RoomService {
             .createdAt(room.getCreatedAt())
             .updatedAt(room.getUpdatedAt())
             .build();
+    }
+
+    @Transactional(readOnly = true)
+    public ApiResponse<RoomInvoiceDTO> getRoomInvoice(Long roomId, Long tenantId, Integer month, Integer year) {
+        Room room = roomRepository.findByIdAndTenantId(roomId, tenantId)
+            .orElseThrow(() -> new ResourceNotFoundException("Ph\u00f2ng kh\u00f4ng t\u1ed3n t\u1ea1i v\u1edbi ID: " + roomId));
+
+        Tenant tenant = room.getTenant();
+        Building building = room.getBuilding();
+
+        // L\u1ea5y h\u1ee3p \u0111\u1ed3ng \u0111ang hi\u1ec7u l\u1ef1c
+        var activeContract = contractRepository.findActiveContractByRoom(roomId);
+        java.math.BigDecimal monthlyRent = activeContract.map(Contract::getMonthlyRent).orElse(room.getPrice());
+
+        // L\u1ea5y c\u01b0 d\u00e2n t\u1eeb h\u1ee3p \u0111\u1ed3ng ho\u1eb7c t\u1eeb ph\u00f2ng
+        String residentName = activeContract.map(c -> c.getResident().getFullName()).orElse(null);
+        String residentPhone = activeContract.map(c -> c.getResident().getPhone()).orElse(null);
+        if (residentName == null && room.getResidents() != null && !room.getResidents().isEmpty()) {
+            Resident firstResident = room.getResidents().iterator().next();
+            residentName = firstResident.getFullName();
+            residentPhone = firstResident.getPhone();
+        }
+
+        // L\u1ea5y ch\u1ec9 s\u1ed1 \u0111i\u1ec7n
+        var electricReading = meterReadingRepository.findByRoomAndTypeAndPeriod(roomId, MeterType.ELECTRICITY, month, year);
+        java.math.BigDecimal elecOld = electricReading.map(MeterReading::getOldIndex).orElse(java.math.BigDecimal.ZERO);
+        java.math.BigDecimal elecNew = electricReading.map(MeterReading::getNewIndex).orElse(java.math.BigDecimal.ZERO);
+        java.math.BigDecimal elecUsage = elecNew.subtract(elecOld);
+        java.math.BigDecimal elecPrice = building != null ? building.getElectricityPrice() : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal elecAmount = elecUsage.multiply(elecPrice);
+
+        // L\u1ea5y ch\u1ec9 s\u1ed1 n\u01b0\u1edbc
+        var waterReading = meterReadingRepository.findByRoomAndTypeAndPeriod(roomId, MeterType.WATER, month, year);
+        java.math.BigDecimal waterOld = waterReading.map(MeterReading::getOldIndex).orElse(java.math.BigDecimal.ZERO);
+        java.math.BigDecimal waterNew = waterReading.map(MeterReading::getNewIndex).orElse(java.math.BigDecimal.ZERO);
+        java.math.BigDecimal waterUsage = waterNew.subtract(waterOld);
+        java.math.BigDecimal waterPrice = building != null ? building.getWaterPrice() : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal waterAmount = waterUsage.multiply(waterPrice);
+
+        // Ph\u00ed d\u1ecbch v\u1ee5
+        java.math.BigDecimal serviceAmount = building != null ? building.getServicePrice() : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal internetAmount = building != null ? building.getInternetPrice() : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal parkingAmount = building != null ? building.getParkingPrice() : java.math.BigDecimal.ZERO;
+
+        // T\u1ed5ng c\u1ed9ng
+        java.math.BigDecimal totalAmount = monthlyRent
+            .add(elecAmount)
+            .add(waterAmount)
+            .add(serviceAmount)
+            .add(internetAmount)
+            .add(parkingAmount);
+
+        // Ng\u00e0y l\u1eadp phi\u1ebfu
+        java.time.LocalDate invoiceDate = java.time.LocalDate.of(year, month, 1);
+        java.time.LocalDate dueDate = invoiceDate.plusMonths(1).withDayOfMonth(15);
+
+        RoomInvoiceDTO dto = RoomInvoiceDTO.builder()
+            .buildingName(building != null ? building.getName() : "")
+            .buildingAddress(building != null ? building.getAddress() : "")
+            .tenantPhone(tenant.getPhone())
+            .tenantName(tenant.getName())
+            .bankName(tenant.getBankName())
+            .bankAccount(tenant.getBankAccount())
+            .bankOwner(tenant.getBankOwner())
+            .bankQrUrl(tenant.getBankQrUrl())
+            .roomNumber(room.getRoomNumber())
+            .residentName(residentName != null ? residentName : "Ch\u01b0a c\u00f3 c\u01b0 d\u00e2n")
+            .residentPhone(residentPhone != null ? residentPhone : "")
+            .month(month)
+            .year(year)
+            .monthlyRent(monthlyRent)
+            .electricOldIndex(elecOld)
+            .electricNewIndex(elecNew)
+            .electricUsage(elecUsage)
+            .electricUnitPrice(elecPrice)
+            .electricAmount(elecAmount)
+            .waterOldIndex(waterOld)
+            .waterNewIndex(waterNew)
+            .waterUsage(waterUsage)
+            .waterUnitPrice(waterPrice)
+            .waterAmount(waterAmount)
+            .serviceAmount(serviceAmount)
+            .internetAmount(internetAmount)
+            .parkingAmount(parkingAmount)
+            .totalAmount(totalAmount)
+            .invoiceDate(invoiceDate.toString())
+            .dueDate(dueDate.toString())
+            .build();
+
+        return ApiResponse.success(dto, "L\u1ea5y d\u1eef li\u1ec7u phi\u1ebfu in th\u00e0nh c\u00f4ng");
     }
 }

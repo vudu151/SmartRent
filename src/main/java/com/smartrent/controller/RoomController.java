@@ -2,6 +2,7 @@ package com.smartrent.controller;
 
 import com.smartrent.dto.ApiResponse;
 import com.smartrent.dto.room.CreateRoomRequest;
+import com.smartrent.dto.room.RoomInvoiceDTO;
 import com.smartrent.dto.room.RoomResponse;
 import com.smartrent.dto.room.UpdateRoomRequest;
 import com.smartrent.service.RoomService;
@@ -90,5 +91,15 @@ public class RoomController {
             @RequestParam List<Long> roomIds,
             @RequestParam String status) {
         return ResponseEntity.ok(roomService.batchUpdateStatus(tenantId, roomIds, status));
+    }
+
+    @GetMapping("/{id}/invoice")
+    @Operation(summary = "Get room invoice", description = "Get invoice data for printing (includes meter readings, rent, services)")
+    public ResponseEntity<ApiResponse<RoomInvoiceDTO>> getRoomInvoice(
+            @PathVariable Long id,
+            @RequestParam Long tenantId,
+            @RequestParam Integer month,
+            @RequestParam Integer year) {
+        return ResponseEntity.ok(roomService.getRoomInvoice(id, tenantId, month, year));
     }
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -29,6 +30,7 @@ export function Rooms() {
   const [controller] = useMaterialTailwindController();
   const { darkMode } = controller;
   const { setNavbarHeader } = useNavbarHeader();
+  const navigate = useNavigate();
 
   const [rooms, setRooms] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -247,7 +249,12 @@ export function Rooms() {
                           <ImageThumbnail images={room.imageUrls} alt={room.roomNumber} />
                         </td>
                         <td className={className}>
-                          <Typography variant="small" color="blue-gray" className="font-bold">
+                          <Typography
+                            variant="small"
+                            color="indigo"
+                            className="font-bold cursor-pointer hover:underline"
+                            onClick={() => navigate(`/dashboard/rooms/${room.id}`)}
+                          >
                             {room.roomNumber}
                           </Typography>
                         </td>

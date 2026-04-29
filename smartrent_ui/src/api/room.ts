@@ -95,3 +95,18 @@ export async function deleteRoom(id: number): Promise<void> {
   })
   if (!response.success) throw new Error(response.message)
 }
+
+export async function getRoomInvoice(roomId: number, month: number, year: number): Promise<any> {
+  const tenantId = getTenantId()
+  const params = new URLSearchParams({
+    tenantId: tenantId.toString(),
+    month: month.toString(),
+    year: year.toString(),
+  })
+  const response = await apiFetch<ApiResponse<any>>(
+    `/api/rooms/${roomId}/invoice?${params.toString()}`,
+    { method: 'GET' }
+  )
+  if (!response.success || !response.data) throw new Error(response.message)
+  return response.data
+}
