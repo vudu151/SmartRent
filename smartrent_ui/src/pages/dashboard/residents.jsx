@@ -14,7 +14,7 @@ import {
   DialogFooter,
   Alert,
 } from "@material-tailwind/react";
-import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, ArrowDownTrayIcon } from "@heroicons/react/24/solid";
 import Select from "react-select";
 import { useNavbarHeader } from "@/context/navbar-header";
 import { useAuth } from "@/smartrent/auth";
@@ -22,6 +22,7 @@ import { getResidents, deleteResident } from "@/api/resident";
 import { getRooms } from "@/api/room";
 import { ResidentModal } from "./resident-form";
 import { showToast } from "@/lib/swal";
+import { exportToExcel } from "@/lib/export-excel";
 import { env } from "@/config/env";
 import { ImageThumbnail } from "@/components/image-lightbox";
 
@@ -80,6 +81,27 @@ export function Residents() {
   }, []);
 
   const handleAdd = () => { setSelectedResidentId(null); setIsModalOpen(true); };
+
+  const handleExportExcel = async () => {
+    try {
+      showToast("Đang xuất Excel...", "info");
+      const res = await getResidents({ page: 0, size: 9999, search: searchTerm, roomId: selectedRoomId || undefined });
+      const allResidents = res.content || [];
+      if (allResidents.length === 0) { showToast("Không có dữ liệu để xuất", "warning"); return; }
+      const statusLabel = (s) => { switch(s) { case "DANG_O": return "Đang ở"; case "DA_ROI": return "Đã rời"; default: return s; } };
+      exportToExcel(allResidents, [
+        { header: "Họ tên", key: "fullName", width: 22 },
+        { header: "SĐT", key: "phone", width: 14 },
+        { header: "CCCD", key: "idCardNumber", width: 16 },
+        { header: "Phòng", key: "roomNumber", width: 12 },
+        { header: "Trạng thái", key: "status", width: 12, formatter: (v) => statusLabel(v) },
+        { header: "Giới tính", key: "gender", width: 10, formatter: (v) => v === "MALE" ? "Nam" : v === "FEMALE" ? "Nữ" : "Khác" },
+        { header: "Ngày sinh", key: "dateOfBirth", width: 14, formatter: (v) => v ? new Date(v).toLocaleDateString("vi-VN") : "" },
+        { header: "Biển số xe", key: "vehiclePlate", width: 14 },
+      ], `cu-dan_${new Date().toISOString().slice(0,10)}`, "Cư dân");
+      showToast(`Đã xuất ${allResidents.length} cư dân!`, "success");
+    } catch (err) { showToast("Lỗi xuất Excel: " + err.message, "error"); }
+  };
 
   React.useEffect(() => {
     const roomOptions = [
@@ -152,9 +174,14 @@ export function Residents() {
             />
           </div>
           {!isGuard && (
-            <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleAdd}>
-              <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Cư dân
-            </Button>
+            <>
+              <Button variant="outlined" color="green" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleExportExcel}>
+                <ArrowDownTrayIcon strokeWidth={2.5} className="h-4 w-4" /> Xuất Excel
+              </Button>
+              <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleAdd}>
+                <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Cư dân
+              </Button>
+            </>
           )}
         </div>
       </div>

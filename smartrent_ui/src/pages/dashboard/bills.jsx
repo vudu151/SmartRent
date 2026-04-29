@@ -16,12 +16,13 @@ import {
   Select,
   Option,
 } from "@material-tailwind/react";
-import { PlusIcon, PencilIcon, TrashIcon, CheckCircleIcon, MagnifyingGlassIcon, BellIcon } from "@heroicons/react/24/solid";
+import { PlusIcon, PencilIcon, TrashIcon, CheckCircleIcon, MagnifyingGlassIcon, BellIcon, ArrowDownTrayIcon } from "@heroicons/react/24/solid";
 import { useNavbarHeader } from "@/context/navbar-header";
 import { getBills, deleteBill, markBillAsPaid } from "@/api/bill";
 import { remindUnpaidBills } from "@/api/notification";
 import { BillModal } from "./bill-form";
 import { showToast } from "@/lib/swal";
+import { exportToExcel } from "@/lib/export-excel";
 
 export function Bills() {
   const { setNavbarHeader } = useNavbarHeader();
@@ -67,6 +68,28 @@ export function Bills() {
     try { setLoading(true); await remindUnpaidBills(); showToast("Đã gửi thông báo nhắc nợ!", "success"); } catch (err) { showToast(err.message || "Không thể gửi nhắc nợ", "error"); } finally { setLoading(false); }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      showToast("Đang xuất Excel...", "info");
+      const res = await getBills({ page: 0, size: 9999, roomNumber: roomNumber || undefined, status: statusFilter || undefined, billType: typeFilter || undefined });
+      const allBills = res.content || [];
+      if (allBills.length === 0) { showToast("Không có dữ liệu để xuất", "warning"); return; }
+      const typeLabel = (t) => { switch(t) { case "RENT": return "Tiền Phòng"; case "ELECTRICITY": return "Tiền Điện"; case "WATER": return "Tiền Nước"; case "SERVICE": return "Dịch Vụ"; case "OTHER": return "Khác"; default: return t; } };
+      const statusLabel = (s) => { switch(s) { case "PAID": return "Đã Thu"; case "UNPAID": return "Chưa Thu"; case "OVERDUE": return "Quá Hạn"; case "CANCELLED": return "Đã Hủy"; default: return s; } };
+      exportToExcel(allBills, [
+        { header: "Phòng", key: "roomNumber", width: 12 },
+        { header: "Loại", key: "billType", width: 14, formatter: (v) => typeLabel(v) },
+        { header: "Số tiền (VNĐ)", key: "amount", width: 18, formatter: (v) => Number(v || 0) },
+        { header: "Trạng thái", key: "status", width: 14, formatter: (v) => statusLabel(v) },
+        { header: "Kỳ hóa đơn", key: "billingMonth", width: 14, formatter: (v, row) => `${row.billingMonth}/${row.billingYear}` },
+        { header: "Hạn thanh toán", key: "dueDate", width: 16, formatter: (v) => v ? new Date(v).toLocaleDateString("vi-VN") : "" },
+        { header: "Ngày thanh toán", key: "paymentDate", width: 16, formatter: (v) => v ? new Date(v).toLocaleDateString("vi-VN") : "" },
+        { header: "Tham chiếu", key: "paymentReference", width: 20 },
+      ], `hoa-don_${new Date().toISOString().slice(0,10)}`, "Hóa đơn");
+      showToast(`Đã xuất ${allBills.length} hóa đơn!`, "success");
+    } catch (err) { showToast("Lỗi xuất Excel: " + err.message, "error"); }
+  };
+
   const handleAdd = () => { setSelectedBillId(null); setIsModalOpen(true); };
 
   React.useEffect(() => {
@@ -101,6 +124,9 @@ export function Bills() {
 
           <Button variant="outlined" color="blue-gray" size="sm" className="flex items-center gap-1 whitespace-nowrap" onClick={handleRemind} disabled={loading}>
             <BellIcon className="h-3 w-3" /> Nhắc Nợ
+          </Button>
+          <Button variant="outlined" color="green" size="sm" className="flex items-center gap-1 whitespace-nowrap" onClick={handleExportExcel}>
+            <ArrowDownTrayIcon className="h-3 w-3" /> Xuất Excel
           </Button>
         </div>
       </div>
