@@ -8,6 +8,12 @@ import {
   Chip,
   IconButton,
   Spinner,
+  Timeline,
+  TimelineItem,
+  TimelineConnector,
+  TimelineHeader,
+  TimelineIcon,
+  TimelineBody,
 } from "@material-tailwind/react";
 import {
   ArrowLeftIcon,
@@ -18,9 +24,11 @@ import {
   HomeIcon,
   PhoneIcon,
   IdentificationIcon,
+  ClockIcon,
+  WrenchScrewdriverIcon,
 } from "@heroicons/react/24/solid";
 import { useNavbarHeader } from "@/context/navbar-header";
-import { getRoomById } from "@/api/room";
+import { getRoomById, getRoomTimeline } from "@/api/room";
 import { getBills } from "@/api/bill";
 import { showToast } from "@/lib/swal";
 import { InvoicePreviewModal } from "./invoice-modal";
@@ -66,6 +74,10 @@ export function RoomDetail() {
   const [billPage, setBillPage] = useState(1);
   const [billTotalPages, setBillTotalPages] = useState(1);
 
+  // Timeline
+  const [timeline, setTimeline] = useState([]);
+  const [timelineLoading, setTimelineLoading] = useState(true);
+
   // Invoice modal
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [invoiceMonth, setInvoiceMonth] = useState(new Date().getMonth() + 1);
@@ -105,6 +117,22 @@ export function RoomDetail() {
 
   useEffect(() => { loadRoom(); }, [loadRoom]);
   useEffect(() => { if (room) loadBills(); }, [room, loadBills]);
+
+  // Load timeline
+  const loadTimeline = useCallback(async () => {
+    if (!id) return;
+    try {
+      setTimelineLoading(true);
+      const data = await getRoomTimeline(Number(id));
+      setTimeline(data || []);
+    } catch (err) {
+      console.error("Error loading timeline:", err);
+    } finally {
+      setTimelineLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => { loadTimeline(); }, [loadTimeline]);
 
   // Navbar header
   useEffect(() => {
@@ -260,11 +288,15 @@ export function RoomDetail() {
         </SectionCard>
       </div>
 
-      {/* ===== ROW 2: Lịch sử Hóa đơn ===== */}
-      <SectionCard
-        title="Lịch sử hóa đơn"
-        icon={<CurrencyDollarIcon className="h-5 w-5 text-amber-500" />}
-      >
+      {/* ===== ROW 2: Lịch sử Hóa đơn & Timeline ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Cột trái: Lịch sử hóa đơn (chiếm 2 cột) */}
+        <div className="lg:col-span-2">
+          <SectionCard
+            title="Lịch sử hóa đơn"
+            icon={<CurrencyDollarIcon className="h-5 w-5 text-amber-500" />}
+            className="h-full"
+          >
         {unpaidTotal > 0 && (
           <div className="bg-red-50 border border-red-100 rounded-lg p-3 mb-4 flex items-center justify-between">
             <Typography variant="small" color="red" className="font-medium">
@@ -360,7 +392,64 @@ export function RoomDetail() {
             </div>
           </>
         )}
-      </SectionCard>
+          </SectionCard>
+        </div>
+
+        {/* Cột phải: Lịch sử hoạt động (Timeline) */}
+        <div className="lg:col-span-1">
+          <SectionCard
+            title="Nhật ký phòng"
+            icon={<ClockIcon className="h-5 w-5 text-blue-500" />}
+            className="h-full max-h-[500px] overflow-y-auto"
+          >
+            {timelineLoading ? (
+              <div className="flex justify-center py-6">
+                <Spinner className="h-6 w-6" color="indigo" />
+              </div>
+            ) : timeline.length === 0 ? (
+              <div className="flex flex-col items-center py-8 text-blue-gray-300">
+                <ClockIcon className="h-10 w-10 mb-2" />
+                <Typography variant="small">Chưa có sự kiện nào</Typography>
+              </div>
+            ) : (
+              <div className="px-2">
+                <Timeline>
+                  {timeline.map((event, index) => {
+                    const isLast = index === timeline.length - 1;
+                    return (
+                      <TimelineItem key={event.id} className="h-28">
+                        {!isLast && <TimelineConnector />}
+                        <TimelineHeader className="h-3">
+                          <TimelineIcon color={event.color} className="p-2">
+                            {event.type === 'BILL' ? <CurrencyDollarIcon className="h-3 w-3" /> :
+                             event.type === 'TICKET' ? <WrenchScrewdriverIcon className="h-3 w-3" /> :
+                             event.type === 'RESIDENT' ? <UserCircleIcon className="h-3 w-3" /> :
+                             <DocumentTextIcon className="h-3 w-3" />}
+                          </TimelineIcon>
+                          <Typography variant="small" color="blue-gray" className="font-bold leading-none">
+                            {event.title}
+                          </Typography>
+                        </TimelineHeader>
+                        <TimelineBody className="pb-8">
+                          <Typography variant="small" color="gray" className="font-normal text-[11px] mb-1">
+                            {new Date(event.timestamp).toLocaleString("vi-VN", {
+                              day: '2-digit', month: '2-digit', year: 'numeric',
+                              hour: '2-digit', minute: '2-digit'
+                            })}
+                          </Typography>
+                          <Typography variant="small" color="blue-gray" className="font-normal text-xs opacity-80 line-clamp-2">
+                            {event.description}
+                          </Typography>
+                        </TimelineBody>
+                      </TimelineItem>
+                    );
+                  })}
+                </Timeline>
+              </div>
+            )}
+          </SectionCard>
+        </div>
+      </div>
 
       {/* Invoice Print Modal */}
       <InvoicePreviewModal

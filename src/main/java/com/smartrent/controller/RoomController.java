@@ -102,4 +102,12 @@ public class RoomController {
             @RequestParam Integer year) {
         return ResponseEntity.ok(roomService.getRoomInvoice(id, tenantId, month, year));
     }
+
+    @GetMapping("/{id}/timeline")
+    @Operation(summary = "Get room timeline", description = "Get chronological events for a room")
+    public ResponseEntity<ApiResponse<List<com.smartrent.dto.room.TimelineEventDTO>>> getRoomTimeline(
+            @PathVariable Long id,
+            @RequestParam Long tenantId) {
+        return ResponseEntity.ok(roomService.getRoomTimeline(id, tenantId));
+    }
 }

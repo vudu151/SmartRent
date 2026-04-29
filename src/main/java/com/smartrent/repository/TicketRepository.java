@@ -29,4 +29,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     // Quick metric query for Dashboard
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.tenant.id = :tenantId AND t.status = 'PENDING'")
     long countPendingTicketsByTenantId(@Param("tenantId") Long tenantId);
+
+    List<Ticket> findByRoomIdOrderByCreatedAtDesc(Long roomId);
 }

@@ -30,4 +30,6 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
     Optional<Contract> findByContractNumber(String contractNumber);
 
     Optional<Contract> findByPortalToken(String portalToken);
+
+    java.util.List<Contract> findByRoomIdOrderByCreatedAtDesc(Long roomId);
 }

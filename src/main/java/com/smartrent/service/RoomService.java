@@ -12,6 +12,9 @@ import com.smartrent.repository.ContractRepository;
 import com.smartrent.repository.MeterReadingRepository;
 import com.smartrent.repository.RoomRepository;
 import com.smartrent.repository.TenantRepository;
+import com.smartrent.repository.BillRepository;
+import com.smartrent.repository.TicketRepository;
+import com.smartrent.dto.room.TimelineEventDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,6 +41,8 @@ public class RoomService {
     private final TenantRepository tenantRepository;
     private final ContractRepository contractRepository;
     private final MeterReadingRepository meterReadingRepository;
+    private final BillRepository billRepository;
+    private final TicketRepository ticketRepository;
 
     @Transactional(readOnly = true)
     public ApiResponse<Page<RoomResponse>> getRooms(Long tenantId, String status, String type,
@@ -291,5 +296,82 @@ public class RoomService {
             .build();
 
         return ApiResponse.success(dto, "L\u1ea5y d\u1eef li\u1ec7u phi\u1ebfu in th\u00e0nh c\u00f4ng");
+    }
+
+    @Transactional(readOnly = true)
+    public ApiResponse<List<TimelineEventDTO>> getRoomTimeline(Long roomId, Long tenantId) {
+        Room room = roomRepository.findByIdAndTenantId(roomId, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+
+        List<TimelineEventDTO> events = new ArrayList<>();
+
+        // Add residents events
+        for (Resident r : room.getResidents()) {
+            events.add(TimelineEventDTO.builder()
+                    .id("resident-" + r.getId())
+                    .type("RESIDENT")
+                    .title("Thêm cư dân: " + r.getFullName())
+                    .description("SĐT: " + (r.getPhone() != null ? r.getPhone() : "N/A"))
+                    .timestamp(r.getCreatedAt() != null ? r.getCreatedAt() : room.getCreatedAt())
+                    .status(r.getStatus().name())
+                    .color("green")
+                    .build());
+        }
+
+        // Add contract events
+        List<Contract> contracts = contractRepository.findByRoomIdOrderByCreatedAtDesc(roomId);
+        for (Contract c : contracts) {
+            events.add(TimelineEventDTO.builder()
+                    .id("contract-" + c.getId())
+                    .type("CONTRACT")
+                    .title("Hợp đồng thuê: " + c.getContractNumber())
+                    .description("Từ: " + c.getStartDate() + " đến " + c.getEndDate())
+                    .timestamp(c.getCreatedAt() != null ? c.getCreatedAt() : room.getCreatedAt())
+                    .status(c.getStatus().name())
+                    .color("blue")
+                    .build());
+        }
+
+        // Add bill events
+        List<Bill> bills = billRepository.findByRoomIdOrderByCreatedAtDesc(roomId);
+        for (Bill b : bills) {
+            String type = b.getBillType() == Bill.BillType.RENT ? "Tiền phòng" :
+                          b.getBillType() == Bill.BillType.ELECTRICITY ? "Tiền điện" :
+                          b.getBillType() == Bill.BillType.WATER ? "Tiền nước" :
+                          b.getBillType() == Bill.BillType.SERVICE ? "Dịch vụ" : b.getBillType().name();
+            events.add(TimelineEventDTO.builder()
+                    .id("bill-" + b.getId())
+                    .type("BILL")
+                    .title("Hóa đơn " + type)
+                    .description("Số tiền: " + b.getAmount() + " đ - " + (b.getStatus() == Bill.BillStatus.PAID ? "Đã thanh toán" : "Chưa thanh toán"))
+                    .timestamp(b.getCreatedAt() != null ? b.getCreatedAt() : (b.getDueDate() != null ? b.getDueDate().atStartOfDay() : room.getCreatedAt()))
+                    .status(b.getStatus().name())
+                    .color(b.getStatus() == Bill.BillStatus.PAID ? "green" : "red")
+                    .build());
+        }
+
+        // Add ticket events
+        List<Ticket> tickets = ticketRepository.findByRoomIdOrderByCreatedAtDesc(roomId);
+        for (Ticket t : tickets) {
+            events.add(TimelineEventDTO.builder()
+                    .id("ticket-" + t.getId())
+                    .type("TICKET")
+                    .title("Báo cáo: " + t.getTitle())
+                    .description(t.getDescription())
+                    .timestamp(t.getCreatedAt())
+                    .status(t.getStatus().name())
+                    .color(t.getStatus() == Ticket.TicketStatus.RESOLVED ? "green" : "orange")
+                    .build());
+        }
+
+        // Sort by timestamp descending
+        events.sort((e1, e2) -> {
+            if (e1.getTimestamp() == null && e2.getTimestamp() == null) return 0;
+            if (e1.getTimestamp() == null) return 1;
+            if (e2.getTimestamp() == null) return -1;
+            return e2.getTimestamp().compareTo(e1.getTimestamp());
+        });
+
+        return ApiResponse.success(events, "Fetched room timeline successfully");
     }
 }

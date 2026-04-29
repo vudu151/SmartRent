@@ -39,4 +39,6 @@ public interface BillRepository extends JpaRepository<Bill, Long>, JpaSpecificat
     java.util.List<Bill> findTop10ByTenantIdAndStatusOrderByPaymentDateDesc(Long tenantId, Bill.BillStatus status);
 
     java.util.List<Bill> findByTenantIdAndStatusIn(Long tenantId, java.util.List<Bill.BillStatus> statuses);
+
+    java.util.List<Bill> findByRoomIdOrderByCreatedAtDesc(Long roomId);
 }
