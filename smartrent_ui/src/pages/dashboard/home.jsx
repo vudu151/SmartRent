@@ -150,7 +150,7 @@ export function Home() {
   return (
     <div className="mt-4 pb-8">
 
-      <div className="mb-3 grid gap-y-5 gap-x-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="mb-3 grid gap-y-5 gap-x-3 md:grid-cols-2 xl:grid-cols-4">
         <StatisticsCard
           title="Tỷ lệ Lấp đầy"
           icon={<BuildingOfficeIcon className="w-6 h-6 text-white" />}
@@ -183,17 +183,9 @@ export function Home() {
           footer={<Typography className="font-normal text-blue-gray-600">Trong vòng 30 ngày tới</Typography>}
           onClick={() => navigate("/dashboard/contracts")}
         />
-        <StatisticsCard
-          title="Sự cố Chờ xử lý"
-          icon={<WrenchScrewdriverIcon className="w-6 h-6 text-white" />}
-          value={summary?.pendingTickets || 0}
-          color="indigo"
-          footer={<Typography className="font-normal text-blue-gray-600">Click để xem chi tiết</Typography>}
-          onClick={() => navigate("/dashboard/tickets")}
-        />
       </div>
 
-      <div className="mb-3 grid grid-cols-1 gap-y-6 gap-x-3 md:grid-cols-3">
+      <div className="mb-3 grid grid-cols-1 gap-y-6 gap-x-3 md:grid-cols-2">
         <StatisticsChart
           color="blue"
           chart={revenueChartConfig}
@@ -206,7 +198,10 @@ export function Home() {
           title={`Dư nợ (${months} tháng)`}
           description="Tình trạng nợ đọng chưa thanh toán"
         />
-        {/* Biểu đồ tròn tỷ lệ phòng */}
+      </div>
+
+      {/* Biểu đồ tròn tỷ lệ phòng — dòng riêng */}
+      <div className="mb-3 grid grid-cols-1 gap-y-6 gap-x-3 md:grid-cols-3">
         <StatisticsChart
           color="indigo"
           chart={{

@@ -6,7 +6,6 @@ import {
   RectangleStackIcon,
   HeartIcon,
   BuildingOfficeIcon,
-  BellAlertIcon,
   WrenchScrewdriverIcon,
   CalculatorIcon,
   DocumentTextIcon,
@@ -82,13 +81,6 @@ export const routes = [
         path: "/tickets",
         element: <Tickets />,
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
-      },
-      {
-        icon: <BellAlertIcon {...icon} />,
-        name: "Thông báo",
-        path: "/notifications",
-        element: <Notifications />,
-        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
       },
 
       // ===== Quản trị hệ thống (hiển thị nhưng nhóm riêng) =====
