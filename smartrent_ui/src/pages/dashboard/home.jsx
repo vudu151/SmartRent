@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Typography,
   Card,
@@ -13,7 +14,8 @@ import {
   BanknotesIcon, 
   ExclamationTriangleIcon, 
   CalendarDaysIcon,
-  CheckBadgeIcon
+  CheckBadgeIcon,
+  WrenchScrewdriverIcon,
 } from "@heroicons/react/24/solid";
 import { StatisticsCard } from "@/widgets/cards";
 import { StatisticsChart } from "@/widgets/charts";
@@ -22,6 +24,7 @@ import { useNavbarHeader } from "@/context/navbar-header";
 
 export function Home() {
   const { setNavbarHeader } = useNavbarHeader();
+  const navigate = useNavigate();
   const [loading, setLoading] = React.useState(true);
   const [data, setData] = React.useState(null);
   const [months, setMonths] = React.useState(6); // Default 6 months
@@ -147,20 +150,22 @@ export function Home() {
   return (
     <div className="mt-4 pb-8">
 
-      <div className="mb-3 grid gap-y-5 gap-x-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-3 grid gap-y-5 gap-x-3 md:grid-cols-2 xl:grid-cols-5">
         <StatisticsCard
           title="Tỷ lệ Lấp đầy"
           icon={<BuildingOfficeIcon className="w-6 h-6 text-white" />}
-          value={`${summary?.occupiedRooms || 0} / ${summary?.totalRooms || 0} Phòng`}
+          value={`${summary?.occupiedRooms || 0} / ${summary?.totalRooms || 0}`}
           color="blue"
-          footer={<Typography className="font-normal text-blue-gray-600">Còn trống {summary?.vacantRooms} phòng</Typography>}
+          footer={<Typography className="font-normal text-blue-gray-600">Trống {summary?.vacantRooms} · Bảo trì {summary?.maintenanceRooms || 0}</Typography>}
+          onClick={() => navigate("/dashboard/rooms")}
         />
         <StatisticsCard
-          title="Doanh thu Tháng này"
+          title="Doanh thu Tháng"
           icon={<BanknotesIcon className="w-6 h-6 text-white" />}
           value={`${(summary?.currentMonthRevenue || 0).toLocaleString()} ₫`}
           color="green"
           footer={<Typography className="font-normal text-blue-gray-600">Tổng hóa đơn đã thu</Typography>}
+          onClick={() => navigate("/dashboard/bills")}
         />
         <StatisticsCard
           title="Tổng Dư nợ"
@@ -168,28 +173,58 @@ export function Home() {
           value={`${(summary?.totalDebt || 0).toLocaleString()} ₫`}
           color="red"
           footer={<Typography className="font-normal text-blue-gray-600">Cần đốc thúc thu hồi</Typography>}
+          onClick={() => navigate("/dashboard/bills")}
         />
         <StatisticsCard
-          title="Hợp đồng Sắp hết hạn"
+          title="HĐ Sắp hết hạn"
           icon={<CalendarDaysIcon className="w-6 h-6 text-white" />}
           value={summary?.expiringContracts || 0}
           color="orange"
           footer={<Typography className="font-normal text-blue-gray-600">Trong vòng 30 ngày tới</Typography>}
+          onClick={() => navigate("/dashboard/contracts")}
+        />
+        <StatisticsCard
+          title="Sự cố Chờ xử lý"
+          icon={<WrenchScrewdriverIcon className="w-6 h-6 text-white" />}
+          value={summary?.pendingTickets || 0}
+          color="indigo"
+          footer={<Typography className="font-normal text-blue-gray-600">Click để xem chi tiết</Typography>}
+          onClick={() => navigate("/dashboard/tickets")}
         />
       </div>
 
-      <div className="mb-3 grid grid-cols-1 gap-y-6 gap-x-3 md:grid-cols-2">
+      <div className="mb-3 grid grid-cols-1 gap-y-6 gap-x-3 md:grid-cols-3">
         <StatisticsChart
           color="blue"
           chart={revenueChartConfig}
-          title={`Tiến trình Doanh thu (${months} tháng)`}
+          title={`Doanh thu (${months} tháng)`}
           description="Biến động tổng tiền thu được qua từng tháng"
         />
         <StatisticsChart
           color="red"
           chart={debtChartConfig}
-          title={`Biểu đồ Dư nợ (${months} tháng)`}
-          description="Tình trạng nợ đọng chưa thanh toán cần lưu ý"
+          title={`Dư nợ (${months} tháng)`}
+          description="Tình trạng nợ đọng chưa thanh toán"
+        />
+        {/* Biểu đồ tròn tỷ lệ phòng */}
+        <StatisticsChart
+          color="indigo"
+          chart={{
+            type: "donut",
+            height: 280,
+            series: [summary?.occupiedRooms || 0, summary?.vacantRooms || 0, summary?.maintenanceRooms || 0],
+            options: {
+              chart: { toolbar: { show: false } },
+              labels: ["Đang ở", "Trống", "Bảo trì"],
+              colors: ["#4caf50", "#90a4ae", "#ff9800"],
+              legend: { position: "bottom", labels: { colors: "#fff" } },
+              dataLabels: { enabled: true, style: { colors: ["#fff"] } },
+              plotOptions: { pie: { donut: { size: "55%", labels: { show: true, total: { show: true, label: "Tổng", color: "#fff", formatter: () => `${summary?.totalRooms || 0}` } } } } },
+              stroke: { width: 0 },
+            },
+          }}
+          title="Tỷ lệ Phòng"
+          description={`${summary?.totalRooms || 0} phòng · ${summary?.occupiedRooms || 0} đang ở`}
         />
       </div>
 

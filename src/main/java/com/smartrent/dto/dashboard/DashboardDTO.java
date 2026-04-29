@@ -26,9 +26,11 @@ public class DashboardDTO {
         private int totalRooms;
         private int occupiedRooms;
         private int vacantRooms;
+        private int maintenanceRooms;
         private BigDecimal currentMonthRevenue;
         private BigDecimal totalDebt;
         private int expiringContracts;
+        private long pendingTickets;
     }
 
     @Data

@@ -8,6 +8,7 @@ import com.smartrent.dto.dashboard.DashboardDTO;
 import com.smartrent.repository.BillRepository;
 import com.smartrent.repository.ContractRepository;
 import com.smartrent.repository.RoomRepository;
+import com.smartrent.repository.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,7 @@ public class DashboardService {
     private final RoomRepository roomRepository;
     private final BillRepository billRepository;
     private final ContractRepository contractRepository;
+    private final TicketRepository ticketRepository;
 
     @Transactional(readOnly = true)
     public ApiResponse<DashboardDTO> getDashboardSummary(Long tenantId, int months) {
@@ -61,13 +63,18 @@ public class DashboardService {
                 .filter(c -> c.getStatus().equals("ACTIVE") && c.getEndDate() != null && !c.getEndDate().isAfter(thirtyDaysLater))
                 .count();
 
+        int maintenanceRooms = (int) roomRepository.countByTenantIdAndStatus(tenantId, Room.RoomStatus.MAINTENANCE);
+        long pendingTickets = ticketRepository.countPendingTicketsByTenantId(tenantId);
+
         DashboardDTO.Summary summary = DashboardDTO.Summary.builder()
                 .totalRooms(totalRooms)
                 .occupiedRooms(occupiedRooms)
                 .vacantRooms(vacantRooms)
+                .maintenanceRooms(maintenanceRooms)
                 .currentMonthRevenue(currentMonthRevenue)
                 .totalDebt(totalDebt)
                 .expiringContracts(expiringContracts)
+                .pendingTickets(pendingTickets)
                 .build();
 
         // 2. Chart Data (Last N months)
