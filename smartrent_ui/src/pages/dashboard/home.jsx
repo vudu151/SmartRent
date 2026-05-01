@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardBody,
   Chip,
+  Button,
   Select,
   Option,
 } from "@material-tailwind/react";
@@ -90,7 +91,7 @@ export function Home() {
     );
   }
 
-  const { summary, chartData, recentTransactions } = data;
+  const { summary, chartData, recentTransactions, expiringContractsList } = data;
 
   // Chart configs
   const revSeries = chartData?.map(d => d.revenue) || [];
@@ -231,6 +232,71 @@ export function Home() {
           description={`${summary?.totalRooms || 0} phòng · ${summary?.occupiedRooms || 0} đang ở`}
         />
       </div>
+
+      {/* Expiring Contracts Table */}
+      {expiringContractsList?.length > 0 && (
+        <div className="mb-2">
+          <Card className="border border-orange-100 shadow-sm">
+            <CardHeader floated={false} shadow={false} color="transparent" className="m-0 p-6 flex justify-between items-center">
+              <div>
+                <Typography variant="h6" color="blue-gray" className="mb-1 font-bold">
+                  ⚠️ Hợp đồng sắp hết hạn
+                </Typography>
+                <Typography variant="small" className="flex items-center gap-1 font-normal text-blue-gray-600">
+                  <ExclamationTriangleIcon className="h-4 w-4 text-orange-500" />
+                  <strong>{expiringContractsList.length}</strong> hợp đồng cần gia hạn trong 30 ngày tới
+                </Typography>
+              </div>
+            </CardHeader>
+            <CardBody className="overflow-x-auto px-0 pt-0 pb-2">
+              <table className="w-full min-w-[640px] table-auto">
+                <thead>
+                  <tr>
+                    {["Mã HĐ", "Phòng", "Khách thuê", "Ngày hết hạn", "Còn lại"].map((el) => (
+                      <th key={el} className="border-b border-blue-gray-50 py-3 px-6 text-left">
+                        <Typography variant="small" className="text-[11px] font-medium uppercase text-blue-gray-400">
+                          {el}
+                        </Typography>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {expiringContractsList.map(({ contractId, contractNumber, roomNumber, residentName, endDate, daysRemaining }, key) => {
+                    const className = `py-3 px-6 ${key === expiringContractsList.length - 1 ? "" : "border-b border-blue-gray-50"}`;
+                    return (
+                      <tr key={contractId} className="hover:bg-orange-50/40 cursor-pointer" onClick={() => navigate("/dashboard/contracts")}>
+                        <td className={className}>
+                          <Typography variant="small" color="blue-gray" className="font-bold">{contractNumber}</Typography>
+                        </td>
+                        <td className={className}>
+                          <Chip size="sm" variant="ghost" color="indigo" value={roomNumber} />
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" className="font-medium text-blue-gray-600">{residentName}</Typography>
+                        </td>
+                        <td className={className}>
+                          <Typography variant="small" className="text-xs font-medium text-blue-gray-600">
+                            {new Date(endDate).toLocaleDateString("vi-VN")}
+                          </Typography>
+                        </td>
+                        <td className={className}>
+                          <Chip
+                            size="sm"
+                            variant="ghost"
+                            color={daysRemaining <= 7 ? "red" : daysRemaining <= 14 ? "orange" : "amber"}
+                            value={daysRemaining <= 0 ? "Đã hết hạn" : `${daysRemaining} ngày`}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </CardBody>
+          </Card>
+        </div>
+      )}
 
       <div className="mb-2 grid grid-cols-1 gap-3">
         <Card className="overflow-hidden border border-blue-gray-100 shadow-sm">

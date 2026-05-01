@@ -96,7 +96,7 @@ export function FeeSettingsModal({ open, onClose }) {
       </DialogBody>
       <DialogFooter>
         <Button variant="text" color="red" onClick={onClose} className="mr-1">Hủy</Button>
-        <Button variant="gradient" color="blue" onClick={handleSave} disabled={loading}>Lưu lại</Button>
+        <Button variant="gradient" color="indigo" onClick={handleSave} disabled={loading}>Lưu lại</Button>
       </DialogFooter>
     </Dialog>
   );

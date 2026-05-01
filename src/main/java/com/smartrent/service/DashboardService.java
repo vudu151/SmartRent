@@ -2,6 +2,7 @@ package com.smartrent.service;
 
 import com.smartrent.domain.Bill;
 import com.smartrent.domain.Contract;
+import com.smartrent.domain.ContractStatus;
 import com.smartrent.domain.Room;
 import com.smartrent.dto.ApiResponse;
 import com.smartrent.dto.dashboard.DashboardDTO;
@@ -59,9 +60,25 @@ public class DashboardService {
         // Check expiring contracts (in next 30 days)
         LocalDate thirtyDaysLater = now.plusDays(30);
         List<Contract> contracts = contractRepository.findByTenantId(tenantId, "", PageRequest.of(0, 1000)).getContent(); // Assuming a small scale for demo. Proper way is a custom query
-        int expiringContracts = (int) contracts.stream()
-                .filter(c -> c.getStatus().equals("ACTIVE") && c.getEndDate() != null && !c.getEndDate().isAfter(thirtyDaysLater))
-                .count();
+        
+        List<Contract> expiringList = contracts.stream()
+                .filter(c -> c.getStatus() == ContractStatus.ACTIVE && c.getEndDate() != null && !c.getEndDate().isAfter(thirtyDaysLater))
+                .sorted((a, b) -> a.getEndDate().compareTo(b.getEndDate()))
+                .limit(5)
+                .collect(Collectors.toList());
+
+        int expiringContracts = expiringList.size();
+
+        List<DashboardDTO.ExpiringContract> expiringContractsList = expiringList.stream()
+                .map(c -> DashboardDTO.ExpiringContract.builder()
+                        .contractId(c.getId())
+                        .contractNumber(c.getContractNumber())
+                        .roomNumber(c.getRoom() != null ? c.getRoom().getRoomNumber() : "N/A")
+                        .residentName(c.getResident() != null ? c.getResident().getFullName() : "N/A")
+                        .endDate(c.getEndDate())
+                        .daysRemaining(java.time.temporal.ChronoUnit.DAYS.between(now, c.getEndDate()))
+                        .build())
+                .collect(Collectors.toList());
 
         int maintenanceRooms = (int) roomRepository.countByTenantIdAndStatus(tenantId, Room.RoomStatus.MAINTENANCE);
         long pendingTickets = ticketRepository.countPendingTicketsByTenantId(tenantId);
@@ -122,6 +139,7 @@ public class DashboardService {
                 .summary(summary)
                 .chartData(chartDataList)
                 .recentTransactions(recentTransactions)
+                .expiringContractsList(expiringContractsList)
                 .build();
 
         return ApiResponse.success(dashboardDTO, "Lấy dữ liệu Dashboard thành công");

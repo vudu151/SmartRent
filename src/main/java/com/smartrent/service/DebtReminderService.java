@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,14 +62,14 @@ public class DebtReminderService {
         int freqDays = tenant.getReminderFrequencyDays() != null ? tenant.getReminderFrequencyDays() : 2;
         java.time.LocalDate today = java.time.LocalDate.now();
 
+        // Filter bills eligible for reminder
+        List<Bill> eligibleBills = new java.util.ArrayList<>();
         for (Bill bill : unpaidBills) {
             if (bill.getDueDate() == null) continue;
 
             java.time.LocalDate eligibleReminderDate = bill.getDueDate().plusDays(delayDays);
             
-            // Check if it's past the delay
             if (!today.isBefore(eligibleReminderDate)) {
-                
                 boolean shouldRemind = false;
                 if (bill.getLastReminderDate() == null) {
                     shouldRemind = true;
@@ -78,13 +79,92 @@ public class DebtReminderService {
                         shouldRemind = true;
                     }
                 }
-
                 if (shouldRemind) {
-                    sendReminderForBill(bill);
-                    bill.setLastReminderDate(java.time.LocalDateTime.now());
-                    billRepository.save(bill);
+                    eligibleBills.add(bill);
                 }
             }
+        }
+
+        if (eligibleBills.isEmpty()) return;
+
+        // Group bills by room → send ONE combined email per room
+        var billsByRoom = eligibleBills.stream()
+            .filter(b -> b.getRoom() != null)
+            .collect(Collectors.groupingBy(b -> b.getRoom().getId()));
+
+        for (var entry : billsByRoom.entrySet()) {
+            List<Bill> roomBills = entry.getValue();
+            sendCombinedReminderForRoom(roomBills);
+            
+            // Mark all bills as reminded
+            for (Bill bill : roomBills) {
+                bill.setLastReminderDate(java.time.LocalDateTime.now());
+                billRepository.save(bill);
+            }
+        }
+    }
+
+    private void sendCombinedReminderForRoom(List<Bill> roomBills) {
+        if (roomBills == null || roomBills.isEmpty()) return;
+        
+        Room room = roomBills.get(0).getRoom();
+        if (room == null) return;
+
+        // 1. Find the main resident (contract holder)
+        List<Long> recipientIds;
+        var activeContract = contractRepository.findActiveContractByRoom(room.getId());
+        
+        if (activeContract.isPresent()) {
+            recipientIds = List.of(activeContract.get().getResident().getId());
+        } else {
+            // 2. Fallback: all active residents in the room
+            recipientIds = room.getResidents().stream()
+                .filter(r -> r.getStatus() == Resident.ResidentStatus.ACTIVE)
+                .map(Resident::getId)
+                .collect(Collectors.toList());
+        }
+
+        if (recipientIds.isEmpty()) return;
+
+        BigDecimal totalAmount = roomBills.stream().map(Bill::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        String title = "🔔 Nhắc nợ: Hóa đơn Tổng hợp phòng " + room.getRoomNumber();
+        String content = String.format(
+            "Chào bạn, hệ thống SmartRent xin nhắc bạn về %d khoản chưa thanh toán của phòng %s.\n\n" +
+            "• Tổng cộng: %,.0f VNĐ\n\n" +
+            "Chi tiết các khoản phí đã được gửi kèm trong file Excel. Vui lòng kiểm tra và thanh toán sớm để đảm bảo quyền lợi. Xin cảm ơn!",
+            roomBills.size(),
+            room.getRoomNumber(),
+            totalAmount
+        );
+
+        // 1. Send system notification
+        notificationService.sendNotification(
+            roomBills.get(0).getTenant().getId(),
+            null, // System sender
+            title,
+            content,
+            Notification.NotificationType.BILL.name(),
+            recipientIds
+        );
+
+        // 2. Generate Excel & Send Email
+        try {
+            for (Long residentId : recipientIds) {
+                Resident resident = room.getResidents().stream()
+                    .filter(r -> r.getId().equals(residentId))
+                    .findFirst()
+                    .orElse(null);
+                    
+                if (resident != null && resident.getEmail() != null && !resident.getEmail().isBlank()) {
+                    byte[] excelData = invoiceGeneratorService.generateCombinedInvoice(roomBills, resident.getFullName());
+                    String fileName = "Hoa_Don_Tong_Hop_Phong_" + room.getRoomNumber() + ".xlsx";
+                    
+                    String htmlBody = content.replace("\n", "<br>");
+                    emailService.sendEmailWithAttachment(resident.getEmail(), title, htmlBody, excelData, fileName);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to send combined email reminder for room {}", room.getRoomNumber(), e);
         }
     }
 

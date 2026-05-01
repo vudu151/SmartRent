@@ -17,6 +17,7 @@ public class DashboardDTO {
     private Summary summary;
     private List<ChartData> chartData;
     private List<RecentTransaction> recentTransactions;
+    private List<ExpiringContract> expiringContractsList;
 
     @Data
     @NoArgsConstructor
@@ -54,5 +55,18 @@ public class DashboardDTO {
         private BigDecimal amount;
         private LocalDateTime paymentDate;
         private String paymentReference;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ExpiringContract {
+        private Long contractId;
+        private String contractNumber;
+        private String roomNumber;
+        private String residentName;
+        private java.time.LocalDate endDate;
+        private long daysRemaining;
     }
 }
