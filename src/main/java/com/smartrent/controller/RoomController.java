@@ -6,6 +6,7 @@ import com.smartrent.dto.room.RoomInvoiceDTO;
 import com.smartrent.dto.room.RoomResponse;
 import com.smartrent.dto.room.UpdateRoomRequest;
 import com.smartrent.service.RoomService;
+import com.smartrent.annotation.LogAction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -56,6 +57,7 @@ public class RoomController {
 
     @PostMapping
     @Operation(summary = "Create room", description = "Create a new room")
+    @LogAction(action = "CREATE", entityName = "Phòng trọ")
     public ResponseEntity<ApiResponse<RoomResponse>> createRoom(
             @Valid @RequestBody CreateRoomRequest request) {
         return ResponseEntity.ok(roomService.createRoom(request));
@@ -63,6 +65,7 @@ public class RoomController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update room", description = "Update room information")
+    @LogAction(action = "UPDATE", entityName = "Phòng trọ")
     public ResponseEntity<ApiResponse<RoomResponse>> updateRoom(
             @PathVariable Long id,
             @RequestParam Long tenantId,
@@ -72,6 +75,7 @@ public class RoomController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete room", description = "Delete a room")
+    @LogAction(action = "DELETE", entityName = "Phòng trọ")
     public ResponseEntity<ApiResponse<Void>> deleteRoom(
             @PathVariable Long id,
             @RequestParam Long tenantId) {

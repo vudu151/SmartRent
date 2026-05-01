@@ -285,7 +285,7 @@ export function TicketModal({ open, onClose, onSuccess, ticket }) {
   };
 
   return (
-    <Dialog open={open} handler={onClose} size="md" className="z-[9999] overflow-hidden" overlayProps={{ className: "z-[9998]" }}>
+    <Dialog open={open} handler={onClose} size="md" className="z-[9999] overflow-hidden min-w-[95vw] sm:min-w-[70vw] md:min-w-[50vw]" overlayProps={{ className: "z-[9998]" }}>
       <DialogHeader className="pb-2 flex justify-between items-center">
         <Typography variant="h5" color="blue-gray">{ticket ? "Cập Nhật Sự Cố" : "Báo Cáo Sự Cố Mới"}</Typography>
         <IconButton variant="text" color="blue-gray" onClick={onClose} className="rounded-full flex-shrink-0">

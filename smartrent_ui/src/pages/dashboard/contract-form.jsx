@@ -92,6 +92,7 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
   });
   const [errors, setErrors] = React.useState({});
   const [uploadingImages, setUploadingImages] = React.useState(false);
+  const [autoFilledResident, setAutoFilledResident] = React.useState(false);
 
   // Load complementary data (Rooms & Residents)
   React.useEffect(() => {
@@ -189,16 +190,34 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
       }
     }
     
-    // Auto-fill price if room changes
+    // Auto-fill price + resident if room changes
     if (name === "roomId" && !isEdit) {
       const selectedRoom = rooms.find(r => r.id.toString() === value);
       if (selectedRoom) {
-        setFormData(prev => ({ 
-          ...prev, 
+        // Auto-fill giá thuê
+        const updates = { 
           monthlyRent: selectedRoom.price?.toString() || "",
           depositAmount: selectedRoom.price?.toString() || "" // Default deposit = 1 month
-        }));
+        };
+        
+        // Auto-fill cư dân đang ở phòng này (nếu có)
+        const matchedResident = residents.find(r => 
+          r.rooms && Array.from(r.rooms).some(room => room.id?.toString() === value)
+        );
+        if (matchedResident) {
+          updates.residentId = matchedResident.id.toString();
+          setAutoFilledResident(true);
+        } else {
+          setAutoFilledResident(false);
+        }
+        
+        setFormData(prev => ({ ...prev, ...updates }));
       }
+    }
+    
+    // Khi user tự chọn cư dân thủ công → tắt ghi chú auto-fill
+    if (name === "residentId") {
+      setAutoFilledResident(false);
     }
   };
 
@@ -316,7 +335,7 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} handler={onClose} size="lg">
+    <Dialog open={open} handler={onClose} size="lg" className="min-w-[95vw] sm:min-w-[80vw] md:min-w-[60vw]">
       <DialogHeader className="flex justify-between items-center">
         <Typography variant="h5" color="blue-gray">
           {isEdit ? "Chi tiết Hợp đồng" : "Tạo Hợp đồng Mới"}
@@ -361,6 +380,12 @@ export function ContractModal({ open, onClose, contractId, onSuccess }) {
                   isSearchable={true}
                   noOptionsMessage={() => "Không tìm thấy cư dân"}
                 />
+                {autoFilledResident && (
+                  <Typography variant="small" className="mt-1 text-[11px] text-green-600 font-medium flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
+                    Đã tự động chọn cư dân đang ở phòng này
+                  </Typography>
+                )}
               </div>
 
               <div className="flex flex-col gap-1">

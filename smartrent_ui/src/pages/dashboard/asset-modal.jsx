@@ -97,7 +97,7 @@ export function AssetModal({ open, onClose, room }) {
   const totalValue = assets.reduce((sum, item) => sum + ((item.quantity || 1) * (item.compensationValue || 0)), 0);
 
   return (
-    <Dialog open={open} handler={onClose} size="lg" className={`min-w-[80%] md:min-w-[60%] ${darkMode ? "bg-blue-gray-900" : ""}`}>
+    <Dialog open={open} handler={onClose} size="lg" className={`min-w-[95vw] sm:min-w-[80vw] md:min-w-[60vw] ${darkMode ? "bg-blue-gray-900" : ""}`}>
       <DialogHeader className="flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-2">
             <Typography variant="h5" color="blue-gray">

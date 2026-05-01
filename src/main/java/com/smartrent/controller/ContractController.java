@@ -5,6 +5,7 @@ import com.smartrent.dto.contract.ContractRequestDTO;
 import com.smartrent.dto.contract.ContractResponseDTO;
 import com.smartrent.dto.contract.LiquidationDTO;
 import com.smartrent.service.ContractService;
+import com.smartrent.annotation.LogAction;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -47,6 +48,7 @@ public class ContractController {
 
     @PostMapping
     @Operation(summary = "Create contract")
+    @LogAction(action = "CREATE", entityName = "Hợp đồng")
     public ResponseEntity<ApiResponse<ContractResponseDTO>> createContract(
             @RequestParam Long tenantId,
             @Valid @RequestBody ContractRequestDTO request) {
@@ -55,6 +57,7 @@ public class ContractController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update contract")
+    @LogAction(action = "UPDATE", entityName = "Hợp đồng")
     public ResponseEntity<ApiResponse<ContractResponseDTO>> updateContract(
             @PathVariable Long id,
             @RequestParam Long tenantId,
@@ -64,6 +67,7 @@ public class ContractController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete contract")
+    @LogAction(action = "DELETE", entityName = "Hợp đồng")
     public ResponseEntity<ApiResponse<Void>> deleteContract(
             @PathVariable Long id,
             @RequestParam Long tenantId) {
@@ -81,6 +85,7 @@ public class ContractController {
 
     @PostMapping("/{id}/liquidate")
     @Operation(summary = "Execute contract liquidation and checkout")
+    @LogAction(action = "LIQUIDATE", entityName = "Hợp đồng")
     public ResponseEntity<ApiResponse<Void>> liquidate(
             @PathVariable Long id,
             @RequestParam Long tenantId,

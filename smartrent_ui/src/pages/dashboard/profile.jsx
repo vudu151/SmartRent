@@ -9,8 +9,9 @@ import {
   Avatar,
 } from "@material-tailwind/react";
 import { CameraIcon, QrCodeIcon, ArrowUpTrayIcon } from "@heroicons/react/24/solid";
-import { getTenantProfile, updateTenantProfile, uploadBankQr } from "@/api/tenant";
+import { getTenantProfile, updateTenantProfile, uploadBankQr, sendTestEmail } from "@/api/tenant";
 import { uploadAvatar } from "@/api/user";
+import Swal from "sweetalert2";
 import { showToast } from "@/lib/swal";
 import { useAuth } from "@/smartrent/auth";
 import { getUserInfo, saveTokens } from "@/lib/token";
@@ -102,6 +103,43 @@ export function Profile() {
       showToast("Đã cập nhật hồ sơ thành công!", "success");
     } catch (err) {
       showToast(err.message, "error");
+    }
+  };
+
+  const handleTestEmail = async () => {
+    const { value: email } = await Swal.fire({
+      title: 'Kiểm tra Email (SMTP)',
+      input: 'email',
+      inputLabel: 'Nhập địa chỉ email để nhận thư test',
+      inputPlaceholder: 'example@domain.com',
+      showCancelButton: true,
+      confirmButtonText: 'Gửi Test',
+      cancelButtonText: 'Hủy',
+      customClass: {
+        popup: 'rounded-xl',
+        confirmButton: 'bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-6 rounded-lg',
+        cancelButton: 'bg-blue-gray-100 hover:bg-blue-gray-200 text-blue-gray-800 font-medium py-2 px-6 rounded-lg ml-3'
+      },
+      buttonsStyling: false
+    });
+
+    if (email) {
+      try {
+        Swal.fire({
+          title: 'Đang gửi...',
+          text: 'Hệ thống đang kết nối SMTP, vui lòng chờ',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+        await sendTestEmail(email);
+        Swal.close();
+        showToast("Đã gửi email test thành công. Vui lòng kiểm tra hộp thư.", "success");
+      } catch (err) {
+        Swal.close();
+        showToast(err.message || "Không thể gửi email test", "error");
+      }
     }
   };
 
@@ -327,8 +365,14 @@ export function Profile() {
 
           </div>
 
-          <div className="mt-8 pt-6 border-t border-blue-gray-100 flex justify-end shrink-0">
-            <Button type="submit" variant="gradient" color="indigo" className="flex items-center gap-2 py-2.5 px-8 shadow-md hover:shadow-lg transition-all text-sm">
+          <div className="mt-8 pt-6 border-t border-blue-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
+            <Button type="button" variant="outlined" color="blue-gray" className="flex items-center gap-2 py-2.5 px-6 shadow-sm hover:shadow-md transition-all text-sm w-full sm:w-auto" onClick={handleTestEmail}>
+              <svg xmlns="http://www.w3.org/2001/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+              Gửi Email Test
+            </Button>
+            <Button type="submit" variant="gradient" color="indigo" className="flex items-center gap-2 py-2.5 px-8 shadow-md hover:shadow-lg transition-all text-sm w-full sm:w-auto">
               Lưu Thay Đổi
             </Button>
           </div>

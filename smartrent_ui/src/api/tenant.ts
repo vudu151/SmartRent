@@ -112,3 +112,11 @@ export const uploadBankQr = async (file: File) => {
   if (!res.success) throw new Error(res.message || 'Upload QR thất bại');
   return res.data;
 };
+
+export const sendTestEmail = async (email: string) => {
+  const res = await apiFetch<ApiResponse<void>>(`/api/tenant-profile/test-email?email=${encodeURIComponent(email)}`, {
+    method: 'POST',
+  });
+  if (!res.success) throw new Error(res.message || 'Lỗi khi gửi email test');
+  return res.data;
+};

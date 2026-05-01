@@ -152,7 +152,7 @@ export function TenantModal({ open, onClose, tenantId, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} handler={onClose} size="lg">
+    <Dialog open={open} handler={onClose} size="lg" className="min-w-[95vw] sm:min-w-[80vw] md:min-w-[60vw]">
       <DialogHeader className="flex justify-between items-start">
         <div>
           <Typography variant="h5" color="blue-gray">

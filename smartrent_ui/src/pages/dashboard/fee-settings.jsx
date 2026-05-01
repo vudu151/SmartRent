@@ -76,7 +76,7 @@ export function FeeSettingsModal({ open, onClose }) {
   };
 
   return (
-    <Dialog open={open} handler={onClose} size="sm">
+    <Dialog open={open} handler={onClose} size="sm" className="min-w-[95vw] sm:min-w-[60vw] md:min-w-[40vw]">
       <DialogHeader>Cấu hình Bảng giá Dịch vụ</DialogHeader>
       <DialogBody divider className="flex flex-col gap-4">
         <Typography variant="small" color="gray" className="mb-2 font-normal">
@@ -88,7 +88,7 @@ export function FeeSettingsModal({ open, onClose }) {
         <Input label="Phí Rác / Dịch vụ (VNĐ / tháng)" type="number" name="servicePrice" value={formData.servicePrice} onChange={handleChange} disabled={loading} />
         <Input label="Internet / Wifi (VNĐ / tháng)" type="number" name="internetPrice" value={formData.internetPrice} onChange={handleChange} disabled={loading} />
         <Input label="Gửi xe (VNĐ / xe / tháng)" type="number" name="parkingPrice" value={formData.parkingPrice} onChange={handleChange} disabled={loading} />
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <Input label="Ngày bắt đầu chốt (1-31)" type="number" name="meterRecordingStartDay" value={formData.meterRecordingStartDay} onChange={handleChange} disabled={loading} min={1} max={31} />
           <Input label="Ngày kết thúc chốt (1-31)" type="number" name="meterRecordingEndDay" value={formData.meterRecordingEndDay} onChange={handleChange} disabled={loading} min={1} max={31} />
         </div>

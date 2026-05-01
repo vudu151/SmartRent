@@ -86,11 +86,19 @@ export async function apiFetch<T = unknown>(
     console.groupEnd()
   }
 
-  const res = await fetch(url, {
-    ...init,
-    headers,
-    body,
-  })
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...init,
+      headers,
+      body,
+    });
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new ApiError('Không thể kết nối máy chủ. Vui lòng kiểm tra lại.', 0, null);
+    }
+    throw error;
+  }
 
   const contentType = res.headers.get('content-type') ?? ''
   const isJson = contentType.includes('application/json')

@@ -17,6 +17,7 @@ import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from "@heroicons
 import { useNavbarHeader } from "@/context/navbar-header";
 import { getTenants, deleteTenant } from "@/api/tenant";
 import { TenantModal } from "./tenant-form";
+import { ErrorState } from "@/components/error-state";
 import { ApiError } from "@/lib/apiError";
 import { showToast } from "@/lib/swal";
 
@@ -63,11 +64,11 @@ export function Tenants() {
           <Typography variant="h6" color="blue-gray" className="font-bold truncate">Quản lý Chủ Trọ</Typography>
           <Typography color="gray" className="font-normal text-xs">Thông tin các chủ trọ hệ thống</Typography>
         </div>
-        <div className="flex shrink-0 gap-2 items-center">
+        <div className="flex flex-wrap shrink-0 gap-2 items-center">
           <input
             type="text"
             placeholder="Tìm kiếm (>=2 ký tự)..."
-            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-64 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-full sm:w-64 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
           />
@@ -105,9 +106,10 @@ export function Tenants() {
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
         <CardBody className="overflow-auto p-0 flex-1">
-          {error && <Alert color="red" className="mb-4 mx-4" onClose={() => setError("")}>{error}</Alert>}
           {loading ? (
             <div className="flex justify-center items-center py-12"><Typography color="gray">Đang tải...</Typography></div>
+          ) : error && tenants.length === 0 ? (
+            <ErrorState message={error} onRetry={loadTenants} />
           ) : tenants.length === 0 ? (
             <div className="flex justify-center items-center py-12"><Typography color="gray">Không có tenant nào</Typography></div>
           ) : (

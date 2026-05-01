@@ -22,6 +22,7 @@ import { VehicleModal } from "./vehicle-modal";
 import { showToast } from "@/lib/swal";
 import { env } from "@/config/env";
 import { ImageThumbnail } from "@/components/image-lightbox";
+import { ErrorState } from "@/components/error-state";
 
 export function Vehicles() {
   const { setNavbarHeader } = useNavbarHeader();
@@ -90,11 +91,11 @@ export function Vehicles() {
           <Typography variant="h6" color="blue-gray" className="font-bold truncate">Quản lý Xe</Typography>
           <Typography color="gray" className="font-normal text-xs">Danh sách phương tiện cư dân</Typography>
         </div>
-        <div className="flex shrink-0 gap-2 items-center">
+        <div className="flex flex-wrap shrink-0 gap-2 items-center">
           <input
             type="text"
             placeholder="Tìm biển số, tên (>=2 ký tự)..."
-            className="text-sm border border-blue-gray-200 rounded-lg px-3 h-10 w-56 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 h-10 w-full sm:w-56 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -193,9 +194,10 @@ export function Vehicles() {
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
         <CardBody className="overflow-auto p-0 flex-1">
-          {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
           {loading ? (
             <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
+          ) : error && vehicles.length === 0 ? (
+            <ErrorState message={error} onRetry={loadVehicles} />
           ) : vehicles.length === 0 ? (
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu xe</Typography></div>
           ) : (

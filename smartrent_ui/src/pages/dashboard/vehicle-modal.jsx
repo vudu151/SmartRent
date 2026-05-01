@@ -201,7 +201,7 @@ export function VehicleModal({ open, onClose, vehicleId, onSuccess }) {
   const canAddMore = currentImages.length < MAX_IMAGES;
 
   return (
-    <Dialog open={open} handler={onClose} size="sm" className="bg-white m-4 max-h-[90vh] flex flex-col rounded-xl shadow-2xl">
+    <Dialog open={open} handler={onClose} size="sm" className="bg-white m-4 max-h-[90vh] min-w-[95vw] sm:min-w-[60vw] md:min-w-[40vw] flex flex-col rounded-xl shadow-2xl">
       <DialogHeader className="border-b border-blue-gray-50 px-6 py-4 flex justify-between items-center">
         <Typography variant="h5" color="blue-gray">
           {isEdit ? "Cập nhật Xe" : "Thêm Xe Mới"}

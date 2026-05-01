@@ -47,6 +47,25 @@ public class EmailService {
     }
 
     /**
+     * Send test email to verify SMTP configuration
+     */
+    public void sendTestEmail(String toEmail) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Test Email từ SmartRent");
+            message.setText("Xin chào,\n\nĐây là email kiểm tra hệ thống từ phần mềm quản lý trọ SmartRent. Nếu bạn nhận được email này, cấu hình SMTP của hệ thống đang hoạt động tốt.\n\nTrân trọng,\nĐội ngũ SmartRent");
+            
+            mailSender.send(message);
+            log.info("Test email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send test email to: {}", toEmail, e);
+            throw new RuntimeException("Không thể gửi email. Vui lòng kiểm tra lại cấu hình SMTP.", e);
+        }
+    }
+
+    /**
      * Send email with attachment
      */
     public void sendEmailWithAttachment(String toEmail, String subject, String body, byte[] attachment, String fileName) {

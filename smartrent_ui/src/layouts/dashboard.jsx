@@ -8,7 +8,7 @@ import {
   Footer,
 } from "@/widgets/layout";
 import routes from "@/routes";
-import { useMaterialTailwindController, setOpenConfigurator } from "@/context";
+import { useMaterialTailwindController, setOpenConfigurator, setOpenSidenav } from "@/context";
 import { NavbarHeaderProvider } from "@/context/navbar-header";
 
 export function Dashboard() {
@@ -24,7 +24,7 @@ export function Dashboard() {
             sidenavType === "dark" ? "/img/logo-ct.png" : "/img/logo-ct-dark.png"
           }
         />
-        <div className="p-2 xl:ml-[304px] h-screen flex flex-col">
+        <div className="p-2 md:p-4 xl:ml-[304px] h-screen flex flex-col">
           <DashboardNavbar />
           <Configurator />
           <IconButton
@@ -37,6 +37,15 @@ export function Dashboard() {
             <Cog6ToothIcon className="h-5 w-5" />
           </IconButton>
 
+
+
+          {/* Mobile overlay backdrop */}
+          <div
+            className={`fixed inset-0 z-40 bg-black/50 xl:hidden transition-opacity duration-300 ${
+              controller.openSidenav ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+            onClick={() => setOpenSidenav(dispatch, false)}
+          />
 
           <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 mt-2 pr-1">
             <Routes>

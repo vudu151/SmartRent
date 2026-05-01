@@ -51,7 +51,7 @@ export function MeterReading() {
           <Typography color="gray" className="font-normal text-xs">Nhập số đầu - số cuối nhanh chóng. Hệ thống sẽ tự động tính hóa đơn.</Typography>
         </div>
         <div className="flex flex-wrap shrink-0 gap-2 items-center justify-end">
-          <div className="w-40 z-[999]">
+          <div className="w-full sm:w-40 z-[999]">
             <ReactSelect
               options={roomOptions}
               value={filterRoomId ? roomOptions.find(o => o.value === filterRoomId) : null}
@@ -101,7 +101,7 @@ export function MeterReading() {
               }}
             />
           </div>
-          <div className="w-32 bg-white rounded-lg">
+          <div className="w-full sm:w-32 bg-white rounded-lg">
             <Select 
               label="Trạng thái" 
               className="!min-w-0"
@@ -116,10 +116,10 @@ export function MeterReading() {
           </div>
           
           <Button variant="outlined" color="blue-gray" size="sm" className="flex items-center gap-1.5 whitespace-nowrap" onClick={() => document.getElementById('btn-open-settings')?.click()}>
-            <Cog6ToothIcon className="w-4 h-4" /> CẤU HÌNH GIÁ
+            <Cog6ToothIcon className="w-4 h-4" /><span className="hidden sm:inline"> CẤU HÌNH GIÁ</span>
           </Button>
           <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-1.5 whitespace-nowrap" onClick={() => document.getElementById('btn-submit-meter')?.click()}>
-            <CheckCircleIcon className="w-4 h-4" /> CHỐT ĐỒNG LOẠT
+            <CheckCircleIcon className="w-4 h-4" /><span className="hidden sm:inline"> CHỐT ĐỒNG LOẠT</span>
           </Button>
         </div>
       </div>

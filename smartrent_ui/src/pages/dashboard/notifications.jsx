@@ -91,11 +91,11 @@ export function Notifications() {
           ) : notifications.length === 0 ? (
             <div className="flex justify-center py-8"><Typography>Không có thông báo nào</Typography></div>
           ) : (
-              <table className="w-full min-w-max table-auto text-left">
+              <table className="w-full min-w-[320px] table-auto text-left">
                 <thead>
                   <tr>
                     {["Loại", "Tiêu đề", "Người gửi", "Ngày gửi", "Thao tác"].map((head) => (
-                      <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-4">
+                      <th key={head} className={`border-b border-blue-gray-100 bg-blue-gray-50 py-0.5 px-3 sm:px-4 ${(head === "Người gửi" || head === "Ngày gửi") ? "hidden sm:table-cell" : ""}`}>
                         <Typography variant="small" color="blue-gray" className="font-normal leading-none opacity-70">
                           {head}
                         </Typography>
@@ -114,8 +114,8 @@ export function Notifications() {
                           {notif.title}
                         </Typography>
                       </td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray">{notif.senderName}</Typography></td>
-                      <td className="py-0.5 px-4"><Typography variant="small" color="blue-gray">{new Date(notif.createdAt).toLocaleString("vi-VN")}</Typography></td>
+                      <td className="py-0.5 px-3 sm:px-4 hidden sm:table-cell"><Typography variant="small" color="blue-gray">{notif.senderName}</Typography></td>
+                      <td className="py-0.5 px-3 sm:px-4 hidden sm:table-cell"><Typography variant="small" color="blue-gray">{new Date(notif.createdAt).toLocaleString("vi-VN")}</Typography></td>
                       <td className="py-0.5 px-4">
                         <IconButton size="sm" variant="text" color="blue-gray" onClick={() => handleViewDetail(notif)}>
                           <EyeIcon className="h-5 w-5" />

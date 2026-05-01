@@ -25,6 +25,7 @@ import { showToast } from "@/lib/swal";
 import { exportToExcel } from "@/lib/export-excel";
 import { env } from "@/config/env";
 import { ImageThumbnail } from "@/components/image-lightbox";
+import { ErrorState } from "@/components/error-state";
 
 export function Residents() {
   const { setNavbarHeader } = useNavbarHeader();
@@ -115,11 +116,11 @@ export function Residents() {
           <Typography variant="h6" color="blue-gray" className="font-bold truncate">Quản lý Cư dân</Typography>
           <Typography color="gray" className="font-normal text-xs">Danh sách người thuê trọ</Typography>
         </div>
-        <div className="flex shrink-0 gap-2 items-center">
+        <div className="flex flex-wrap shrink-0 gap-2 items-center">
           <input
             type="text"
             placeholder="Tìm kiếm tên, sdt (>=2 ký tự)..."
-            className="text-sm border border-blue-gray-200 rounded-lg px-3 h-10 w-56 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 h-10 w-full sm:w-56 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -212,9 +213,10 @@ export function Residents() {
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
         <CardBody className="overflow-auto p-0 flex-1">
-          {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
           {loading ? (
             <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
+          ) : error && residents.length === 0 ? (
+            <ErrorState message={error} onRetry={loadResidents} />
           ) : residents.length === 0 ? (
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu cư dân</Typography></div>
           ) : (

@@ -14,7 +14,7 @@ import {
   TruckIcon,
   ChartBarIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Notifications, Health, Tenants, Rooms, Residents, Bills, Users, Contracts, Tickets, MeterReading, Vehicles, Reports } from "@/pages/dashboard";
+import { Home, Profile, Notifications, Health, Tenants, Rooms, Residents, Bills, Users, Contracts, Tickets, MeterReading, Vehicles, Reports, AuditLogs } from "@/pages/dashboard";
 import { RoomDetail } from "@/pages/dashboard/room-detail";
 import { SignIn, SignUp, ForgotPassword } from "@/pages/auth";
 
@@ -95,7 +95,7 @@ export const routes = [
       // ===== Quản trị hệ thống (hiển thị nhưng nhóm riêng) =====
       {
         icon: <UsersIcon {...icon} />,
-        name: "Người dùng",
+        name: "Nhân viên",
         path: "/users",
         element: <Users />,
         allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
@@ -105,6 +105,13 @@ export const routes = [
         name: "Chủ trọ",
         path: "/tenants",
         element: <Tenants />,
+        allowedRoles: ["SUPER_ADMIN"],
+      },
+      {
+        icon: <InformationCircleIcon {...icon} />,
+        name: "Lịch sử thao tác",
+        path: "/audit-logs",
+        element: <AuditLogs />,
         allowedRoles: ["SUPER_ADMIN"],
       },
 

@@ -150,7 +150,7 @@ export function InvoicePreviewModal({ open, onClose, roomId, month, year }) {
   const qrUrl = data ? getVietQRUrl() : null;
 
   return (
-    <Dialog open={open} handler={onClose} size="md" className="z-[9999] overflow-hidden max-h-[95vh]" overlayProps={{ className: "z-[9998]" }}>
+    <Dialog open={open} handler={onClose} size="md" className="z-[9999] overflow-hidden max-h-[95vh] min-w-[95vw] sm:min-w-[80vw] md:min-w-[60vw]" overlayProps={{ className: "z-[9998]" }}>
       <DialogHeader className="flex justify-between items-center border-b pb-3 no-print">
         <Typography variant="h6" color="blue-gray">
           Phiếu thu tháng {month}/{year}
@@ -199,7 +199,7 @@ export function InvoicePreviewModal({ open, onClose, roomId, month, year }) {
             </div>
 
             {/* ===== THÔNG TIN PHÒNG ===== */}
-            <div className="grid grid-cols-2 gap-x-4 mb-5 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 mb-5 text-sm">
               <div className="flex gap-1">
                 <span className="text-blue-gray-500">Phòng:</span>
                 <span className="font-bold text-blue-gray-800">{data.roomNumber}</span>

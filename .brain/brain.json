@@ -86,7 +86,8 @@
     { "name": "User account management (filtered by building)", "status": "implemented" },
     { "name": "Notification system", "status": "implemented" },
     { "name": "Multi-image gallery with Lightbox popup (all modules)", "status": "implemented" },
-    { "name": "Automated Billing & Debt Reminders (Excel generation, Email dispatch)", "status": "implemented" }
+    { "name": "Automated Billing & Debt Reminders (Excel generation, Email dispatch)", "status": "implemented" },
+    { "name": "Responsive Design 100% (Mobile/Tablet/Desktop) for 28 screens", "status": "implemented" }
   ],
   "knowledge_items": {
     "patterns": [

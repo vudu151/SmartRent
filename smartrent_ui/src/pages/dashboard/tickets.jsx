@@ -59,8 +59,8 @@ export function Tickets() {
           <Typography variant="h6" color="blue-gray" className="font-bold truncate">Quản lý Sự cố/Yêu cầu</Typography>
           <Typography color="gray" className="font-normal text-xs">Danh sách vấn đề từ cư dân và trạng thái xử lý</Typography>
         </div>
-        <div className="flex shrink-0 gap-2 items-center">
-          <div className="w-52">
+        <div className="flex flex-wrap shrink-0 gap-2 items-center">
+          <div className="w-full sm:w-52">
             <Select label="Lọc trạng thái" size="md" value={filterStr} onChange={(val) => setFilterStr(val || "")} containerProps={{ className: "min-w-[0]" }}>
               <Option value="">Tất cả</Option>
               <Option value="PENDING">Mới báo (Đang chờ)</Option>
@@ -69,7 +69,7 @@ export function Tickets() {
             </Select>
           </div>
           <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={() => setOpenModal(true)}>
-            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Báo sự cố
+            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /><span className="hidden sm:inline"> Báo sự cố</span>
           </Button>
         </div>
       </div>

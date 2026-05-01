@@ -1,62 +1,49 @@
 {
-  "updated_at": "2026-04-29T17:40:00+07:00",
+  "updated_at": "2026-05-02T04:55:00+07:00",
   "working_on": {
-    "feature": "Full Automation Billing & Debt Reminders (D3)",
-    "task": "Hoàn thiện tự động hóa tạo hóa đơn và nhắc nợ",
+    "feature": "Responsive UI Optimization",
+    "task": "Toàn bộ 28 màn hình cho 3 dải thiết bị",
     "status": "completed",
     "files": [
-      "src/main/java/com/smartrent/domain/Tenant.java",
-      "src/main/java/com/smartrent/domain/Bill.java",
-      "src/main/java/com/smartrent/controller/TenantController.java",
-      "src/main/java/com/smartrent/service/TenantService.java",
-      "src/main/java/com/smartrent/service/EmailService.java",
-      "src/main/java/com/smartrent/service/InvoiceGeneratorService.java",
-      "src/main/java/com/smartrent/service/DebtReminderService.java",
-      "src/main/java/com/smartrent/service/AutoBillingService.java",
-      "smartrent_ui/src/widgets/layout/sidenav.jsx",
-      "smartrent_ui/src/pages/dashboard/home.jsx"
+      "smartrent_ui/src/pages/dashboard/*",
+      "smartrent_ui/src/widgets/layout/*"
     ],
     "blockers": [],
-    "notes": "Hệ thống kế toán tự động hoạt động hoàn chỉnh."
+    "notes": "Đã hoàn thành Phase 01-05. Fix các lỗi tràn layout trên mobile (table, flex, modal)."
   },
   "pending_tasks": [
-    { "task": "Cập nhật ứng dụng (application.yml) với mật khẩu ứng dụng Gmail thật (SMTP).", "priority": "high", "notes": "Để gửi email thực tế." },
-    { "task": "Thêm chức năng 'Gửi Email Test' trên UI", "priority": "medium", "notes": "Giúp admin tự kiểm tra cấu hình Mail của mình." }
+    { "task": "Làm Task 5: Thêm tính năng xuất Excel danh sách doanh thu/hóa đơn trên trang Báo cáo", "priority": "high", "notes": "Để chủ trọ tiện đối soát." },
+    { "task": "Làm Task 2: Thêm nút 'Gửi Email Test' trên UI cấu hình", "priority": "medium", "notes": "Giúp admin kiểm tra SMTP dễ dàng." },
+    { "task": "Làm Task 6: Audit Log", "priority": "low", "notes": "Lưu vết thao tác người dùng." }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-04-29T17:35:00+07:00",
+      "timestamp": "2026-05-02T04:55:00+07:00",
       "type": "feature",
-      "description": "Tạo hóa đơn Excel tự động (Apache POI) kèm tên khách thuê, và gửi đính kèm qua Email tự động nhắc nợ",
-      "files": ["InvoiceGeneratorService.java", "DebtReminderService.java", "EmailService.java"]
+      "description": "Tối ưu hiển thị Responsive UI 100% cho 28 màn hình (table overflow-x-auto, dialog width, stacked inputs, grid layouts).",
+      "files": ["dashboard/*.jsx", "widgets/layout/building-selector.jsx"]
     },
     {
-      "timestamp": "2026-04-29T17:30:00+07:00",
-      "type": "bugfix",
-      "description": "Sửa lỗi UI Dashboard (home.jsx) trắng màn hình khi gọi API thất bại và thêm fallback an toàn",
-      "files": ["home.jsx"]
-    },
-    {
-      "timestamp": "2026-04-29T17:20:00+07:00",
-      "type": "enhancement",
-      "description": "Cấu hình tự động cập nhật ngày đóng tiền (AutoBilling) linh hoạt theo cấu hình của chủ trọ",
-      "files": ["AutoBillingService.java", "TenantProfileController.java"]
+      "timestamp": "2026-05-01T15:54:00+07:00",
+      "type": "feature",
+      "description": "Tạo hóa đơn Excel tổng hợp (gộp điện, nước, phòng...) cho mỗi phòng. Nhắc nợ gửi 1 mail duy nhất cho 1 phòng.",
+      "files": ["InvoiceGeneratorService.java", "DebtReminderService.java"]
     }
   ],
   "errors_encountered": [
     {
-      "error": "TypeError: Cannot destructure property 'summary' of 'data' as it is null in home.jsx",
-      "solution": "Xử lý lỗi API Failed (khi Backend chưa chạy), trả về màn hình 'Lỗi kết nối' thay vì làm vỡ UI.",
+      "error": "Các bảng (Table) tràn ra khỏi màn hình trên mobile",
+      "solution": "Thêm class `overflow-x-auto` và ẩn các cột phụ bằng `hidden md:table-cell`",
       "resolved": true
     },
     {
-      "error": "Mở Modal Cấu hình nhưng dữ liệu không hiển thị đúng mà về số mặc định 1, 5, 2, 2",
-      "solution": "Cập nhật TenantProfileDTO và TenantProfileController để map trả về 4 trường tự động hóa (autoBillingDay, v.v..)",
+      "error": "Các Dialog (Modal) quá nhỏ hoặc mất căn lề trên điện thoại",
+      "solution": "Gắn class động cho độ rộng (e.g. `min-w-[95vw] sm:min-w-[80vw]`) thay vì dùng size mặc định.",
       "resolved": true
     }
   ],
   "decisions_made": [
-    { "decision": "Tạo file Excel ngay trong RAM", "reason": "Dùng ByteArrayOutputStream để gửi email mà không cần lưu xuống đĩa, tối ưu bảo mật và hiệu năng." },
-    { "decision": "Kiểm tra TenantProfileDTO khi load Frontend", "reason": "Bảo đảm API GET cung cấp đủ các trường cho màn hình cài đặt." }
+    { "decision": "Ẩn các cột phụ trên màn hình nhỏ thay vì nhồi nhét", "reason": "Cải thiện trải nghiệm đọc." },
+    { "decision": "Xếp chồng các Input (flex-col) trên mobile thay vì đặt ngang (grid-cols-2)", "reason": "Tránh thu hẹp khu vực gõ văn bản." }
   ]
 }

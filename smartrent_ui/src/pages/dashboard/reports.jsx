@@ -7,9 +7,11 @@ import {
   Select,
   Option,
   Spinner,
+  Button,
 } from "@material-tailwind/react";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import Chart from "react-apexcharts";
-import { getRevenueReport } from "@/api/report";
+import { getRevenueReport, exportRevenueReportExcel } from "@/api/report";
 import { useNavbarHeader } from "@/context/navbar-header";
 import { showToast } from "@/lib/swal";
 
@@ -19,6 +21,7 @@ const currentMonth = new Date().getMonth() + 1;
 export function Reports() {
   const { setNavbarHeader } = useNavbarHeader();
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [reportData, setReportData] = useState(null);
   
   const [selectedMonth, setSelectedMonth] = useState(currentMonth.toString());
@@ -54,6 +57,21 @@ export function Reports() {
     };
     fetchReport();
   }, [selectedMonth, selectedYear]);
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      await exportRevenueReportExcel({
+        month: selectedMonth === "ALL" ? undefined : parseInt(selectedMonth),
+        year: parseInt(selectedYear),
+      });
+      showToast("Xuất Excel thành công", "success");
+    } catch (error) {
+      showToast(error.message || "Không thể xuất Excel", "error");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Translate BillType
   const getTypeLabel = (type) => {
@@ -187,7 +205,22 @@ export function Reports() {
               )}
             </Typography>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <Button
+              variant="outlined"
+              color="indigo"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={handleExport}
+              disabled={loading || exporting || !reportData?.totalRevenue || Number(reportData?.totalRevenue) === 0}
+            >
+              {exporting ? (
+                <Spinner className="h-4 w-4" />
+              ) : (
+                <ArrowDownTrayIcon strokeWidth={2} className="h-4 w-4" />
+              )}
+              Xuất Excel
+            </Button>
             <div className="w-40">
               <Select
                 label="Tháng"
@@ -236,7 +269,7 @@ export function Reports() {
               </Typography>
             </CardHeader>
             <CardBody className="pt-0 pb-5 flex justify-center">
-              <Chart {...pieChartConfig} width={400} />
+              <Chart {...pieChartConfig} width="100%" />
             </CardBody>
           </Card>
 

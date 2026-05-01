@@ -169,7 +169,7 @@ export function BuildingSelector() {
         </MenuList>
       </Menu>
 
-      <Dialog open={openModal} handler={handleOpenModal} size="sm" className={isDark ? "bg-gray-800 text-white" : ""}>
+      <Dialog open={openModal} handler={handleOpenModal} size="sm" className={`min-w-[95vw] sm:min-w-[60vw] md:min-w-[40vw] ${isDark ? "bg-gray-800 text-white" : ""}`}>
         <DialogHeader>Thêm Khu Trọ Mới</DialogHeader>
         <DialogBody divider className="flex flex-col gap-4">
           <Input 

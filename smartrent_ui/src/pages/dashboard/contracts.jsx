@@ -23,6 +23,7 @@ import { LiquidationModal } from "./liquidation-modal";
 import { showToast } from "@/lib/swal";
 import { env } from "@/config/env";
 import { ImageThumbnail } from "@/components/image-lightbox";
+import { ErrorState } from "@/components/error-state";
 
 export function Contracts() {
   const [controller] = useMaterialTailwindController();
@@ -71,16 +72,16 @@ export function Contracts() {
           <Typography variant="h6" color="blue-gray" className="font-bold truncate">Quản lý Hợp đồng</Typography>
           <Typography color="gray" className="font-normal text-xs">Danh sách hợp đồng thuê phòng</Typography>
         </div>
-        <div className="flex shrink-0 gap-2 items-center">
+        <div className="flex flex-wrap shrink-0 gap-2 items-center">
           <input
             type="text"
             placeholder="Tìm HĐ, Tên, Phòng (>=2 ký tự)..."
-            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-72 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-full sm:w-72 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 whitespace-nowrap" onClick={handleAdd}>
-            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm HĐ
+            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /><span className="hidden sm:inline"> Thêm HĐ</span>
           </Button>
         </div>
       </div>
@@ -113,9 +114,10 @@ export function Contracts() {
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
         <CardBody className="overflow-auto p-0 flex-1">
-          {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
           {loading ? (
             <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
+          ) : error && contracts.length === 0 ? (
+            <ErrorState message={error} onRetry={loadContracts} />
           ) : contracts.length === 0 ? (
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu hợp đồng</Typography></div>
           ) : (

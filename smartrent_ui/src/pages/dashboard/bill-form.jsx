@@ -149,7 +149,7 @@ export function BillModal({ open, onClose, billId, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} handler={onClose} size="lg">
+    <Dialog open={open} handler={onClose} size="lg" className="min-w-[95vw] sm:min-w-[80vw] md:min-w-[60vw]">
       <DialogHeader className="flex justify-between items-center">
         <Typography variant="h5" color="blue-gray">
           {isEdit ? "Cập nhật Phiếu thu" : "Tạo Phiếu thu mới"}
@@ -196,6 +196,19 @@ export function BillModal({ open, onClose, billId, onSuccess }) {
                   <Option value="SERVICE">Phí Dịch Vụ / Rác</Option>
                   <Option value="OTHER">Phí Khác</Option>
                 </Select>
+                {(formData.billType === "ELECTRICITY" || formData.billType === "WATER") && !isEdit && (
+                  <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                    <span className="text-amber-600 text-sm mt-0.5">⚡</span>
+                    <div>
+                      <Typography variant="small" className="text-amber-800 font-medium text-[12px] leading-relaxed">
+                        Hóa đơn {formData.billType === "ELECTRICITY" ? "điện" : "nước"} nên được tạo tự động từ trang <strong>Chốt Điện Nước</strong> để đảm bảo chính xác.
+                      </Typography>
+                      <Typography variant="small" className="text-amber-600 text-[11px] mt-0.5">
+                        Chỉ dùng cách này khi cần điều chỉnh thủ công.
+                      </Typography>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col gap-1">

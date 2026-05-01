@@ -306,7 +306,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
             )}
             {pages.filter(({ hidden, allowedRoles }) => !hidden && (!allowedRoles || allowedRoles.includes(user?.role))).map(({ icon, name, path }) => (
               <li key={name}>
-                <NavLink to={`/${layout}${path}`}>
+                <NavLink to={`/${layout}${path}`} onClick={() => { if (window.innerWidth < 1280) setOpenSidenav(dispatch, false); }}>
                   {({ isActive }) => (
                     <Button
                       variant={isActive ? "gradient" : "text"}

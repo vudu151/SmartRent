@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
@@ -24,5 +27,22 @@ public class ReportController {
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year) {
         return ResponseEntity.ok(reportService.getRevenueReport(tenantId, month, year));
+    }
+
+    @GetMapping("/revenue/export")
+    @Operation(summary = "Export revenue report to Excel", description = "Downloads the revenue report as an Excel file")
+    public ResponseEntity<byte[]> exportRevenueReport(
+            @RequestParam Long tenantId,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year) {
+        
+        byte[] excelData = reportService.exportRevenueReportToExcel(tenantId, month, year);
+        
+        String filename = "BaoCaoDoanhThu" + (month != null ? "_T" + month : "") + (year != null ? "_" + year : "") + ".xlsx";
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelData);
     }
 }

@@ -320,11 +320,11 @@ export function RoomDetail() {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[500px] table-auto text-left">
+              <table className="w-full min-w-[300px] sm:min-w-[500px] table-auto text-left">
                 <thead>
                   <tr>
                     {["Kỳ", "Loại", "Số tiền", "Trạng thái", ""].map((h) => (
-                      <th key={h} className="border-b border-blue-gray-50 py-2.5 px-3">
+                      <th key={h} className={`border-b border-blue-gray-50 py-2.5 px-2 sm:px-3 ${h === "Loại" ? "hidden sm:table-cell" : ""}`}>
                         <Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">
                           {h}
                         </Typography>
@@ -335,22 +335,22 @@ export function RoomDetail() {
                 <tbody>
                   {bills.map((bill) => (
                     <tr key={bill.id} className="hover:bg-blue-gray-50/30 transition-colors">
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-2 sm:px-3">
                         <Typography variant="small" className="font-medium text-blue-gray-700">
                           {new Date(bill.dueDate).toLocaleDateString("vi-VN", { month: "2-digit", year: "numeric" })}
                         </Typography>
                       </td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-2 sm:px-3 hidden sm:table-cell">
                         <Typography variant="small" color="blue-gray">
                           {bill.billType === "RENT" ? "Tiền phòng" : bill.billType === "ELECTRICITY" ? "Tiền điện" : bill.billType === "WATER" ? "Tiền nước" : bill.billType === "SERVICE" ? "Dịch vụ" : bill.billType}
                         </Typography>
                       </td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-2 sm:px-3">
                         <Typography variant="small" className="font-bold text-indigo-600">
                           {bill.amount?.toLocaleString()} đ
                         </Typography>
                       </td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-2 sm:px-3">
                         <Chip
                           size="sm"
                           variant="gradient"
@@ -359,7 +359,7 @@ export function RoomDetail() {
                           className="py-0.5 px-2 text-[10px] font-medium w-fit"
                         />
                       </td>
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-2 sm:px-3">
                         <IconButton
                           size="sm"
                           variant="text"

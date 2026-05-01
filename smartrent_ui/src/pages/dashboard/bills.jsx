@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -23,6 +23,7 @@ import { remindUnpaidBills } from "@/api/notification";
 import { BillModal } from "./bill-form";
 import { showToast } from "@/lib/swal";
 import { exportToExcel } from "@/lib/export-excel";
+import { ErrorState } from "@/components/error-state";
 
 export function Bills() {
   const { setNavbarHeader } = useNavbarHeader();
@@ -32,8 +33,17 @@ export function Bills() {
   const [error, setError] = React.useState("");
 
   const [roomNumber, setRoomNumber] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [statusFilter, setStatusFilter] = React.useState(searchParams.get("status") || "");
   const [typeFilter, setTypeFilter] = React.useState("");
+
+  // Xóa query param sau khi đã đọc, giữ URL sạch
+  React.useEffect(() => {
+    if (searchParams.get("status")) {
+      searchParams.delete("status");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, []);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [billToDelete, setBillToDelete] = React.useState(null);
@@ -94,16 +104,16 @@ export function Bills() {
 
   React.useEffect(() => {
     setNavbarHeader(
-      <div className="flex items-center justify-between gap-3 w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full">
         <div className="min-w-0 shrink-0">
           <Typography variant="h6" color="blue-gray" className="font-bold truncate">Quản lý Phiếu Thu</Typography>
           <Typography color="gray" className="font-normal text-xs">Theo dõi thanh toán tiền phòng và dịch vụ</Typography>
         </div>
-        <div className="flex items-center gap-2 flex-1 justify-end">
+        <div className="flex flex-wrap items-center gap-2 flex-1 justify-end">
           <input
             type="text"
             placeholder="Tìm phòng (>=2 ký tự)..."
-            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-48 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-full sm:w-48 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             value={roomNumber}
             onChange={(e) => setRoomNumber(e.target.value)}
           />
@@ -123,10 +133,10 @@ export function Bills() {
           </div>
 
           <Button variant="outlined" color="blue-gray" size="sm" className="flex items-center gap-1 whitespace-nowrap" onClick={handleRemind} disabled={loading}>
-            <BellIcon className="h-3 w-3" /> Nhắc Nợ
+            <BellIcon className="h-3 w-3" /><span className="hidden sm:inline"> Nhắc Nợ</span>
           </Button>
           <Button variant="outlined" color="green" size="sm" className="flex items-center gap-1 whitespace-nowrap" onClick={handleExportExcel}>
-            <ArrowDownTrayIcon className="h-3 w-3" /> Xuất Excel
+            <ArrowDownTrayIcon className="h-3 w-3" /><span className="hidden sm:inline"> Xuất Excel</span>
           </Button>
         </div>
       </div>
@@ -155,9 +165,10 @@ export function Bills() {
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
         <CardBody className="p-0 overflow-auto flex-1">
-          {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
           {loading ? (
             <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
+          ) : error && bills.length === 0 ? (
+            <ErrorState message={error} onRetry={loadBills} />
           ) : bills.length === 0 ? (
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu phiếu thu</Typography></div>
           ) : (

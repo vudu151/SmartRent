@@ -7,6 +7,7 @@ import com.smartrent.exception.ResourceNotFoundException;
 import com.smartrent.repository.TenantRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.smartrent.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class TenantProfileController {
 
     private final TenantRepository tenantRepository;
+    private final EmailService emailService;
 
     @GetMapping
     @Operation(summary = "Get tenant profile including bank configuration")
@@ -81,6 +83,17 @@ public class TenantProfileController {
             return ResponseEntity.ok(ApiResponse.success(java.util.Map.of("qrUrl", qrUrl), "Upload QR thành công"));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(ApiResponse.error("UPLOAD_ERROR", "Lỗi: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/test-email")
+    @Operation(summary = "Send a test email to verify SMTP configuration")
+    public ResponseEntity<ApiResponse<Void>> sendTestEmail(@RequestParam String email) {
+        try {
+            emailService.sendTestEmail(email);
+            return ResponseEntity.ok(ApiResponse.success(null, "Đã gửi email test thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("EMAIL_ERROR", e.getMessage()));
         }
     }
 }

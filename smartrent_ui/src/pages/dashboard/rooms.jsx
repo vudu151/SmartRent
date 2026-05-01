@@ -25,6 +25,7 @@ import { LiquidationModal } from "./liquidation-modal";
 import { showToast } from "@/lib/swal";
 import { env } from "@/config/env";
 import { ImageThumbnail } from "@/components/image-lightbox";
+import { ErrorState } from "@/components/error-state";
 
 export function Rooms() {
   const [controller] = useMaterialTailwindController();
@@ -103,11 +104,11 @@ export function Rooms() {
             Danh sách phòng và trạng thái hiện tại
           </Typography>
         </div>
-        <div className="flex shrink-0 gap-2 items-center">
+        <div className="flex flex-wrap shrink-0 gap-2 items-center">
           <input
             type="text"
             placeholder="Tìm số phòng (>=2 ký tự)..."
-            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-64 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-full sm:w-64 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -118,7 +119,7 @@ export function Rooms() {
             className="flex items-center gap-2 whitespace-nowrap"
             onClick={handleAdd}
           >
-            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /> Thêm Phòng
+            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /><span className="hidden sm:inline"> Thêm Phòng</span>
           </Button>
         </div>
       </div>
@@ -204,10 +205,10 @@ export function Rooms() {
     <div className="h-full flex flex-col">
       <Card className="h-full flex flex-col overflow-hidden">
         <CardBody className="overflow-auto p-0 flex-1">
-          {error && <Alert color="red" className="mb-4 mx-4">{error}</Alert>}
-
           {loading ? (
             <div className="flex justify-center py-8"><Typography>Đang tải...</Typography></div>
+          ) : error && rooms.length === 0 ? (
+            <ErrorState message={error} onRetry={loadRooms} />
           ) : rooms.length === 0 ? (
             <div className="flex justify-center py-8"><Typography>Không có dữ liệu phòng</Typography></div>
           ) : (

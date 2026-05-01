@@ -18,6 +18,7 @@ public class DashboardDTO {
     private List<ChartData> chartData;
     private List<RecentTransaction> recentTransactions;
     private List<ExpiringContract> expiringContractsList;
+    private List<RevenueBreakdown> revenueBreakdown;
 
     @Data
     @NoArgsConstructor
@@ -68,5 +69,14 @@ public class DashboardDTO {
         private String residentName;
         private java.time.LocalDate endDate;
         private long daysRemaining;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class RevenueBreakdown {
+        private String billType;   // RENT, ELECTRICITY, WATER, SERVICE, OTHER
+        private BigDecimal amount;
     }
 }

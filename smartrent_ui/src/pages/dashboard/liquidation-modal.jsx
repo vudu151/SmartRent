@@ -74,7 +74,7 @@ export function LiquidationModal({ open, onClose, contract, onSuccess }) {
   const finalRefundAmount = (summary?.depositAmount || 0) - (summary?.totalDebts || 0) - (otherDeductions || 0);
 
   return (
-    <Dialog open={open} handler={onClose} size="lg" className={`min-w-[90%] md:min-w-[70%] ${darkMode ? "bg-blue-gray-900" : ""}`}>
+    <Dialog open={open} handler={onClose} size="lg" className={`min-w-[95vw] sm:min-w-[80vw] md:min-w-[70vw] ${darkMode ? "bg-blue-gray-900" : ""}`}>
       <DialogHeader className="flex justify-between items-center border-b pb-4">
         <div className="flex items-center gap-2">
           <Typography variant="h5" color="blue-gray">

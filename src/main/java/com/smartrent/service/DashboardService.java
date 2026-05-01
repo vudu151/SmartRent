@@ -135,11 +135,27 @@ public class DashboardService {
                         .build())
                 .collect(Collectors.toList());
 
+        // 4. Revenue Breakdown by Bill Type (all-time PAID bills)
+        List<Bill> allPaidBills = billRepository.findByTenantIdAndStatusIn(tenantId, List.of(Bill.BillStatus.PAID));
+        Map<String, BigDecimal> revenueByType = allPaidBills.stream()
+                .collect(Collectors.groupingBy(
+                        b -> b.getBillType().name(),
+                        Collectors.reducing(BigDecimal.ZERO, Bill::getAmount, BigDecimal::add)
+                ));
+        List<DashboardDTO.RevenueBreakdown> revenueBreakdown = revenueByType.entrySet().stream()
+                .map(e -> DashboardDTO.RevenueBreakdown.builder()
+                        .billType(e.getKey())
+                        .amount(e.getValue())
+                        .build())
+                .sorted((a, b) -> b.getAmount().compareTo(a.getAmount()))
+                .collect(Collectors.toList());
+
         DashboardDTO dashboardDTO = DashboardDTO.builder()
                 .summary(summary)
                 .chartData(chartDataList)
                 .recentTransactions(recentTransactions)
                 .expiringContractsList(expiringContractsList)
+                .revenueBreakdown(revenueBreakdown)
                 .build();
 
         return ApiResponse.success(dashboardDTO, "Lấy dữ liệu Dashboard thành công");

@@ -37,9 +37,10 @@ export function Home() {
           <Typography variant="h6" color="blue-gray" className="font-bold truncate">Tổng quan Dự án</Typography>
           <Typography color="gray" className="font-normal text-xs">Báo cáo tổng hợp hoạt động kinh doanh</Typography>
         </div>
-        <div className="flex shrink-0 gap-2 items-center">
-          <div className="w-48 shrink-0 bg-white rounded-lg">
+        <div className="flex shrink-0 gap-2 items-center w-full sm:w-auto">
+          <div className="w-full sm:w-48 shrink-0 bg-white rounded-lg">
             <Select 
+              key={months}
               label="Thời gian" 
               className="!min-w-0"
               value={months.toString()} 
@@ -91,7 +92,7 @@ export function Home() {
     );
   }
 
-  const { summary, chartData, recentTransactions, expiringContractsList } = data;
+  const { summary, chartData, recentTransactions, expiringContractsList, revenueBreakdown } = data;
 
   // Chart configs
   const revSeries = chartData?.map(d => d.revenue) || [];
@@ -124,6 +125,7 @@ export function Home() {
         xaxis: { lines: { show: true } },
         yaxis: { lines: { show: true } },
       },
+      tooltip: { theme: "dark" },
     },
   };
 
@@ -154,13 +156,14 @@ export function Home() {
         xaxis: { lines: { show: true } },
         yaxis: { lines: { show: true } },
       },
+      tooltip: { theme: "dark" },
     },
   };
 
   return (
     <div className="mt-4 pb-8">
 
-      <div className="mb-3 grid gap-y-5 gap-x-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-3 grid grid-cols-2 gap-y-3 gap-x-3 md:grid-cols-2 xl:grid-cols-4">
         <StatisticsCard
           title="Tỷ lệ Lấp đầy"
           icon={<BuildingOfficeIcon className="w-6 h-6 text-white" />}
@@ -182,8 +185,8 @@ export function Home() {
           icon={<ExclamationTriangleIcon className="w-6 h-6 text-white" />}
           value={`${(summary?.totalDebt || 0).toLocaleString()} ₫`}
           color="red"
-          footer={<Typography className="font-normal text-blue-gray-600">Cần đốc thúc thu hồi</Typography>}
-          onClick={() => navigate("/dashboard/bills")}
+          footer={<Typography className="font-normal text-blue-gray-600">Cần đốc thúc thu hồi · <span className="text-red-400 font-medium">Bấm xem chi tiết →</span></Typography>}
+          onClick={() => navigate("/dashboard/bills?status=UNPAID")}
         />
         <StatisticsCard
           title="HĐ Sắp hết hạn"
@@ -210,34 +213,18 @@ export function Home() {
         />
       </div>
 
-      {/* Biểu đồ tròn tỷ lệ phòng — dòng riêng */}
-      <div className="mb-3 grid grid-cols-1 gap-y-6 gap-x-3 md:grid-cols-3">
-        <StatisticsChart
-          color="indigo"
-          chart={{
-            type: "donut",
-            height: 280,
-            series: [summary?.occupiedRooms || 0, summary?.vacantRooms || 0, summary?.maintenanceRooms || 0],
-            options: {
-              chart: { toolbar: { show: false } },
-              labels: ["Đang ở", "Trống", "Bảo trì"],
-              colors: ["#4caf50", "#90a4ae", "#ff9800"],
-              legend: { position: "bottom", labels: { colors: "#fff" } },
-              dataLabels: { enabled: true, style: { colors: ["#fff"] } },
-              plotOptions: { pie: { donut: { size: "55%", labels: { show: true, total: { show: true, label: "Tổng", color: "#fff", formatter: () => `${summary?.totalRooms || 0}` } } } } },
-              stroke: { width: 0 },
-            },
-          }}
-          title="Tỷ lệ Phòng"
-          description={`${summary?.totalRooms || 0} phòng · ${summary?.occupiedRooms || 0} đang ở`}
-        />
+      {/* Biểu đồ tròn: Tỷ lệ phòng + Cơ cấu doanh thu — TẠM ẨN
+      <div className="mb-3 grid grid-cols-1 gap-y-6 gap-x-3 md:grid-cols-2">
+        ...
       </div>
+      */}
+
 
       {/* Expiring Contracts Table */}
       {expiringContractsList?.length > 0 && (
         <div className="mb-2">
           <Card className="border border-orange-100 shadow-sm">
-            <CardHeader floated={false} shadow={false} color="transparent" className="m-0 p-6 flex justify-between items-center">
+            <CardHeader floated={false} shadow={false} color="transparent" className="m-0 p-4 sm:p-6 flex justify-between items-center">
               <div>
                 <Typography variant="h6" color="blue-gray" className="mb-1 font-bold">
                   ⚠️ Hợp đồng sắp hết hạn
@@ -249,11 +236,11 @@ export function Home() {
               </div>
             </CardHeader>
             <CardBody className="overflow-x-auto px-0 pt-0 pb-2">
-              <table className="w-full min-w-[640px] table-auto">
+              <table className="w-full min-w-[420px] table-auto">
                 <thead>
                   <tr>
                     {["Mã HĐ", "Phòng", "Khách thuê", "Ngày hết hạn", "Còn lại"].map((el) => (
-                      <th key={el} className="border-b border-blue-gray-50 py-3 px-6 text-left">
+                      <th key={el} className={`border-b border-blue-gray-50 py-3 px-3 sm:px-6 text-left ${(el === "Mã HĐ" || el === "Khách thuê") ? "hidden sm:table-cell" : ""}`}>
                         <Typography variant="small" className="text-[11px] font-medium uppercase text-blue-gray-400">
                           {el}
                         </Typography>
@@ -263,16 +250,16 @@ export function Home() {
                 </thead>
                 <tbody>
                   {expiringContractsList.map(({ contractId, contractNumber, roomNumber, residentName, endDate, daysRemaining }, key) => {
-                    const className = `py-3 px-6 ${key === expiringContractsList.length - 1 ? "" : "border-b border-blue-gray-50"}`;
+                    const className = `py-3 px-3 sm:px-6 ${key === expiringContractsList.length - 1 ? "" : "border-b border-blue-gray-50"}`;
                     return (
                       <tr key={contractId} className="hover:bg-orange-50/40 cursor-pointer" onClick={() => navigate("/dashboard/contracts")}>
-                        <td className={className}>
+                        <td className={`${className} hidden sm:table-cell`}>
                           <Typography variant="small" color="blue-gray" className="font-bold">{contractNumber}</Typography>
                         </td>
                         <td className={className}>
                           <Chip size="sm" variant="ghost" color="indigo" value={roomNumber} />
                         </td>
-                        <td className={className}>
+                        <td className={`${className} hidden sm:table-cell`}>
                           <Typography variant="small" className="font-medium text-blue-gray-600">{residentName}</Typography>
                         </td>
                         <td className={className}>
@@ -300,7 +287,7 @@ export function Home() {
 
       <div className="mb-2 grid grid-cols-1 gap-3">
         <Card className="overflow-hidden border border-blue-gray-100 shadow-sm">
-          <CardHeader floated={false} shadow={false} color="transparent" className="m-0 p-6 flex justify-between items-center">
+          <CardHeader floated={false} shadow={false} color="transparent" className="m-0 p-4 sm:p-6 flex justify-between items-center">
             <div>
               <Typography variant="h6" color="blue-gray" className="mb-1">Giao dịch Gần nhất</Typography>
               <Typography variant="small" className="flex items-center gap-1 font-normal text-blue-gray-600">
@@ -310,11 +297,11 @@ export function Home() {
             </div>
           </CardHeader>
           <CardBody className="overflow-x-auto px-0 pt-0 pb-2">
-            <table className="w-full min-w-[640px] table-auto">
+            <table className="w-full min-w-[280px] table-auto">
               <thead>
                 <tr>
                   {["Phòng", "Loại phí", "Số tiền (VNĐ)", "Thời gian TT", "Tham chiếu"].map((el) => (
-                    <th key={el} className="border-b border-blue-gray-50 py-3 px-6 text-left">
+                    <th key={el} className={`border-b border-blue-gray-50 py-3 px-3 sm:px-6 text-left ${(el === "Thời gian TT" || el === "Tham chiếu") ? "hidden sm:table-cell" : ""}`}>
                       <Typography variant="small" className="text-[11px] font-medium uppercase text-blue-gray-400">
                         {el}
                       </Typography>
@@ -324,7 +311,7 @@ export function Home() {
               </thead>
               <tbody>
                 {recentTransactions?.map(({ billId, roomNumber, billType, amount, paymentDate, paymentReference }, key) => {
-                  const className = `py-3 px-6 ${key === recentTransactions.length - 1 ? "" : "border-b border-blue-gray-50"}`;
+                  const className = `py-3 px-3 sm:px-6 ${key === recentTransactions.length - 1 ? "" : "border-b border-blue-gray-50"}`;
                   return (
                     <tr key={billId}>
                       <td className={className}>
@@ -336,12 +323,12 @@ export function Home() {
                       <td className={className}>
                         <Typography variant="small" color="green" className="font-bold">+{amount?.toLocaleString()}</Typography>
                       </td>
-                      <td className={className}>
+                      <td className={`${className} hidden sm:table-cell`}>
                         <Typography variant="small" className="text-xs font-medium text-blue-gray-600">
                           {new Date(paymentDate).toLocaleString("vi-VN")}
                         </Typography>
                       </td>
-                      <td className={className}>
+                      <td className={`${className} hidden sm:table-cell`}>
                         <Typography variant="small" className="text-xs font-medium text-blue-gray-600">
                           {paymentReference || "-"}
                         </Typography>

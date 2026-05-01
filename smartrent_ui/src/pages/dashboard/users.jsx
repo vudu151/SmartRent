@@ -69,15 +69,15 @@ export function Users() {
           <Typography variant="h6" color="blue-gray" className="font-bold truncate">Quản lý Tài khoản</Typography>
           <Typography color="gray" className="font-normal text-xs">Danh sách người dùng và nhân viên hệ thống</Typography>
         </div>
-        <div className="flex shrink-0 gap-2 items-center">
+        <div className="flex flex-wrap shrink-0 gap-2 items-center w-full md:w-auto mt-3 md:mt-0">
           <input
             type="text"
             placeholder="Tìm tên hoặc email (>=2 ký tự)..."
-            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-64 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             value={searchTerm}
+            className="text-sm border border-blue-gray-200 rounded-lg px-3 py-1.5 w-full md:w-64 bg-white text-blue-gray-700 focus:outline-none focus:border-blue-500"
             onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
           />
-          <Button variant="gradient" color="indigo" size="sm" className="flex items-center gap-2 h-10 px-4 whitespace-nowrap" onClick={() => setOpenModal(true)}>
+          <Button variant="gradient" color="indigo" size="sm" className="flex items-center justify-center gap-2 h-10 px-4 w-full md:w-auto whitespace-nowrap" onClick={() => setOpenModal(true)}>
             <UserPlusIcon className="h-4 w-4" /> Thêm Tài Khoản
           </Button>
         </div>
@@ -117,10 +117,10 @@ export function Users() {
             ) : usersList.length === 0 ? (
               <div className="flex justify-center py-8"><Typography>Không có dữ liệu</Typography></div>
             ) : (
-                <table className="w-full min-w-max table-auto text-left">
+                <table className="w-full min-w-[500px] table-auto text-left">
                   <thead><tr>
                     {["Tài khoản", "Họ tên", "Vai trò", "Trạng thái", "Ngày tạo", "Thao tác"].map((h) => (
-                      <th key={h} className="border-b border-blue-gray-50 py-3 px-5"><Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{h}</Typography></th>
+                      <th key={h} className={`border-b border-blue-gray-50 py-3 px-5 ${h === "Họ tên" || h === "Ngày tạo" ? "hidden md:table-cell" : ""}`}><Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{h}</Typography></th>
                     ))}
                   </tr></thead>
                   <tbody>
@@ -133,7 +133,7 @@ export function Users() {
                             <Typography variant="small" color="blue-gray" className="font-bold">{usr.username}</Typography>
                             <Typography className="text-xs font-normal text-blue-gray-500">{usr.email}</Typography>
                           </td>
-                          <td className={className}><Typography variant="small" color="blue-gray">{usr.fullName || "-"}</Typography></td>
+                          <td className={`${className} hidden md:table-cell`}><Typography variant="small" color="blue-gray">{usr.fullName || "-"}</Typography></td>
                           <td className={className}><Typography variant="small" color="blue-gray" className="font-bold">
                             {usr.role === "SUPER_ADMIN" ? "Quản trị viên" : 
                              usr.role === "TENANT_MANAGER" ? "Chủ trọ" : 
@@ -141,7 +141,7 @@ export function Users() {
                              usr.role === "TENANT" ? "Cư dân" : usr.role}
                           </Typography></td>
                           <td className={className}><Chip variant="gradient" size="sm" value={usr.status === "ACTIVE" ? "Hoạt động" : "Bị khóa"} color={usr.status === "ACTIVE" ? "green" : "red"} className="py-0.5 px-2 text-[11px] font-medium w-fit" /></td>
-                          <td className={className}><Typography variant="small" color="blue-gray">{new Date(usr.createdAt).toLocaleDateString("vi-VN")}</Typography></td>
+                          <td className={`${className} hidden md:table-cell`}><Typography variant="small" color="blue-gray">{new Date(usr.createdAt).toLocaleDateString("vi-VN")}</Typography></td>
                           <td className={className}>
                             <div className="flex gap-2">
                               {usr.status === "ACTIVE" ? (
@@ -173,7 +173,7 @@ export function Users() {
           )}
         </Card>
       </div>
-      <Dialog open={openModal} handler={handleOpenModal} size="sm">
+      <Dialog open={openModal} handler={handleOpenModal} size="sm" className="min-w-[95vw] sm:min-w-[60vw] md:min-w-[40vw]">
         <DialogHeader><Typography variant="h5" color="blue-gray">Thêm Tài Khoản Mới</Typography></DialogHeader>
         <DialogBody divider className="flex flex-col gap-4">
           <Input label="Tên đăng nhập *" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
