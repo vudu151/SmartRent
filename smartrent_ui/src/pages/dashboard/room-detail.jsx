@@ -27,9 +27,10 @@ import {
   ClockIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/solid";
-import { useNavbarHeader } from "@/context/navbar-header";
 import { getRoomById, getRoomTimeline } from "@/api/room";
 import { getBills } from "@/api/bill";
+import { useAuth } from "@/smartrent/auth";
+import { useNavbarHeader } from "@/context/navbar-header";
 import { showToast } from "@/lib/swal";
 import { InvoicePreviewModal } from "./invoice-modal";
 
@@ -66,6 +67,8 @@ export function RoomDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { setNavbarHeader } = useNavbarHeader();
+  const { user } = useAuth();
+  const isGuard = user?.role === "GUARD";
 
   const [room, setRoom] = useState(null);
   const [bills, setBills] = useState([]);
@@ -98,7 +101,7 @@ export function RoomDetail() {
 
   // Load bills for this room
   const loadBills = useCallback(async () => {
-    if (!room) return;
+    if (!room || isGuard) return;
     try {
       setBillsLoading(true);
       const res = await getBills({
@@ -240,7 +243,7 @@ export function RoomDetail() {
             <InfoRow label="Tầng" value={room.floor} />
             <InfoRow label="Diện tích" value={room.area ? `${room.area} m²` : null} />
             <InfoRow label="Loại phòng" value={room.type === "STANDARD" ? "Phòng thường" : room.type === "KIOT" ? "Ki-ốt" : room.type} />
-            <InfoRow label="Giá thuê" value={room.price ? `${Number(room.price).toLocaleString()} đ/tháng` : null} bold />
+            {!isGuard && <InfoRow label="Giá thuê" value={room.price ? `${Number(room.price).toLocaleString()} đ/tháng` : null} bold />}
             <InfoRow label="Số cư dân" value={room.residentCount || 0} />
           </div>
         </SectionCard>
@@ -291,9 +294,10 @@ export function RoomDetail() {
       {/* ===== ROW 2: Lịch sử Hóa đơn & Timeline ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Cột trái: Lịch sử hóa đơn (chiếm 2 cột) */}
-        <div className="lg:col-span-2">
-          <SectionCard
-            title="Lịch sử hóa đơn"
+        {!isGuard && (
+          <div className="lg:col-span-2">
+            <SectionCard
+              title="Lịch sử hóa đơn"
             icon={<CurrencyDollarIcon className="h-5 w-5 text-amber-500" />}
             className="h-full"
           >
@@ -393,10 +397,11 @@ export function RoomDetail() {
           </>
         )}
           </SectionCard>
-        </div>
+          </div>
+        )}
 
         {/* Cột phải: Lịch sử hoạt động (Timeline) */}
-        <div className="lg:col-span-1">
+        <div className={isGuard ? "lg:col-span-3" : "lg:col-span-1"}>
           <SectionCard
             title="Nhật ký phòng"
             icon={<ClockIcon className="h-5 w-5 text-blue-500" />}
@@ -414,8 +419,8 @@ export function RoomDetail() {
             ) : (
               <div className="px-2">
                 <Timeline>
-                  {timeline.map((event, index) => {
-                    const isLast = index === timeline.length - 1;
+                  {timeline.filter(e => !(isGuard && e.type === 'BILL')).map((event, index, filteredArray) => {
+                    const isLast = index === filteredArray.length - 1;
                     return (
                       <TimelineItem key={event.id} className="h-28">
                         {!isLast && <TimelineConnector />}

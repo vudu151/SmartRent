@@ -204,7 +204,7 @@ export function Vehicles() {
               <table className="w-full min-w-max table-auto text-left">
                 <thead>
                   <tr>
-                    {["Ảnh", "Biển số", "Loại xe", "Hãng / Màu", "Cư dân", "Phòng", "Phí/tháng", "Thao tác"].map((head) => (
+                    {["Ảnh", "Biển số", "Loại xe", "Hãng / Màu", "Cư dân", "Phòng", !isGuard ? "Phí/tháng" : null, !isGuard ? "Thao tác" : null].filter(Boolean).map((head) => (
                       <th key={head} className="border-b border-blue-gray-50 py-3 px-5">
                         <Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{head}</Typography>
                       </th>
@@ -240,21 +240,23 @@ export function Vehicles() {
                             </div>
                           ) : (<Typography variant="small" color="gray" className="text-xs italic">-</Typography>)}
                         </td>
-                        <td className={className}>
-                          <Typography variant="small" color="blue-gray" className="font-medium">{formatMoney(vh.monthlyFee)}</Typography>
-                        </td>
-                        <td className={className}>
-                          <div className="flex items-center gap-2">
-                            <IconButton variant="text" color="blue-gray" size="sm" onClick={() => handleEdit(vh.id)}>
-                              <PencilIcon className="h-4 w-4" />
-                            </IconButton>
-                            {!isGuard && (
+                        {!isGuard && (
+                          <td className={className}>
+                            <Typography variant="small" color="blue-gray" className="font-medium">{formatMoney(vh.monthlyFee)}</Typography>
+                          </td>
+                        )}
+                        {!isGuard && (
+                          <td className={className}>
+                            <div className="flex items-center gap-2">
+                              <IconButton variant="text" color="blue-gray" size="sm" onClick={() => handleEdit(vh.id)}>
+                                <PencilIcon className="h-4 w-4" />
+                              </IconButton>
                               <IconButton variant="text" color="red" size="sm" onClick={() => { setVehicleToDelete(vh); setDeleteDialogOpen(true); }}>
                                 <TrashIcon className="h-4 w-4" />
                               </IconButton>
-                            )}
-                          </div>
-                        </td>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}

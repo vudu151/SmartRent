@@ -10,10 +10,12 @@ import {
 import routes from "@/routes";
 import { useMaterialTailwindController, setOpenConfigurator, setOpenSidenav } from "@/context";
 import { NavbarHeaderProvider } from "@/context/navbar-header";
+import { useAuth } from "@/smartrent/auth";
 
 export function Dashboard() {
   const [controller, dispatch] = useMaterialTailwindController();
   const { sidenavType } = controller;
+  const { user } = useAuth();
 
   return (
     <NavbarHeaderProvider>
@@ -52,9 +54,12 @@ export function Dashboard() {
               {routes.map(
                 ({ layout, pages }) =>
                   layout === "dashboard" &&
-                  pages.map(({ path, element }) => (
-                    <Route key={path} exact path={path} element={element} />
-                  ))
+                  pages.map(({ path, element, allowedRoles }) => {
+                    if (allowedRoles && !allowedRoles.includes(user?.role)) {
+                      return null; // or return a Not Authorized component
+                    }
+                    return <Route key={path} exact path={path} element={element} />;
+                  })
               )}
             </Routes>
           </div>

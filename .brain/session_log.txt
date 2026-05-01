@@ -16,3 +16,8 @@
 [18:22] DONE task: Assert Guard fetch is blocked by AOP / Spring Security config
 [18:22] DONE task: Assert Tenant fetch hits specific API and returns error logically instead of crashing
 [18:22] END phase-05-testing ?
+[05:25] START phase-guard-role
+[05:25] DONE task: Backend Security config (Restrict Admin APIs)
+[05:25] DONE task: Frontend UI permissions (Hide rent prices, Hide Add/Edit/Delete actions)
+[05:25] DONE task: Keep Ticket Status editable for Guard
+[05:25] END phase-guard-role ✅

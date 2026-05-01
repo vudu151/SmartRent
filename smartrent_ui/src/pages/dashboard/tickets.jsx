@@ -11,6 +11,7 @@ import {
 } from "@material-tailwind/react";
 import { WrenchScrewdriverIcon, CheckCircleIcon, ExclamationTriangleIcon, PlayIcon, PlusIcon, PencilIcon } from "@heroicons/react/24/solid";
 import { useNavbarHeader } from "@/context/navbar-header";
+import { useAuth } from "@/smartrent/auth";
 import { getTickets, updateTicketStatus } from "@/api/ticket";
 import { TicketModal } from "./ticket-modal";
 import { showToast } from "@/lib/swal";
@@ -19,6 +20,8 @@ import { ImageThumbnail } from "@/components/image-lightbox";
 export function Tickets() {
   const { setNavbarHeader } = useNavbarHeader();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isGuard = user?.role === "GUARD";
   const [tickets, setTickets] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [filterStr, setFilterStr] = React.useState("");

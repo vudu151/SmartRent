@@ -223,7 +223,7 @@ export function Residents() {
               <table className="w-full min-w-max table-auto text-left">
                 <thead>
                   <tr>
-                    {["Ảnh", "Họ tên", "Số điện thoại", "Phòng", "CMND/CCCD", "Trạng thái", "Thao tác"].map((head) => (
+                    {["Ảnh", "Họ tên", "Số điện thoại", "Phòng", "CMND/CCCD", "Trạng thái", !isGuard ? "Thao tác" : null].filter(Boolean).map((head) => (
                       <th key={head} className="border-b border-blue-gray-50 py-3 px-5">
                         <Typography variant="small" className="text-[11px] font-bold uppercase text-blue-gray-400">{head}</Typography>
                       </th>
@@ -265,12 +265,12 @@ export function Residents() {
                         <td className={className}>
                           <Chip variant="gradient" size="sm" value={getStatusLabel(res.status)} color={getStatusColor(res.status)} className="py-0.5 px-2 text-[11px] font-medium w-fit" />
                         </td>
-                        <td className={className}>
-                          <div className="flex gap-2">
-                            <IconButton size="sm" variant="text" color="blue-gray" title="Chi tiết" onClick={() => handleEdit(res.id)}>
-                              <PencilIcon className="h-4 w-4 text-blue-gray-500" />
-                            </IconButton>
-                            {!isGuard && (
+                        {!isGuard && (
+                          <td className={className}>
+                            <div className="flex gap-2">
+                              <IconButton size="sm" variant="text" color="blue-gray" title="Chi tiết" onClick={() => handleEdit(res.id)}>
+                                <PencilIcon className="h-4 w-4 text-blue-gray-500" />
+                              </IconButton>
                               <IconButton 
                                 size="sm" 
                                 variant="text" 
@@ -281,9 +281,9 @@ export function Residents() {
                               >
                                 <TrashIcon className={`h-4 w-4 ${res.status === "ACTIVE" ? "text-gray-400" : "text-red-500"}`} />
                               </IconButton>
-                            )}
-                          </div>
-                        </td>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}

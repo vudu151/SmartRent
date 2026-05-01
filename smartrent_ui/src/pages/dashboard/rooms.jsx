@@ -23,6 +23,7 @@ import { RoomModal } from "./room-form";
 import { AssetModal } from "./asset-modal";
 import { LiquidationModal } from "./liquidation-modal";
 import { showToast } from "@/lib/swal";
+import { useAuth } from "@/smartrent/auth";
 import { env } from "@/config/env";
 import { ImageThumbnail } from "@/components/image-lightbox";
 import { ErrorState } from "@/components/error-state";
@@ -32,6 +33,7 @@ export function Rooms() {
   const { darkMode } = controller;
   const { setNavbarHeader } = useNavbarHeader();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [rooms, setRooms] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -112,15 +114,17 @@ export function Rooms() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Button
-            variant="gradient"
-            color="indigo"
-            size="sm"
-            className="flex items-center gap-2 whitespace-nowrap"
-            onClick={handleAdd}
-          >
-            <PlusIcon strokeWidth={2.5} className="h-4 w-4" /><span className="hidden sm:inline"> Thêm Phòng</span>
-          </Button>
+          {user?.role !== "GUARD" && (
+            <Button
+              variant="gradient"
+              color="indigo"
+              size="sm"
+              className="flex items-center gap-2 whitespace-nowrap"
+              onClick={handleAdd}
+            >
+              <PlusIcon strokeWidth={2.5} className="h-4 w-4" /><span className="hidden sm:inline"> Thêm Phòng</span>
+            </Button>
+          )}
         </div>
       </div>
     );
@@ -221,10 +225,10 @@ export function Rooms() {
                       { label: "Tầng", align: "text-left" },
                       { label: "Loại", align: "text-left" },
                       { label: "Diện tích (m²)", align: "text-left" },
-                      { label: "Giá (VNĐ)", align: "text-left" },
+                      user?.role !== "GUARD" ? { label: "Giá (VNĐ)", align: "text-left" } : null,
                       { label: "Trạng thái", align: "text-left" },
-                      { label: "Thao tác", align: "text-left" }
-                    ].map(({ label, align }) => (
+                      user?.role !== "GUARD" ? { label: "Thao tác", align: "text-left" } : null
+                    ].filter(Boolean).map(({ label, align }) => (
                       <th
                         key={label}
                         className={`border-b border-blue-gray-50 py-3 px-5 ${align}`}
@@ -274,11 +278,13 @@ export function Rooms() {
                             {room.area || "-"}
                           </Typography>
                         </td>
-                        <td className={className}>
-                          <Typography variant="small" color="blue-gray" className="font-semibold">
-                            {room.price != null ? Number(room.price).toLocaleString() : "-"}
-                          </Typography>
-                        </td>
+                        {user?.role !== "GUARD" && (
+                          <td className={className}>
+                            <Typography variant="small" color="blue-gray" className="font-semibold">
+                              {room.price != null ? Number(room.price).toLocaleString() : "-"}
+                            </Typography>
+                          </td>
+                        )}
                         <td className={className}>
                           <Chip
                             variant="gradient"
@@ -288,38 +294,40 @@ export function Rooms() {
                             className="py-0.5 px-2 text-[11px] font-medium w-fit"
                           />
                         </td>
-                        <td className={className}>
-                          <div className="flex gap-2">
-                            <IconButton size="sm" variant="text" color="blue-gray" title="Chỉnh sửa thông tin phòng" onClick={() => handleEdit(room.id)}>
-                              <PencilIcon className="h-4 w-4 text-blue-gray-500" />
-                            </IconButton>
-                            <IconButton size="sm" variant="text" color="indigo" title="Xem/Quản lý tài sản phòng" onClick={() => { setRoomForAsset(room); setAssetModalOpen(true); }}>
-                              <ArchiveBoxIcon className="h-4 w-4 text-indigo-500" />
-                            </IconButton>
-                            <IconButton 
-                              size="sm" 
-                              variant="text" 
-                              color="red" 
-                              title={room.status !== "VACANT" ? "Chỉ có thể xóa phòng Trống" : "Xóa phòng này"}
-                              disabled={room.status !== "VACANT"}
-                              onClick={() => { setRoomToDelete(room); setDeleteDialogOpen(true); }}
-                            >
-                              <TrashIcon className={`h-4 w-4 ${room.status !== "VACANT" ? "text-gray-400" : "text-red-500"}`} />
-                            </IconButton>
-                            {room.status === "OCCUPIED" && (
-                              <IconButton
-                                size="sm"
-                                variant="gradient"
-                                color="red"
-                                onClick={() => handleLiquidationClick(room)}
-                                disabled={liquidating}
-                                title="Thanh lý hợp đồng / Trả phòng"
-                              >
-                                <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                        {user?.role !== "GUARD" && (
+                          <td className={className}>
+                            <div className="flex gap-2">
+                              <IconButton size="sm" variant="text" color="blue-gray" title="Chỉnh sửa thông tin phòng" onClick={() => handleEdit(room.id)}>
+                                <PencilIcon className="h-4 w-4 text-blue-gray-500" />
                               </IconButton>
-                            )}
-                          </div>
-                        </td>
+                              <IconButton size="sm" variant="text" color="indigo" title="Xem/Quản lý tài sản phòng" onClick={() => { setRoomForAsset(room); setAssetModalOpen(true); }}>
+                                <ArchiveBoxIcon className="h-4 w-4 text-indigo-500" />
+                              </IconButton>
+                              <IconButton 
+                                size="sm" 
+                                variant="text" 
+                                color="red" 
+                                title={room.status !== "VACANT" ? "Chỉ có thể xóa phòng Trống" : "Xóa phòng này"}
+                                disabled={room.status !== "VACANT"}
+                                onClick={() => { setRoomToDelete(room); setDeleteDialogOpen(true); }}
+                              >
+                                <TrashIcon className={`h-4 w-4 ${room.status !== "VACANT" ? "text-gray-400" : "text-red-500"}`} />
+                              </IconButton>
+                              {room.status === "OCCUPIED" && (
+                                <IconButton
+                                  size="sm"
+                                  variant="gradient"
+                                  color="red"
+                                  onClick={() => handleLiquidationClick(room)}
+                                  disabled={liquidating}
+                                  title="Thanh lý hợp đồng / Trả phòng"
+                                >
+                                  <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                                </IconButton>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}

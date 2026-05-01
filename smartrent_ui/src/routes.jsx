@@ -32,7 +32,7 @@ export const routes = [
         name: "Dashboard",
         path: "/home",
         element: <Home />,
-        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER"],
+        allowedRoles: ["SUPER_ADMIN", "TENANT_MANAGER", "GUARD"],
       },
       {
         icon: <RectangleStackIcon {...icon} />,

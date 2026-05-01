@@ -1,15 +1,20 @@
 {
   "updated_at": "2026-05-02T04:55:00+07:00",
   "working_on": {
-    "feature": "Responsive UI Optimization",
-    "task": "Toàn bộ 28 màn hình cho 3 dải thiết bị",
+    "feature": "Guard Role (Phân quyền Bảo vệ)",
+    "task": "Hoàn tất kiểm thử và tinh chỉnh luồng nghiệp vụ",
     "status": "completed",
     "files": [
-      "smartrent_ui/src/pages/dashboard/*",
-      "smartrent_ui/src/widgets/layout/*"
+      "smartrent_ui/src/pages/dashboard/rooms.jsx",
+      "smartrent_ui/src/pages/dashboard/residents.jsx",
+      "smartrent_ui/src/pages/dashboard/vehicles.jsx",
+      "smartrent_ui/src/pages/dashboard/tickets.jsx",
+      "smartrent_ui/src/pages/dashboard/room-detail.jsx",
+      "smartrent_ui/src/pages/dashboard/home.jsx",
+      "src/main/java/com/smartrent/config/SecurityConfig.java"
     ],
     "blockers": [],
-    "notes": "Đã hoàn thành Phase 01-05. Fix các lỗi tràn layout trên mobile (table, flex, modal)."
+    "notes": "Đã chặn GET/POST API hóa đơn, hợp đồng. Ẩn giá tiền và các nút thao tác chỉnh sửa tài sản/người trên UI. Guard được phép cập nhật trạng thái sự cố."
   },
   "pending_tasks": [
     { "task": "Làm Task 5: Thêm tính năng xuất Excel danh sách doanh thu/hóa đơn trên trang Báo cáo", "priority": "high", "notes": "Để chủ trọ tiện đối soát." },
@@ -17,6 +22,12 @@
     { "task": "Làm Task 6: Audit Log", "priority": "low", "notes": "Lưu vết thao tác người dùng." }
   ],
   "recent_changes": [
+    {
+      "timestamp": "2026-05-02T05:25:00+07:00",
+      "type": "feature",
+      "description": "Hoàn thiện Role Guard: Ẩn thông tin tài chính (giá thuê, phí tháng) và các thao tác (Thêm/Sửa/Xóa). Guard chỉ có quyền xem, báo sự cố và cập nhật tiến độ sự cố.",
+      "files": ["dashboard/*.jsx", "config/SecurityConfig.java"]
+    },
     {
       "timestamp": "2026-05-02T04:55:00+07:00",
       "type": "feature",

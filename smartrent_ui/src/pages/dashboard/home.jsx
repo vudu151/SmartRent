@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/smartrent/auth";
 import {
   Typography,
   Card,
@@ -17,6 +18,8 @@ import {
   CalendarDaysIcon,
   CheckBadgeIcon,
   WrenchScrewdriverIcon,
+  TruckIcon,
+  UserCircleIcon,
 } from "@heroicons/react/24/solid";
 import { StatisticsCard } from "@/widgets/cards";
 import { StatisticsChart } from "@/widgets/charts";
@@ -26,7 +29,8 @@ import { useNavbarHeader } from "@/context/navbar-header";
 export function Home() {
   const { setNavbarHeader } = useNavbarHeader();
   const navigate = useNavigate();
-  const [loading, setLoading] = React.useState(true);
+  const { user } = useAuth();
+  const [loading, setLoading] = React.useState(user?.role !== "GUARD");
   const [data, setData] = React.useState(null);
   const [months, setMonths] = React.useState(6); // Default 6 months
 
@@ -59,6 +63,7 @@ export function Home() {
   }, [setNavbarHeader, months]);
 
   const loadDashboard = React.useCallback(async () => {
+    if (user?.role === "GUARD") return;
     try {
       setLoading(true);
       const summary = await getDashboardSummary(months);
@@ -78,6 +83,43 @@ export function Home() {
   React.useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
+
+  if (user?.role === "GUARD") {
+    return (
+      <div className="mt-12 flex flex-col items-center pb-8 text-center px-4">
+        <div className="bg-indigo-50 p-6 rounded-full mb-6">
+          <WrenchScrewdriverIcon className="w-16 h-16 text-indigo-500" />
+        </div>
+        <Typography variant="h3" color="blue-gray" className="mb-2">Bảng Điều Khiển An Ninh</Typography>
+        <Typography color="gray" className="mb-10 max-w-lg">
+          Xin chào! Chúc bạn một ca trực hiệu quả. Bạn có thể tra cứu thông tin phòng, xác minh danh tính cư dân, kiểm tra phương tiện ra vào hoặc báo cáo các sự cố hỏng hóc trong khu trọ.
+        </Typography>
+        
+        <div className="flex flex-wrap justify-center gap-4 w-full max-w-2xl">
+          <Card className="w-full sm:w-[200px] cursor-pointer hover:shadow-lg transition-shadow border border-blue-gray-50" onClick={() => navigate("/dashboard/residents")}>
+            <CardBody className="text-center p-6">
+              <UserCircleIcon className="w-8 h-8 mx-auto text-green-500 mb-3" />
+              <Typography variant="h6" color="blue-gray">Cư dân</Typography>
+            </CardBody>
+          </Card>
+          
+          <Card className="w-full sm:w-[200px] cursor-pointer hover:shadow-lg transition-shadow border border-blue-gray-50" onClick={() => navigate("/dashboard/vehicles")}>
+            <CardBody className="text-center p-6">
+              <TruckIcon className="w-8 h-8 mx-auto text-orange-500 mb-3" />
+              <Typography variant="h6" color="blue-gray">Phương tiện</Typography>
+            </CardBody>
+          </Card>
+
+          <Card className="w-full sm:w-[200px] cursor-pointer hover:shadow-lg transition-shadow border border-blue-gray-50" onClick={() => navigate("/dashboard/tickets")}>
+            <CardBody className="text-center p-6">
+              <WrenchScrewdriverIcon className="w-8 h-8 mx-auto text-red-500 mb-3" />
+              <Typography variant="h6" color="blue-gray">Báo sự cố</Typography>
+            </CardBody>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (loading && !data) {
     return <div className="p-8 text-center"><Typography>Đang tải dữ liệu báo cáo...</Typography></div>;
